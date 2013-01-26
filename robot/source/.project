@@ -3,6 +3,7 @@
 	<name>Kwarqs2013</name>
 	<comment></comment>
 	<projects>
+		<project>fake-wpilib</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

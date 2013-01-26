@@ -3,6 +3,7 @@
 	<name>ElectricalTest</name>
 	<comment></comment>
 	<projects>
+		<project>fake-wpilib</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
