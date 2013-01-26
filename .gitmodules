@@ -1,0 +1,3 @@
+[submodule "fake-wpilib"]
+	path = fake-wpilib
+	url = https://dev.team2423.org/git/fake-wpilib
