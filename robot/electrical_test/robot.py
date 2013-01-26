@@ -28,6 +28,8 @@ switch2 = wpilib.DigitalInput(2)
 
 potentiometer = wpilib.DigitalInput(3)
 
+set_wheel_spd = 28
+
 ANGLE_MOTOR_MIN_POSITION = 0.0
 ANGLE_MOTOR_MAX_POSITION = 1.0
 ANGLE_MOTOR_P = 250.0
@@ -42,7 +44,7 @@ SHOOTER_MOTOR_I = 0.0
 SHOOTER_MOTOR_D = 0.0
 
 #Motor Speeds
- feed_motor_spd = 1
+feed_motor_spd = 1
 
 class MyRobot(wpilib.SimpleRobot):
 
@@ -56,17 +58,17 @@ class MyRobot(wpilib.SimpleRobot):
         shooter_encoder.SetDistancePerPulse( 1.0 / 16.0 )
         shooter_encoder.Start()
 
-    def RobotInit
+    def RobotInit(self):
         pass
 
-    def Disabled
+    def Disabled(self):
 
         print("MyRobot::Disabled()")
     
         while self.IsDisabled():
             wpilib.Wait(0.01)
             
-    def Autonomous
+    def Autonomous(self):
     
         '''Called during autonomous mode'''
         
@@ -76,11 +78,11 @@ class MyRobot(wpilib.SimpleRobot):
         while self.IsAutonomous() and self.IsEnabled():
             wpilib.Wait(0.01)
             
-    def OperatorControl
+    def OperatorControl(self):
     
         print("MyRobot::OperatorControl()")
         
-        dog = Self.GetWatchdog()
+        dog =self.GetWatchdog()
         dog.SetEnabled(True)
         dog.SetExperation(0.25)
         
@@ -92,14 +94,20 @@ class MyRobot(wpilib.SimpleRobot):
         #Feed Motor
         if stick2.GetTrigger():
             feed_motor.Set(feed_motor_spd)
-        encoder.GetRate()
+           
+
         
         #Shooter Motor
-        if stick2.GetRawButton()
+        if stick2.GetRawButton(2):
             shooter_motor_spd = 1
+            shooter_motor.Set(shooter_motor_spd)
+            #display on SmartDashboard current spd and set spd
+        
+        if stick1.GetRawButton(3):
+            #make angle move up by certain amount. Confused by P I D variables.
             
         
-        while Self.IsOperatorControl() and Self.IsEnabled():
+        while self.IsOperatorControl() and self.IsEnabled():
             dog.Feed()
             wpilib.Wait(0.04)
 
