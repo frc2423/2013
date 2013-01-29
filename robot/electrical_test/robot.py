@@ -2,8 +2,10 @@ print( "Loading: Kwarqs2013 electrical testing program" )
 
 try:    
     import wpilib
+    import wpilib.SmartDashboard
 except ImportError:
     import fake_wpilib as wpilib
+    import fake_wpilib.SmartDashboard
 
 #Joysticks
 stick1 = wpilib.Joystick(1)
@@ -14,6 +16,11 @@ l_motor = wpilib.Jaguar(2)
 r_motor = wpilib.Jaguar(1)
 feed_motor = wpilib.Jaguar(3)
 
+#Variables
+switch1 = "Switch 1"
+switch2 = "Switch 2"
+
+  
 
 #CAN Motoros
 shooter_motor = wpilib.CANJaguar
@@ -52,11 +59,6 @@ class MyRobot(wpilib.SimpleRobot):
         '''Constructor'''
         
         wpilib.SimpleRobot.__init__(self)
-        self.drive = wpilib.RobotDrive( l_motor, r_motor )
-        angle_motor.SetPositionReference( wpilib.CANJaguar.kPosRef_Potentiometer )
-        angle_motor.ConfigPotentiometerTurns( 1 )
-        shooter_encoder.SetDistancePerPulse( 1.0 / 16.0 )
-        shooter_encoder.Start()
 
     def RobotInit(self):
         pass
@@ -91,23 +93,19 @@ class MyRobot(wpilib.SimpleRobot):
 
         self.drive.ArcadeDrive(stick1)
         
-        #Feed Motor
-        if stick2.GetTrigger():
-            feed_motor.Set(feed_motor_spd)
-           
-
-        
-        #Shooter Motor
-        if stick2.GetRawButton(2):
-            shooter_motor_spd = 1
-            shooter_motor.Set(shooter_motor_spd)
-            #display on SmartDashboard current spd and set spd
-        
-        if stick1.GetRawButton(3):
-            #make angle move up by certain amount. Confused by P I D variables.
-            
-        
         while self.IsOperatorControl() and self.IsEnabled():
+            #Feed Motor
+            if stick2.GetTrigger():
+                feed_motor.Set(feed_motor_spd)
+            
+            #Shooter Motor
+            if stick2.GetRawButton(2):
+                shooter_motor_spd = 1
+                shooter_motor.Set(shooter_motor_spd)
+            #display on SmartDashboard current spd and set spd
+            
+            if stick1.GetRawButton(3):
+                #make angle move up by certain amount. Confused by P I D variables.
             dog.Feed()
             wpilib.Wait(0.04)
 
