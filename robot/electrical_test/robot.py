@@ -9,22 +9,21 @@ except ImportError:
 
 #Joysticks
 stick1 = wpilib.Joystick(1)
-stick2 = wpilib.Joystick2(2)    
+stick2 = wpilib.Joystick(2)
 
 #PWM Motors
 l_motor = wpilib.Jaguar(2)
 r_motor = wpilib.Jaguar(1)
-feed_motor = wpilib.Jaguar(3)
+
 
 #Variables
 switch1 = "Switch 1"
 switch2 = "Switch 2"
 
-  
-
 #CAN Motoros
-shooter_motor = wpilib.CANJaguar
-angle_motor = wpilib.CANJaguar
+shooter_motor = wpilib.CANJaguar(1)
+angle_motor = wpilib.CANJaguar(2)
+feed_motor = wpilib.CANJaguar(3)
 
 shooter_encoder = wpilib.Encoder(10,11)
 
@@ -34,21 +33,6 @@ switch1 = wpilib.DigitalInput(1)
 switch2 = wpilib.DigitalInput(2)
 
 potentiometer = wpilib.DigitalInput(3)
-
-set_wheel_spd = 28
-
-ANGLE_MOTOR_MIN_POSITION = 0.0
-ANGLE_MOTOR_MAX_POSITION = 1.0
-ANGLE_MOTOR_P = 250.0
-ANGLE_MOTOR_I = 0.0
-ANGLE_MOTOR_D = 0.0
-
-# shooter wheel stuff
-ENCODER_TURNS_PER_REVOLUTION = 360
-        
-SHOOTER_MOTOR_P = 100.0
-SHOOTER_MOTOR_I = 0.0
-SHOOTER_MOTOR_D = 0.0
 
 #Motor Speeds
 feed_motor_spd = 1
@@ -84,7 +68,7 @@ class MyRobot(wpilib.SimpleRobot):
     
         print("MyRobot::OperatorControl()")
         
-        dog =self.GetWatchdog()
+        dog = self.GetWatchdog()
         dog.SetEnabled(True)
         dog.SetExperation(0.25)
         
@@ -105,7 +89,7 @@ class MyRobot(wpilib.SimpleRobot):
             #display on SmartDashboard current spd and set spd
             
             if stick1.GetRawButton(3):
-                #make angle move up by certain amount. Confused by P I D variables.
+                pass
             dog.Feed()
             wpilib.Wait(0.04)
 
