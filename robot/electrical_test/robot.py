@@ -17,16 +17,22 @@ r_motor = wpilib.Jaguar(1)
 
 
 #Variables
-switch1 = "Switch 1"
-switch2 = "Switch 2"
-
+switch_1 = "Switch 1"
+switch_2 = "Switch 2"
+shootermotor = "Shooter Motor"
+anglemotor = "Angle Motor"
+feedmotor = "Feed Motor"
+lmotor = "Left Drive Motor"
+rmotor = "Right Drive Motor"
+shooterencoder = "Shooter Encoder"
 #CAN Motoros
 shooter_motor = wpilib.CANJaguar(1)
 angle_motor = wpilib.CANJaguar(2)
 feed_motor = wpilib.CANJaguar(3)
-
-shooter_encoder = wpilib.Encoder(10,11)
-
+#needs to be connected Jaguar
+shooter_encoder = wpilib.AnalogChannel(1)
+#needs to be connected to jaguar
+#chamber_sensor dectets frisbees being held
 chamber_sensor = wpilib.AnalogChannel(5)
 
 switch1 = wpilib.DigitalInput(1)
@@ -63,7 +69,7 @@ class MyRobot(wpilib.SimpleRobot):
         self.GetWatchdog().SetEnabled(False)
         while self.IsAutonomous() and self.IsEnabled():
             wpilib.Wait(0.01)
-            
+        
     def OperatorControl(self):
     
         print("MyRobot::OperatorControl()")
@@ -81,15 +87,16 @@ class MyRobot(wpilib.SimpleRobot):
             #Feed Motor
             if stick2.GetTrigger():
                 feed_motor.Set(feed_motor_spd)
-            
+            if stick2.GetRawButton(4)
+                feed_motor.GetPosition()
             #Shooter Motor
             if stick2.GetRawButton(2):
                 shooter_motor_spd = 1
                 shooter_motor.Set(shooter_motor_spd)
             #display on SmartDashboard current spd and set spd
-            
+            #Angle Motor
             if stick1.GetRawButton(3):
-                pass
+                angle_motor.GetPosition()
             dog.Feed()
             wpilib.Wait(0.04)
 
