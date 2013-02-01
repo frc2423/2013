@@ -46,6 +46,7 @@ public class FrisbeeUI {
 	private final static double DELTA_T = .001;
 	private final static double TOLERANCE = .2; //+ or - m
 	private final static double METER_CONVERSION = .3048;
+	private final static double MAX_ANGLE = 50;
 	
 	private JFrame frmFrisbeeSim;
 	private JTextField txtDistance;
@@ -55,6 +56,8 @@ public class FrisbeeUI {
 	private ChartPanel pnlGraph;
 	private JTextField txtAngle;
 	private JLabel lblAngleToShoo;
+	private JTextField txtSpeed;
+	private JLabel lblSpeedfts;
 
 	/**
 	 * Launch the application.
@@ -87,14 +90,16 @@ public class FrisbeeUI {
 	public double[] GetHeightAndDistance()
 	{
 		double x = Double.parseDouble(txtDistance.getText());
-		double y = Double.parseDouble(txtDistance.getText());
+		double y = Double.parseDouble(txtHeight.getText());
+		double speed = Double.parseDouble(txtSpeed.getText());
 		//convert to meters
 		x *= METER_CONVERSION;
 		y *= METER_CONVERSION;
-		double returnDouble[] = {Double.parseDouble(txtDistance.getText()),
-							Double.parseDouble(txtHeight.getText())};
+		speed *= METER_CONVERSION;
+		double returnDouble[] = {x, y, speed};
 		return returnDouble;
 	}
+	
 	private void Plot(XYSeriesCollection dataSet)
 	{
 		pnlGraph.setChart(ChartFactory.createXYLineChart(
@@ -108,16 +113,17 @@ public class FrisbeeUI {
 						false// Configure chart to generate URLs?
 						));
 	}
+	
 	private void FindPlotAngle()
 	{
 		double[] target = GetHeightAndDistance();
 		XYSeriesCollection dataSet = new XYSeriesCollection();
 		boolean possible = false;
-		for( double angle = 0; angle < 30; angle += .1 )
+		for( double angle = 0; angle < MAX_ANGLE; angle += .1 )
 		{
 			//speed is constant but angle determines speed of X and Y
-			double speedX = SPEED * Math.cos(Math.toRadians(angle));
-			double speedY = SPEED * Math.sin(Math.toRadians(angle));
+			double speedX = target[2] * Math.cos(Math.toRadians(angle));
+			double speedY = target[2] * Math.sin(Math.toRadians(angle));
 			//calculate the trajectory
 			XYSeries xyCord = Frisbee.simulate(HEIGHT, speedX, speedY, angle, DELTA_T);
 			//if the max doesn't reach the goal no use in trying to find
@@ -135,8 +141,8 @@ public class FrisbeeUI {
 				double x = point.getXValue();
 				double y = point.getYValue();
 				//if the distance is with in tolerance we are good
-				double diffX = x - target[0];
-				double diffY = y - target[1];
+				double diffX = x - target[0]/METER_CONVERSION;
+				double diffY = y - target[1]/METER_CONVERSION;
 				double diff = Math.sqrt(Math.pow(diffX, 2) + Math.pow(diffY, 2));
 				if(diff < TOLERANCE)
 				{
@@ -187,13 +193,6 @@ public class FrisbeeUI {
 					txtDistance.setText("0.0");
 			}
 		});
-		txtDistance.addFocusListener(new FocusAdapter() {
-		//	@Override
-			/*public void focusLost(FocusEvent e) {
-				if (txtDistance.getText() == "");
-					txtDistance.setText("0.0");
-			}*/
-		});
 		txtDistance.setHorizontalAlignment(SwingConstants.CENTER);
 		txtDistance.setText("0.0");
 		txtDistance.addKeyListener(new KeyAdapter() {
@@ -210,7 +209,6 @@ public class FrisbeeUI {
 		txtDistance.setColumns(10);
 		
 		txtHeight = new JTextField();
-		springLayout.putConstraint(SpringLayout.SOUTH, txtHeight, -6, SpringLayout.NORTH, pnlGraph);
 		springLayout.putConstraint(SpringLayout.EAST, txtHeight, -53, SpringLayout.EAST, frmFrisbeeSim.getContentPane());
 		txtHeight.setHorizontalAlignment(SwingConstants.CENTER);
 		txtHeight.setText("0.0");
@@ -228,13 +226,15 @@ public class FrisbeeUI {
 		frmFrisbeeSim.getContentPane().add(txtHeight);
 		
 		lblXDistance = new JLabel("X Distance(ft)");
+		springLayout.putConstraint(SpringLayout.NORTH, lblXDistance, 11, SpringLayout.NORTH, frmFrisbeeSim.getContentPane());
 		springLayout.putConstraint(SpringLayout.WEST, lblXDistance, 47, SpringLayout.WEST, frmFrisbeeSim.getContentPane());
 		frmFrisbeeSim.getContentPane().add(lblXDistance);
 		
 		lblHeight = new JLabel("Height(ft)");
-		springLayout.putConstraint(SpringLayout.NORTH, lblHeight, 11, SpringLayout.NORTH, frmFrisbeeSim.getContentPane());
-		springLayout.putConstraint(SpringLayout.NORTH, lblXDistance, 0, SpringLayout.NORTH, lblHeight);
-		springLayout.putConstraint(SpringLayout.EAST, lblHeight, -130, SpringLayout.EAST, frmFrisbeeSim.getContentPane());
+		springLayout.putConstraint(SpringLayout.NORTH, txtHeight, 6, SpringLayout.SOUTH, lblHeight);
+		springLayout.putConstraint(SpringLayout.SOUTH, txtHeight, 26, SpringLayout.SOUTH, lblHeight);
+		springLayout.putConstraint(SpringLayout.NORTH, lblHeight, 0, SpringLayout.NORTH, lblXDistance);
+		springLayout.putConstraint(SpringLayout.EAST, lblHeight, -91, SpringLayout.EAST, frmFrisbeeSim.getContentPane());
 		frmFrisbeeSim.getContentPane().add(lblHeight);
 		
 		Component glue = Box.createGlue();
@@ -265,9 +265,23 @@ public class FrisbeeUI {
 		txtAngle.setColumns(10);
 		
 		lblAngleToShoo = new JLabel("Shooting Angle (deg)");
-		springLayout.putConstraint(SpringLayout.WEST, lblAngleToShoo, 0, SpringLayout.WEST, txtAngle);
+		springLayout.putConstraint(SpringLayout.WEST, lblAngleToShoo, 516, SpringLayout.WEST, frmFrisbeeSim.getContentPane());
 		springLayout.putConstraint(SpringLayout.SOUTH, lblAngleToShoo, -6, SpringLayout.NORTH, txtAngle);
-		springLayout.putConstraint(SpringLayout.EAST, lblAngleToShoo, 0, SpringLayout.EAST, lblHeight);
+		springLayout.putConstraint(SpringLayout.EAST, lblAngleToShoo, -130, SpringLayout.EAST, frmFrisbeeSim.getContentPane());
 		frmFrisbeeSim.getContentPane().add(lblAngleToShoo);
+		
+		txtSpeed = new JTextField();
+		springLayout.putConstraint(SpringLayout.WEST, txtSpeed, 207, SpringLayout.EAST, txtDistance);
+		springLayout.putConstraint(SpringLayout.SOUTH, txtSpeed, -6, SpringLayout.NORTH, pnlGraph);
+		txtSpeed.setText(String.format( "%.2f", SPEED / METER_CONVERSION));
+		txtSpeed.setHorizontalAlignment(SwingConstants.CENTER);
+		txtSpeed.setColumns(10);
+		frmFrisbeeSim.getContentPane().add(txtSpeed);
+		
+		lblSpeedfts = new JLabel("speed(ft/s)");
+		springLayout.putConstraint(SpringLayout.NORTH, lblSpeedfts, 0, SpringLayout.NORTH, lblXDistance);
+		springLayout.putConstraint(SpringLayout.WEST, lblSpeedfts, 0, SpringLayout.WEST, txtSpeed);
+		frmFrisbeeSim.getContentPane().add(lblSpeedfts);
+		
 	}
 }
