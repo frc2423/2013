@@ -2,10 +2,8 @@ print( "Loading: Kwarqs2013 electrical testing program" )
 
 try:    
     import wpilib
-    import wpilib.SmartDashboard
 except ImportError:
     import fake_wpilib as wpilib
-    import fake_wpilib.SmartDashboard
     
 #Variables
 switch_1 = "Switch 1"
@@ -93,10 +91,10 @@ class MyRobot(wpilib.SimpleRobot):
                 
             shooter_encoder_position = shooter_motor.GetPosition()
             
-            SmartDashboard.PutDouble(feedMotor, feed_motor_spd)
-            SmartDashboard.PutDouble(angleMotor, angle_motor_position)
-            SmartDashboard.PutDouble(frisbeeCount, frisbee_count)
-            SmartDashboard.PutDouble(shooterEncoder, shooter_encoder_position)
+            wpilib.SmartDashboard.PutDouble(feedMotor, feed_motor_spd)
+            wpilib.SmartDashboard.PutDouble(angleMotor, angle_motor_position)
+            wpilib.SmartDashboard.PutDouble(frisbeeCount, frisbee_count)
+            wpilib.SmartDashboard.PutDouble(shooterEncoder, shooter_encoder_position)
             
             dog.Feed()
             wpilib.Wait(0.04)
