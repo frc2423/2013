@@ -146,14 +146,11 @@ def user_save_image(img):
             if not overwrite:
                 continue
     
-        try:
-            cv2.imwrite(filename, img)
-        except IOError:
-            print "Error writing to '%s'!" % filename
-        else:
+        if cv2.imwrite(filename, img):
             print "Image saved to '%s'" % filename
             break
-    
+        else:
+            print "Error writing to '%s'!" % filename
 
     
 class FakeCapture(object):
