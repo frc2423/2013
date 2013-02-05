@@ -125,10 +125,26 @@ def user_save_image(img):
     while True:
         filename = raw_input('Save to .png: ')
     
+        if filename == '':
+            continue
+    
         if not filename.endswith('.png'):
             filename = filename + '.png'
             
         filename = os.path.abspath(filename)
+    
+        if os.path.exists(filename):
+            overwrite = False
+            while True:
+                yn = raw_input("'%s' exists! Overwrite? [y/n] " % filename).lower()
+                if yn == 'y':
+                    overwrite = True
+                    break
+                elif yn == 'n':
+                    break
+                
+            if not overwrite:
+                continue
     
         try:
             cv2.imwrite(filename, img)
