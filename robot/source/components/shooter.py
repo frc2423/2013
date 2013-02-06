@@ -4,24 +4,41 @@ except ImportError:
     import fake_wpilib as wpilib
     
 
-class shooter(object):
+class ShooterWheel(object):
     
-    def __init__(self, motorA, motorS, sensorA, sensorS, shooter_jag, d_speed, d_angle):
+    def __init__(self, motorA, motorS, sensorA, sensorS, shooter_jag, d_speed, d_angle, angle_threshhold, speed_threshhold):
         self.updated = False
         self.shooter_jag = shooter_jag
         self.sensorA = sensorA
         self.sensorS = sensorS
-             
-    def shoot(self, speed, angle):
-        self.shooter_jag
-        self.sensorA
-        self.sensorS 
-        self.speed = speed
-        self.angle = angle
-        if d_speed = speed and d_angle = angle:
-            self.updated = True
+        self.c_speed = sendorA.GetSpeed()
+        self.c_angle = sensorS.GetPosition() 
+        
+     
+     def SetAngle(self):
+        #sets the angle if it is not ready
+        shooter_jag()     
+    
+    def SetSpeed(self):
+        #Sets the speed if it is not ready
+    
+        
+    def IsReadyAngle(self, d_angle):
+        #returns true if desired angle and current angle are equal. 
+        if c_angle > (d_angle - angle_threshhold) or (c_angle < d_angle + 1):
+            return true
+            
         else:
-             self.updated = False
+            shooter_jag.SetAngle
+        
+    def IsReadySpeed(self):
+        #returns true if desired speed and current speed are equal.
+        if c_speed > (d_speed - speed_threshhold) or (c_speed < d_speed + 1):
+            return true
+            
+        else:
+            shooter_jag.SetSpeed   
+        
         
     
     def update(self):
