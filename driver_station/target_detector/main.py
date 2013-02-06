@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 
 import math
 import os.path
@@ -5,6 +6,8 @@ import os.path
 from optparse import OptionParser
 import cv2
 import numpy as np
+
+import daisycv
 
 from imgproc import CvImg, CvContour, colorspace
 
@@ -110,6 +113,7 @@ def last_year(img):
     cvimg.show('test')
     
     
+    
 def user_save_image(img):
     
     # TODO: the image freezes while this is waiting for input. Fix that. 
@@ -152,16 +156,6 @@ def user_save_image(img):
         else:
             print "Error writing to '%s'!" % filename
 
-    
-class FakeCapture(object):
-    '''Pretend to be a VideoCapture device... the synth option doesn't seem to work'''
-    def __init__(self, filename):
-        self.cvimg = CvImg.from_file(filename)
-        
-    def read(self):
-        return True, self.cvimg.img.copy()
-    
-
 
 if __name__ == '__main__':
     
@@ -174,39 +168,64 @@ if __name__ == '__main__':
     parser.add_option('--ip', dest='ip_address', default='10.24.23.11',
                       help='Specify the IP address of the camera')
     
+    parser.add_option('--daisy', dest='daisy', default=False, action='store_true',
+                      help='Run the Miss Daisy image processing code')
+    
     options, args = parser.parse_args()
     
+    # switch between processing functions
+    process_fn = process_image
+    
+    if options.daisy:
+        daisy = daisycv.DaisyCv()
+        
+        def _process_daisy(img):
+            cv2.imshow('test', daisy.processImage(img))
+        
+        process_fn = _process_daisy
+    
+        
     
     if options.static_image is not None:
         print "Opening %s" % options.static_image
-        vc = FakeCapture(options.static_image)
+        cvimg = CvImg.from_file(options.static_image)
+        
+        print 'Starting processing. Press ESC to exit'
+        cvimg.show('original')
+        
+        process_fn(cvimg.img)
+        
+        while True:
+            key = 0xff & cv2.waitKey(1)
+            if key == 27:
+                break        
     else:      
         print "Beginning capture"  
         vc = cv2.VideoCapture('rtsp://%s/axis-media/media.amp' % options.ip_address)
         
-    print 'Starting processing. Press ESC to exit, or SPACE to save the current image'
+        print 'Starting processing. Press ESC to exit, or SPACE to save the current image'
     
-    save = False
+        save = False
     
-    while True:
-        retval, img = vc.read()
-        if retval:
+        while True:
+            retval, img = vc.read()
+            if retval:
+                
+                if save:
+                    user_save_image(img)
+                    save = False
+                
+                process_fn(img)
+            else:
+                print "No image acquired, exiting!"
+                break
             
-            if save:
-                user_save_image(img)
-                save = False
+            key = 0xff & cv2.waitKey(1)
+            if key == 27:
+                break
             
-            cvimg = process_image(img)
-        else:
-            print "No image acquired, exiting!"
-            break
-        
-        key = 0xff & cv2.waitKey(1)
-        if key == 27:
-            break
-        
-        if key == ord(' '):
-            save = True
+            if key == ord(' '):
+                save = True
         
     cv2.destroyAllWindows()
     print "Done."
