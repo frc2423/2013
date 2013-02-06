@@ -1,19 +1,22 @@
 
-
-import cv2
-#import numpy as np
-
 import math
+import os.path
+
+from optparse import OptionParser
+import cv2
+import numpy as np
 
 from imgproc import CvImg, CvContour, colorspace
 
 def process_image(img):
     cvimg = CvImg(img, colorspace.BGR)
     
+    # TODO: image processing goes here
+    
     #cvimg.set_colorspace(colorspace.GRAY)
     #cvimg.equalize_hist()
     
-    cvimg.set_colorspace(colorspace.LAB)
+    #cvimg.set_colorspace(colorspace.LAB)
     
     #for i, c in enumerate(cvimg.split()):
     #    c.threshold_otsu()
@@ -21,7 +24,7 @@ def process_image(img):
     
     cvimg.show('test')
     
-    
+
 def last_year(img):
     
     # TODO: This doesn't quite work yet
@@ -106,25 +109,105 @@ def last_year(img):
     
     cvimg.show('test')
     
+    
+def user_save_image(img):
+    
+    # TODO: the image freezes while this is waiting for input. Fix that. 
+    
+    # Hehe. 
+    timg = img.copy()
+    h, w = timg.shape[:2]
+    cv2.putText(timg, 'OH SNAP!', (w/6,h/2), cv2.FONT_HERSHEY_COMPLEX, 3, (255,255,255), 4)
+    
+    cv2.imshow('test', timg)
+    cv2.waitKey(1)
+    
+    while True:
+        filename = raw_input('Save to .png: ')
+    
+        if filename == '':
+            continue
+    
+        if not filename.endswith('.png'):
+            filename = filename + '.png'
+            
+        filename = os.path.abspath(filename)
+    
+        if os.path.exists(filename):
+            overwrite = False
+            while True:
+                yn = raw_input("'%s' exists! Overwrite? [y/n] " % filename).lower()
+                if yn == 'y':
+                    overwrite = True
+                    break
+                elif yn == 'n':
+                    break
+                
+            if not overwrite:
+                continue
+    
+        if cv2.imwrite(filename, img):
+            print "Image saved to '%s'" % filename
+            break
+        else:
+            print "Error writing to '%s'!" % filename
+
+    
+class FakeCapture(object):
+    '''Pretend to be a VideoCapture device... the synth option doesn't seem to work'''
+    def __init__(self, filename):
+        self.cvimg = CvImg.from_file(filename)
+        
+    def read(self):
+        return True, self.cvimg.img.copy()
+    
+
 
 if __name__ == '__main__':
     
-    print "Beginning capture"
-    vc = cv2.VideoCapture('rtsp://10.24.23.11/axis-media/media.amp')
+    parser = OptionParser()
     
-    print 'Started'
+    parser.add_option('-i',
+                      dest='static_image', default=None,
+                      help='Specify an image file to process')
+    
+    parser.add_option('--ip', dest='ip_address', default='10.24.23.11',
+                      help='Specify the IP address of the camera')
+    
+    options, args = parser.parse_args()
+    
+    
+    if options.static_image is not None:
+        print "Opening %s" % options.static_image
+        vc = FakeCapture(options.static_image)
+    else:      
+        print "Beginning capture"  
+        vc = cv2.VideoCapture('rtsp://%s/axis-media/media.amp' % options.ip_address)
+        
+    print 'Starting processing. Press ESC to exit, or SPACE to save the current image'
+    
+    save = False
     
     while True:
         retval, img = vc.read()
         if retval:
+            
+            if save:
+                user_save_image(img)
+                save = False
+            
             cvimg = process_image(img)
         else:
-            print "No image acquired"
+            print "No image acquired, exiting!"
             break
         
         key = 0xff & cv2.waitKey(1)
         if key == 27:
             break
         
+        if key == ord(' '):
+            save = True
+        
     cv2.destroyAllWindows()
-    print "Exiting"
+    print "Done."
+    

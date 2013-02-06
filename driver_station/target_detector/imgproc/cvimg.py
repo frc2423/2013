@@ -12,6 +12,14 @@ class CvImg(object):
     
     __slots__ = ['img', 'colorspace']
     
+    @staticmethod
+    def from_file(filename):
+        img = cv2.imread(filename)
+        if img is not None:
+            return CvImg(img, colorspace.BGR)
+        
+        raise IOError("Could not open '%s'" % filename)
+    
     def __init__(self, img, colorspace, original=None):
         self.img = img
         self.colorspace = colorspace
