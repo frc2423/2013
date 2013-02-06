@@ -1,7 +1,12 @@
-
+#!/usr/bin/env python
 #
 #    Python port of Miss Daisy's target detection software from 2012
 #    http://www.chiefdelphi.com/media/papers/2676
+#
+#    Requires OpenCV and NumPy to be installed
+#        - Tested on linux with the daisy test images, seems to do the trick
+#
+#    Ported to python by Dustin Spicuzza, Team 2423
 #
 
 import math
@@ -149,9 +154,10 @@ class DaisyCv(object):
             
             azimuth = self.boundAngle0to360Degrees(x*self.kHorizontalFOVDeg/2.0 + heading - self.kShooterOffsetDeg)
             range = (self.kTopTargetHeightIn - self.kCameraHeightIn)/math.tan((y*self.kVerticalFOVDeg/2.0 + self.kCameraPitchDeg) * math.pi/180.0)
-            # rpms
             
-            # send data to someone
+            # get rpms from this data
+            
+            # send data to someone using pynetworktables
             
             # draw the square on the target and show it
             cv2.drawContours(img, [square], -1, self.targetColor, thickness=7)
@@ -175,3 +181,23 @@ class DaisyCv(object):
         contours, hierarchy = cv2.findContours(img, cv2.RETR_LIST, cv2.CHAIN_APPROX_TC89_KCOS)
         return [cv2.convexHull(c, clockwise=True, returnPoints=True) for c in contours]
     
+
+if __name__ == '__main__':
+    
+    if len(sys.argv) == 1:
+        print "Specify an image to process!"
+        exit(1)
+    
+    daisy = DaisyCv()
+    img = cv2.imread(sys.argv[1])
+    
+    img = daisy.processImage(img)
+    cv2.imshow('daisy', img)
+    
+    print "Hit ESC to exit"
+    
+    while True:
+        key = 0xff & cv2.waitKey(1)
+        if key == 27:
+            break
+
