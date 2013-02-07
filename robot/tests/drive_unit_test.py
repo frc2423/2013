@@ -15,34 +15,59 @@ import fake_wpilib as wpilib
 class Test(object):
     
     def __init__(self):
+        import driving
         self.l_motor = wpilib.Jaguar(1)
         self.r_motor = wpilib.Jaguar(2)
         self.drive = wpilib.RobotDrive(self.l_motor, self.r_motor)
         self.tested_driver = driving.Driving(self.drive)
     
-    def test_drive(self):
+    def _get_motor_values(self,speed, rotation):
+        '''
+            gets values of individual motor speeds
+        '''
+        if speed > 0.0:
+            if rotation > 0.0:
+                leftMotorOutput = speed - rotation
+                rightMotorOutput = max(speed, rotation)
+            else:
+                leftMotorOutput = max(speed, -rotation)
+                rightMotorOutput = speed + rotation
+        else:
+            if rotation > 0.0:
+                leftMotorOutput = -max(-speed, rotation)
+                rightMotorOutput = speed + rotation
+            else:
+                leftMotorOutput = speed - rotation
+                rightMotorOutput = -max(-speed, -rotation)
+                
+        return leftMotorOutput, rightMotorOutput
+    
+    def test_drive(self,speed, rotation):
         #test 1, check if speed and rotation set correctly
-        speed = 1
-        rotation = .5
-        leftMotorOutput = speed - rotation
-        rightMotorOutput = max(speed, rotation)
+        leftMotorOutput, rightMotorOutput = self._get_motor_values(speed,rotation)
         
-        self.tested_driver.drive(self.rotation, self.speed)
-        
-        if self.l_motor.get() != 0 and \
-        self.r_motor.get != 0:
+        if getattr(self.tested_driver, "drive"):
+            self.tested_driver.drive(rotation, speed)
             
-            print("Motor speeds set before update called")
+            if self.l_motor.Get() != 0 and \
+            self.r_motor.Get != 0:
+                
+                print("Motor speeds set before update called")
+                    
+            if getattr(self.tested_driver, "drive"):
+                self.tested_driver.update()
+                
+                if self.l_motor.Get() != leftMotorOutput and \
+                self.r_motor.Get != rightMotorOutput:
+                    
+                    print("Motor speeds not set correctly in Test")
+            else:
+                print("ERROR: no update function available")
         
-        self.tested_driver.update()
-        
-        if self.l_motor.get() != leftMotorOutput and \
-        self.r_motor.get != rightMotorOutput:
-            
-            print("Motor speeds not set correctly in Test")
-        
+        else:
+            print("ERROR: No drive function available")
     
 def run_test():
-    import driving
     test = Test()
+    test.test_drive(1,.5)
     
