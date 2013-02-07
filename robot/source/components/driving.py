@@ -4,12 +4,12 @@ except ImportError:
     import fake_wpilib as wpilib 
     
     
-class Driver(object):
+class Driving(object):
 
-    def __init__ (self, motor1, motor2, drive):
+    def __init__ (self, drive):
         self.updated = False
         self.drive = drive 
-    
+     
     def drive(self, rot, speed):
         self.updated =  True
         self.rot = rot
