@@ -20,6 +20,10 @@ class CvImg(object):
         
         raise IOError("Could not open '%s'" % filename)
     
+    width = property(lambda self: self.img.shape[1])
+    height = property(lambda self: self.img.shape[0])
+    channels = property(lambda self: self.img.shape[2])
+    
     def __init__(self, img, colorspace, original=None):
         self.img = img
         self.colorspace = colorspace
@@ -28,8 +32,24 @@ class CvImg(object):
         if original is not None:
             pass
         
+    def bitwise_and(self, other):
+        cv2.bitwise_and(self.img, other.img, dst=self.img)
+        return self
+        
     def clone(self):
         return CvImg(self.img.copy(), self.colorspace, self)
+    
+    def clone_zeroed(self):
+        return CvImg(np.zeros(self.img.shape, self.img.dtype), self.colorspace, self)
+    
+    def draw_contours(self, contours, color, thickness=1):
+        cv2.drawContours(self.img, contours, -1, color, thickness=thickness)
+    
+    def draw_contour(self, contour, color, thickness=1):
+        cv2.drawContours(self.img, [contour], -1, color, thickness=thickness)
+        
+    def draw_point(self, pt, radius, color):
+        cv2.circle(self.img, pt, radius, color)
     
     def dilate(self, param, shape=cv2.MORPH_RECT):
         kernel = cv2.getStructuringElement(shape, (param,param))
@@ -66,6 +86,12 @@ class CvImg(object):
     def split(self):
         return [CvImg(c, colorspace.GRAY) for c in cv2.split(self.img)]
         
+    def threshold(self, minval, maxval=255):
+        cv2.threshold(self.img, minval, maxval, cv2.THRESH_BINARY, dst=self.img)
+        
+    def threshold_inverted(self, minval, maxval=255):
+        cv2.threshold(self.img, minval, maxval, cv2.THRESH_BINARY_INV, dst=self.img)
+        
     def threshold_otsu(self):
-        cv2.threshold(self.img, 0, 0xff, cv2.THRESH_BINARY | cv2.THRESH_OTSU, self.img)
+        cv2.threshold(self.img, 0, 0xff, cv2.THRESH_BINARY | cv2.THRESH_OTSU, dst=self.img)
         
