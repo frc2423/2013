@@ -68,7 +68,10 @@ class Kwarqs2012Cv(object):
             x, y, w, h = cv2.boundingRect(contour)
             ratio = float(h) / w
             if ratio < 2.0 and ratio > 0.6:
-                polygon = cv2.approxPolyDP(contour, 45, False)
+                # Original code
+                #polygon = cv2.approxPolyDP(contour, 45, False)
+                # Better performance on daisy test images
+                polygon = cv2.approxPolyDP(contour, 20, True)
                 polygons.append((polygon, x, y, w, h))
         
         possiblePolygons = []
