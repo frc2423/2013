@@ -18,7 +18,7 @@ class Test(object):
         self.l_motor = wpilib.Jaguar(1)
         self.r_motor = wpilib.Jaguar(2)
         self.drive = wpilib.RobotDrive(self.l_motor, self.r_motor)
-        self.tested_driver = Driving(self.drive)
+        self.tested_driver = driving.Driving(self.drive)
     
     def test_drive(self):
         #test 1, check if speed and rotation set correctly
