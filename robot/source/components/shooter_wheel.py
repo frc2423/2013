@@ -7,50 +7,70 @@ except ImportError:
 class ShooterWheel(object):
     
     
-    def __init__(self, shooter_jag, angle_threshold, speed_threshold):
+    def __init__(self, angle_jag, shooter_jag, angle_threshold, speed_threshold):
         self.updated = False
         self.shooter_jag = shooter_jag
-        self.c_speed = shooter_jag.GetSpeed()
-        self.c_angle = shooter_jag.GetPosition() 
+        self.angle_jag = angle_jag
+        self.angle_threshold = angle_threshold
+        self.speed_threshold = speed_threshold
+        
+   def  current_speed(self):
+        return shooter_jag.GetSpeed()
+        
+    def current_angle(self):
+        return angle_jag.GetPosition() 
      
     def set_angle(self, d_angle):
         self.updated = True
         self.d_angle = d_angle
         #sets the angle if it is not ready
-        self.shooter_jag.Set(self.d_angle)
     
     
     def set_speed(self, d_speed):
         self.updated = True
         self.d_speed = d_speed
         #Sets the speed if it is not ready
-        self.shooter_jag.Set(self.d_speed)
         
         
     def stop(self):
         self.updated = True
-        self.shooter_jag.Set(0)
-    
+        self.d_speed = 0
+        self.d_angle = 0
         
     def is_ready_angle(self, d_angle): 
-        if self.c_angle > (d_angle - self.angle_threshold) or (self.c_angle < d_angle + self.angle_threshold):
+        if self.current_angle() > (d_angle - self.angle_threshold) or (self.current_angle() < d_angle + self.angle_threshold):
             return True
             
         else:
             return False
         
    
-    def is_ready_speed(self):
+    def is_ready_speed(self, d_speed):
         #returns true if desired speed and current speed are equal.
-        if self.c_speed > (self.d_speed - self.speed_threshold) or self.c_speed < (self.d_speed + self.speed_threshold):
+        if self.current_speed() > (self.d_speed - self.speed_threshold) or self.current_speed() < (self.d_speed + self.speed_threshold):
             return True
             
         else:
             return False
         
+    def is_ready(self):
+        if self.is_ready_angle(self.d_angle) and self.is_ready_speed(self.d_speed):
+            return True
+        else:
+            return False
+        
     
     def update(self):
-        if self.updated == True:
-            self.SetAngle(self.d_angle)
-            self.SetSpeed(self.d_speed)
+        if self.d_speed >= self.current_speed():
+            self.shooter_jag.set(0)
+        else:
+            self.shooter_jag.set(1)
+        if 
+        
             self.updated = False    
+            
+            
+            
+            
+            
+            
