@@ -2,6 +2,7 @@
 
 import math
 import os.path
+import sys
 
 from optparse import OptionParser
 import cv2
@@ -11,6 +12,11 @@ import kwarqs2012cv
 import daisycv
 
 from imgproc import CvImg, CvContour, colorspace
+
+print 'Module versions detected:'
+print '-> Using Python', sys.version
+print '-> Using OpenCV', cv2.__version__
+print '-> Using NumPy', np.__version__
 
 def process_image(img):
     cvimg = CvImg(img, colorspace.BGR)
