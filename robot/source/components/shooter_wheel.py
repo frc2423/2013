@@ -25,12 +25,10 @@ class ShooterWheel(object):
         self.d_angle = d_angle
         #sets the angle if it is not ready
     
-    
     def set_speed(self, d_speed):
         self.updated = True
         self.d_speed = d_speed
         #Sets the speed if it is not ready
-        
         
     def stop(self):
         self.updated = True
@@ -61,12 +59,17 @@ class ShooterWheel(object):
         
     
     def update(self):
-        if self.d_speed >= self.current_speed():
+        if self.d_speed <= self.current_speed():
             self.shooter_jag.set(0)
         else:
             self.shooter_jag.set(1)
-        if 
+       
+        if self.d_angle <= self.current_angle():
+            self.angle_jag.set(d_angle)
         
+        else:
+            self.angle_jag.set(1)
+            
             self.updated = False    
             
             
