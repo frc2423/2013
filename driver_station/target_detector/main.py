@@ -25,9 +25,12 @@ def process_static_images(path, process_fn):
         for path, dirs, files in os.walk(path):
             images += [os.path.join(path, f) for f in files] 
     
-    done = False
+    idx = 0
     
-    for image in images:
+    while idx < len(images) and idx >= 0:
+        
+        image = images[idx]
+        
         print "Opening %s" % image
         
         try:
@@ -44,13 +47,17 @@ def process_static_images(path, process_fn):
         while True:
             key = 0xff & cv2.waitKey(1)
             if key == ord('\n'):
+                idx += 1
                 break
-            if key == 27:
-                done = True
+            elif key == 27:
+                idx = len(images)
                 break
-            
-        if done:
-            break
+            elif key == 83:
+                idx += 1
+                break
+            elif key == 81:
+                idx -= 1
+                break
     
 def user_save_image(img):
     
