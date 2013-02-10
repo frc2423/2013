@@ -13,12 +13,12 @@ class ShooterWheel(object):
         self.angle_jag = angle_jag
         self.angle_threshold = angle_threshold
         self.speed_threshold = speed_threshold
-        
-   def  current_speed(self):
-        return shooter_jag.GetSpeed()
-        
+       
     def current_angle(self):
-        return angle_jag.GetPosition() 
+        return self.angle_jag.GetPosition()   
+    
+    def  current_speed(self):
+        return self.shooter_jag.GetSpeed()
      
     def set_angle(self, d_angle):
         self.updated = True
@@ -36,7 +36,7 @@ class ShooterWheel(object):
         self.d_angle = 0
         
     def is_ready_angle(self, d_angle): 
-        if self.current_angle() > (d_angle - self.angle_threshold) or (self.current_angle() < d_angle + self.angle_threshold):
+        if self.current_angle() >= (d_angle - self.angle_threshold) or (self.current_angle() <= d_angle + self.angle_threshold):
             return True
             
         else:
@@ -45,33 +45,34 @@ class ShooterWheel(object):
    
     def is_ready_speed(self, d_speed):
         #returns true if desired speed and current speed are equal.
-        if self.current_speed() > (self.d_speed - self.speed_threshold) or self.current_speed() < (self.d_speed + self.speed_threshold):
+        if self.current_speed() >= (self.d_speed - self.speed_threshold) or self.current_speed() <= (self.d_speed + self.speed_threshold):
             return True
             
         else:
             return False
         
     def is_ready(self):
-        if self.is_ready_angle(self.d_angle) and self.is_ready_speed(self.d_speed):
+        if self.is_ready_angle(self.d_angle) and self.is_ready_speed(self.d_speed) == True:
             return True
         else:
             return False
-        
-    
+
+
     def update(self):
-        if self.d_speed <= self.current_speed():
+        self.updated = True
+        if self.is_ready_speed() == True:
             self.shooter_jag.set(0)
+        
         else:
             self.shooter_jag.set(1)
-       
-        if self.d_angle <= self.current_angle():
-            self.angle_jag.set(d_angle)
+            
+        if self.is_ready_angle == True():
+            self.angle_jag.set(0)
         
         else:
-            self.angle_jag.set(1)
+            self.angle_jag.set(d_angle)
             
             self.updated = False    
-            
             
             
             
