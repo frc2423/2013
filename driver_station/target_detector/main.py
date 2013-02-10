@@ -8,9 +8,6 @@ from optparse import OptionParser
 import cv2
 import numpy as np
 
-import kwarqs2012cv
-import daisycv
-
 from imgproc import CvImg, CvContour, colorspace
 
 print 'Module versions detected:'
@@ -18,24 +15,6 @@ print '-> Using Python', sys.version
 print '-> Using OpenCV', cv2.__version__
 print '-> Using NumPy', np.__version__
 
-def process_image(img):
-    cvimg = CvImg(img, colorspace.BGR)
-    
-    # TODO: image processing goes here
-    
-    #cvimg.set_colorspace(colorspace.GRAY)
-    #cvimg.equalize_hist()
-    
-    #cvimg.set_colorspace(colorspace.LAB)
-    
-    #for i, c in enumerate(cvimg.split()):
-    #    c.threshold_otsu()
-    #    c.show(str(i))
-    
-    cvimg.show('test')
-    
-    
-    
     
 def user_save_image(img):
     
@@ -100,24 +79,39 @@ if __name__ == '__main__':
     options, args = parser.parse_args()
     
     # switch between processing functions
-    process_fn = process_image
+    process_fn = None
     
     if options.daisy:
+        
+        import daisycv
+        
         daisy = daisycv.DaisyCv()
         
         def _process_daisy(img):
-            cv2.imshow('test', daisy.processImage(img))
+            cv2.imshow('result', daisy.processImage(img))
         
         process_fn = _process_daisy
     
     elif options.kwarqs2012:
+        
+        import kwarqs2012cv
+        
         kwarqs2012 = kwarqs2012cv.Kwarqs2012Cv()
         
         def _process_kwarqs2012(img):
-            cv2.imshow('test', kwarqs2012.processImage(img))
+            cv2.imshow('result', kwarqs2012.processImage(img))
         
         process_fn = _process_kwarqs2012
         
+    else:
+        import kwarqs2013cv
+        
+        detector = kwarqs2013cv.TargetDetector()
+        
+        def _process_kwarqs2013(img):
+            cv2.imshow('result', detector.processImage(img))
+        
+        process_fn = _process_kwarqs2013
     
     if options.static_image is not None:
         print "Opening %s" % options.static_image
@@ -133,6 +127,29 @@ if __name__ == '__main__':
             if key == 27:
                 break        
     else:      
+        
+        # TODO: Need to determine best mechanisms to use for
+        # retry, or what happens when the camera cannot be talked 
+        # to? Ideally, if we use OpenCV's RTSP implementation, we
+        # will end up with a higher quality image stream than what
+        # SmartDashboard can provide us.. but, how robust is it?
+        
+        # TODO: How to integrate this with the SmartDashboard?
+        #        -> in particular, what kind of UI should we provide?
+        
+        # TODO: Exception handling in case something goes awry
+        # -> Need to restart processing if this crashes
+        
+        # TODO: What other things are required for robustness?
+        
+        # TODO: Integration with pynetworktables
+        
+        # TODO: Run detection on a whole directory of images, and 
+        # print out the results or something to that effect
+        
+        # TODO: Given the current shooter angle, put something on the
+        #       image that represents the possible vector where it'll be
+        
         print "Beginning capture"  
         vc = cv2.VideoCapture('rtsp://%s/axis-media/media.amp' % options.ip_address)
         
