@@ -15,6 +15,42 @@ print '-> Using Python', sys.version
 print '-> Using OpenCV', cv2.__version__
 print '-> Using NumPy', np.__version__
 
+
+def process_static_images(path, process_fn):
+    
+    if not os.path.isdir(path):
+        images = [path]
+    else:
+        images = []
+        for path, dirs, files in os.walk(path):
+            images += [os.path.join(path, f) for f in files] 
+    
+    done = False
+    
+    for image in images:
+        print "Opening %s" % image
+        
+        try:
+            cvimg = CvImg.from_file(image)
+        except IOError as e:
+            print "Error opening %s: %s" % (path, e)
+            continue
+        
+        print 'Starting processing. Press ESC to exit, ENTER for next image'
+        cvimg.show('original')
+        
+        process_fn(cvimg.img)
+        
+        while True:
+            key = 0xff & cv2.waitKey(1)
+            if key == ord('\n'):
+                break
+            if key == 27:
+                done = True
+                break
+            
+        if done:
+            break
     
 def user_save_image(img):
     
@@ -64,8 +100,8 @@ if __name__ == '__main__':
     parser = OptionParser()
     
     parser.add_option('-i',
-                      dest='static_image', default=None,
-                      help='Specify an image file to process')
+                      dest='static_images', default=None,
+                      help='Specify an image file (or directory) to process')
     
     parser.add_option('--ip', dest='ip_address', default='10.24.23.11',
                       help='Specify the IP address of the camera')
@@ -113,19 +149,11 @@ if __name__ == '__main__':
         
         process_fn = _process_kwarqs2013
     
-    if options.static_image is not None:
-        print "Opening %s" % options.static_image
-        cvimg = CvImg.from_file(options.static_image)
-        
-        print 'Starting processing. Press ESC to exit'
-        cvimg.show('original')
-        
-        process_fn(cvimg.img)
-        
-        while True:
-            key = 0xff & cv2.waitKey(1)
-            if key == 27:
-                break        
+    
+    
+    if options.static_images is not None:        
+        process_static_images(options.static_images, process_fn)
+               
     else:      
         
         # TODO: Need to determine best mechanisms to use for
