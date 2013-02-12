@@ -10,7 +10,7 @@ import numpy as np
 
 from imgproc import CvImg, CvContour, colorspace
 
-print 'Module versions detected: '
+print 'Module versions detected:'
 print '-> Using Python', sys.version
 print '-> Using OpenCV', cv2.__version__
 print '-> Using NumPy', np.__version__
