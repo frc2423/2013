@@ -37,6 +37,8 @@ shooter_sensor = generic_distance_sensor.GenericDistanceSensor(5, generic_distan
 #Motor Speeds
 feed_motor_spd = 1
 
+feed_motor_postion = feed_motor.GetPosition()
+
 class MyRobot(wpilib.SimpleRobot):
 
     def __init__(self):
@@ -77,8 +79,6 @@ class MyRobot(wpilib.SimpleRobot):
             #Feed Motor
             if stick2.GetTrigger():
                 feed_motor.Set(feed_motor_spd)
-                
-            feed_motor_postion = feed_motor.GetPosition()
                 
             #Shooter Motor
             
