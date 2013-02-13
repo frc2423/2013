@@ -12,9 +12,9 @@ import_robot = False
 import inspect
 import fake_wpilib as wpilib
 
-def lineno():
-    #returns current line
-    return inspect.currentframe().f_back.f_lineno
+# make importing _unittest_util possible
+sys.path.append(os.path.dirname(__file__))
+import _unittest_util
 
 class Test(object):
     
@@ -31,6 +31,9 @@ class Test(object):
                                                                    angle_threshold, speed_threshold)
         except TypeError:
             print("ERROR: ShooterWheel is taking the wrong number of parameters")
+            
+        _unittest_util.validate_docstrings(self.tested_shooter_wheel)
+            
     def test_set_speed(self, speed):
         self.speed = speed
         if getattr(self.tested_shooter_wheel, "set_speed"):

@@ -11,6 +11,10 @@ import_robot = False
 
 import fake_wpilib as wpilib
 
+# make importing _unittest_util possible
+sys.path.append(os.path.dirname(__file__))
+import _unittest_util
+
 
 class Test(object):
     
@@ -20,6 +24,8 @@ class Test(object):
         self.r_motor = wpilib.Jaguar(2)
         self.drive = wpilib.RobotDrive(self.l_motor, self.r_motor)
         self.tested_driver = driving.Driving(self.drive)
+        
+        _unittest_util.validate_docstrings(self.tested_driver)
     
     def _get_motor_values(self,speed, rotation):
         '''

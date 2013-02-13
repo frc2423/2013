@@ -9,13 +9,15 @@
 robot_path = '../../robot/source/'
 import_robot = False
 
-import inspect
+import sys
+import os.path
+
+# make importing _unittest_util possible
+sys.path.append(os.path.dirname(__file__))
+import _unittest_util
+
 import fake_wpilib as wpilib
 import random
-
-def lineno():
-    #returns current line
-    return inspect.currentframe().f_back.f_lineno
 
 class Test(object):
     
@@ -26,6 +28,8 @@ class Test(object):
         self.frisbee_sensor = wpilib.AnalogChannel(1)
         self.feed_sensor = wpilib.AnalogChannel(2)
         self.tested_feeder = feeder.Feeder(self.feeder_motor,self.frisbee_sensor, self.feed_sensor)
+        
+        _unittest_util.validate_docstrings(self.tested_feeder)
         
     def test_get_frisbee_count(self):
         from components import feeder
