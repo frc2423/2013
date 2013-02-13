@@ -1,5 +1,5 @@
 __all__ = ['feed', 'shooter', 'driving']
 
-from .feed import Feeder
-from .shooter import Shooter
+from .feeder import Feeder
+from .shooter_wheel import ShooterWheel
 from .driving import Driving
