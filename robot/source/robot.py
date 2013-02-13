@@ -1,5 +1,7 @@
 
+from autonomous import AutonomousModeManager
 from components import generic_distance_sensor
+
 try:
     import wpilib 
 except ImportError:
@@ -46,6 +48,10 @@ shooter_motor_spd = 1
 #Loop time
 control_loop_wait_time = 0.02
 
+# TODO
+components = {}
+autonomous_mode = AutonomousModeManager(components)
+
 class MyRobot(wpilib.SimpleRobot):
 
     def __init__(self):
@@ -62,12 +68,9 @@ class MyRobot(wpilib.SimpleRobot):
             
     def Autonomous(self):        
         print("MyRobot::Autonomous()")
-        dog = self.GetWatchdog()
-        dog.SetEnabled(False)
-        dog.SetExperation(0.25)
-        while self.IsAutonomous():
-            wpilib.Wait(control_loop_wait_time)
-            dog.Feed()
+        
+        # this does all the autonomous mode work for us
+        autonomous_mode.run(self, control_loop_wait_time)
         
     def OperatorControl(self):
         print("MyRobot::OperatorControl()")
