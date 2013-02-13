@@ -65,6 +65,8 @@ class Test(object):
             self.shooterMotor.speed = speed
             self.angleMotor.position = angle
             
+            print ('test angle =' , angle)
+            print ('angleMotor.position() =', self.angleMotor.GetPosition())
             if self.tested_shooter_wheel.is_ready() == False:
                 print("ERROR: Shooter should be ready now line: ", lineno())
         
