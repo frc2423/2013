@@ -14,7 +14,7 @@ import fake_wpilib as wpilib
 
 # make importing _unittest_util possible
 sys.path.append(os.path.dirname(__file__))
-import _unittest_util
+from _unittest_util import lineno, validate_docstrings
 
 class Test(object):
     
@@ -32,7 +32,7 @@ class Test(object):
         except TypeError:
             print("ERROR: ShooterWheel is taking the wrong number of parameters")
             
-        _unittest_util.validate_docstrings(self.tested_shooter_wheel)
+        validate_docstrings(self.tested_shooter_wheel)
             
     def test_set_speed(self, speed):
         self.speed = speed
