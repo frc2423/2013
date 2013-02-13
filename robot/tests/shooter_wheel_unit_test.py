@@ -97,6 +97,8 @@ class Test(object):
             if self.angleMotor.value != angle:
                 print("Error: Angle Motor set incorrectly, should be set to" , \
                         angle, " line: ", lineno())
+            
+            '''motor control tests'''
             #our speed has over shot    
             self.shooterMotter.speed = speed + 1
             
@@ -105,7 +107,24 @@ class Test(object):
             if self.shooterMotor.value != 0:
                 print("Error: Shooter Motor set incorrectly, should be set to 0")
             
+            #our speed is now lower    
+            self.shooterMotter.speed = speed - 1
+            
+            self.tested_shooter_wheel.update()
+            
+            if self.shooterMotor.value != 1:
+                print("Error: Shooter Motor set incorrectly, should be set to 1")
+                
+            '''check if angle motor is set more than once with only one call to set'''
+                
+            self.angleMotor.value = 0
+            self.tested_shooter_wheel.update()
+            
+            if self.angleMotor.value != 0:
+                raise Exception("Angle motor was not updated this cycle")
+            
+            
 def run_test():
     test = Test(1,1)
     test.test_is_ready(40,40)
-    test.test_update
+    test.test_update(40,40)
