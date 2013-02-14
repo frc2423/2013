@@ -33,13 +33,13 @@ class Feeder():
     
     def feed(self):
         
-        if self.feed_sensor.GetDistance() > FEEDER_READY_DISTANCE and\
+        if self.feed_sensor.GetDistance() > FEEDER_READY_DISTANCE and \
             self.state = STATE_READY:
             
             self.updated = False
             self.state = STATE_FEED
             
-        if self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE and\
+        if self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE and \
             self.state == STATE_FEED:
             
             self.updated = 1
@@ -61,10 +61,10 @@ class Feeder():
             self.updated = True
             self.state = STATE_FEED
             
-        if self.state == STATE_FEED and \
+        if self.state == STATE_READY and \
             self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE:
             self.updated = False
-            self.state = STATE_READY
+            self.state = STATE_FEED
             
     def get_frisbee_count(self):
         '''Gets the distance away an object is from the sensor based on the voltage of the sensor'''
@@ -90,12 +90,12 @@ class Feeder():
     def update(self):
         
         print(self.state)
-         
+        
         if self.updated == True and get_frisbee_count > 0:
             self.feed_motor.Set(FEED_SPD)
             self.updated = None
             
-        if self.updated == 1
+        if self.updated == 1:
             self.feed_motor.Set(FEED_SPD)
        
         if self.updated == False:
