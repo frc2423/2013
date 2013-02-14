@@ -76,6 +76,10 @@ class MyRobot(wpilib.SimpleRobot):
         dog.SetExpiration(0.25)
     
         while self.IsOperatorControl() and self.IsEnabled():
+            
+            # measure loop time
+            start = wpilib.Timer.GetPPCTimestamp()
+            
             drive.ArcadeDrive(stick1)
             
             # loader cam motor
@@ -96,10 +100,15 @@ class MyRobot(wpilib.SimpleRobot):
             
             # motor status
             wpilib.SmartDashboard.PutNumber('Angle', angle_motor.GetPosition())
+            wpilib.SmartDashboard.PutBoolean('Angle Limit Forward', angle_motor.GetForwardLimitOK())
+            wpilib.SmartDashboard.PutBoolean('Angle Limit Reverse', angle_motor.GetReverseLimitOK())
             wpilib.SmartDashboard.PutNumber('Shooter wheel speed', shooter_motor.GetSpeed())
-        
             
             dog.Feed()
+            
+            # how long does it take us to run the loop?
+            wpilib.SmartDashboard.PutNumber('Loop time', wpilib.Timer.GetPPCTimestamp() - start)
+            
             wpilib.Wait(0.04)
             
         dog.SetEnabled(False)
