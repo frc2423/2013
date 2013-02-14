@@ -28,7 +28,7 @@ dirs = [
 
 
 def relpath(path):
-    '''Path helper'''
+    '''Path helper, gives you a path relative to this file'''
     return os.path.normpath(os.path.join(os.path.abspath(os.path.dirname(__file__)), path))
 
 
@@ -42,9 +42,9 @@ if __name__ == '__main__':
     
     
     if sys.platform == 'win32':
-        ret = subprocess.call(relpath('../run_test.bat') + ' --import .', shell=True)
+        ret = subprocess.call([relpath('../run_test.bat'), '--import', relpath('.')], shell=True)
     else:
-        ret = subprocess.call(relpath('../run_test.sh') + ' --import .', shell=True)
+        ret = subprocess.call([relpath('../run_test.sh'), ' --import', relpath('.')], shell=True)
         
     if ret != 0:
         print("Failure detected, aborting import")
