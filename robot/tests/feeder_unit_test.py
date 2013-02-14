@@ -25,92 +25,118 @@ class Test(object):
         from components import feeder
         
         self.feeder_motor = wpilib.CANJaguar(1)
-        self.frisbee_sensor = wpilib.AnalogChannel(1)
-        self.feed_sensor = wpilib.AnalogChannel(2)
+        self.frisbee_sensor = Test_Sensor(1)
+        self.feed_sensor = Test_Sensor(2)
         self.tested_feeder = feeder.Feeder(self.feeder_motor,self.frisbee_sensor, self.feed_sensor)
         
         _unittest_util.validate_docstrings(self.tested_feeder)
         
     def test_get_frisbee_count(self):
         from components import feeder
-        self.frisbee_sensor.voltage = 0
+        self.frisbee_sensor.distance = 0
         if not hasattr(self.tested_feeder, "get_frisbee_count"):
             raise Exception("Please use proper naming conventions")
             
         if self.tested_feeder.get_frisbee_count() != 0:
             raise Exception("Wrong Frisbee Count")
         
-        self.frisbee_sensor.voltage = random.uniform(feeder.ZERO_FRISBEE, feeder.ONE_FRISBEE)
+        self.frisbee_sensor.distance = random.uniform(feeder.ZERO_FRISBEE, feeder.ONE_FRISBEE)
         
         if self.tested_feeder.get_frisbee_count() != 0:
-            raise Exception("Wrong Frisbee Count (expected 0; voltage: %s)" % self.frisbee_sensor.voltage)
+            raise Exception("Wrong Frisbee Count (expected 0; distance: %s)" % self.frisbee_sensor.distance)
         
-        self.frisbee_sensor.voltage = random.uniform(feeder.ONE_FRISBEE, feeder.TWO_FRISBEE)
+        self.frisbee_sensor.distance = random.uniform(feeder.ONE_FRISBEE, feeder.TWO_FRISBEE)
         
         if self.tested_feeder.get_frisbee_count() != 1:
-            raise Exception("Wrong Frisbee Count (expected 1; voltage: %s)" % self.frisbee_sensor.voltage)
+            raise Exception("Wrong Frisbee Count (expected 1; distance: %s)" % self.frisbee_sensor.distance)
         
-        self.frisbee_sensor.voltage = random.uniform(feeder.TWO_FRISBEE, feeder.THREE_FRISBEE)
+        self.frisbee_sensor.distance = random.uniform(feeder.TWO_FRISBEE, feeder.THREE_FRISBEE)
         
         if self.tested_feeder.get_frisbee_count() != 2:
-            raise Exception("Wrong Frisbee Count (expected 2; voltage: %s)" % self.frisbee_sensor.voltage)
+            raise Exception("Wrong Frisbee Count (expected 2; distance: %s)" % self.frisbee_sensor.distance)
         
-        self.frisbee_sensor.voltage = random.uniform(feeder.THREE_FRISBEE, feeder.FOUR_FRISBEE)
+        self.frisbee_sensor.distance = random.uniform(feeder.THREE_FRISBEE, feeder.FOUR_FRISBEE)
         
         if self.tested_feeder.get_frisbee_count() != 3:
-            raise Exception("Wrong Frisbee Count (expected 3; voltage: %s)" % self.frisbee_sensor.voltage)
+            raise Exception("Wrong Frisbee Count (expected 3; distance: %s)" % self.frisbee_sensor.distance)
         
-        self.frisbee_sensor.voltage = random.uniform(feeder.FOUR_FRISBEE, 5)
+        self.frisbee_sensor.distance = random.uniform(feeder.FOUR_FRISBEE, 5)
         
         if self.tested_feeder.get_frisbee_count() != 4:
-            raise Exception("Wrong Frisbee Count (expected 4; voltage: %s)" % self.frisbee_sensor.voltage)
+            raise Exception("Wrong Frisbee Count (expected 4; distance: %s)" % self.frisbee_sensor.distance)
             
         
     def test_feed(self):
         from components import feeder
+        
         if not getattr(self.tested_feeder, "FEEDER_READY_DISTANCE") :
             raise Exception("Need to set a distance at which the feeder will be ready")
         
-        self.frisbee_sensor.distance = 1000
-        self.frisbee_sensor.voltage = 3
+        '''feeder is in ready position'''
+        self.frisbee_sensor.distance = random.uniform(self.tested_feeder.FEEDER_READY_DISTANCE, 1)
         if not getattr(self.tested_feeder, "feed"):
             raise Exception("Need to set a distance at which the feeder will be ready")
             
         self.tested_feeder.feed()
         
-        if self.feeder_motor.speed != 0:
+        if self.feeder_motor.value != 0:
             raise Exception("Update must be called to start the motor")
-        self.update()
+        self.tested_feeder.update()
         
-        if self.feeder_motor.speed != 0:
-            raise Exception("Feeder is not ready, should not start")
-                    
-        self.frisbee_sensor.distance = 10
-        self.frisbee_sensor.voltage = 1
-        self.feed()
-        if self.feeder_motor.speed != 0:
-            raise Exception("Update must be called to start the motor")
-        self.update()
-        if self.feeder_motor.speed != 1:
-            raise Exception("Feeder is ready, should go at full speed")
-        self.update()
-        if self.feeder_motor.speed != 0:
-            raise Exception("Feeder made full circle should stop")
-            
+        if self.feeder_motor.value != 1:
+            raise Exception("Feeder should move now")
         
+        ''' feeder has left ready position'''            
+        self.frisbee_sensor.distance = random.uniform(self.tested_feeder.FEEDER_READY_DISTANCE+ 5\
+                                                      ,self.tested_feeder.FEEDER_READY_DISTANCE) 
+        self.tested_feeder.feed()
+        if self.feeder_motor.value != 1:
+            raise Exception("Speed should not change in feed function")
+        
+        self.tested_feeder.update()
+        if self.feeder_motor.value != 1:
+            raise Exception("Motor should keep moving when the sensor says that "\
+                            , " that the feeder has left the sensor")
+        
+        '''feeder came back to ready position but feed was called right as that happened'''
+        self.frisbee_sensor.distance = random.uniform(self.tested_feeder.FEEDER_READY_DISTANCE, 1) 
+        self.tested_feeder.feed()
+        self.tested_feeder.update()
+        if self.feeder_motor.value != 1:
+            raise Exception("Feeder should continue spinning if feed is called" \
+                            , " right as we reach the ready position")
+        
+        ''' feeder has left ready position'''            
+        self.frisbee_sensor.distance = random.uniform(self.tested_feeder.FEEDER_READY_DISTANCE+ 5\
+                                                      ,self.tested_feeder.FEEDER_READY_DISTANCE) 
+        self.tested_feeder.feed()
+        if self.feeder_motor.value != 1:
+            raise Exception("Speed should not change in feed function")
+        
+        self.tested_feeder.update()
+        if self.feeder_motor.value != 1:
+            raise Exception("Motor should keep moving when the sensor says that "\
+                            , " that the feeder has left the sensor")
+        
+        '''were back at ready position should stop now'''
+        self.frisbee_sensor.distance = random.uniform(self.tested_feeder.FEEDER_READY_DISTANCE, 1)  
+        self.tested_feeder.update()
+        if self.feeder_motor.value != 0:
+            raise Exception("Motor should stop once we hit the target and feed was not called")
+              
    
         
 class Test_Sensor(wpilib.AnalogChannel):
 
     
     def __init__(self,channel):
-        wpilib.AnalogChannel.__init__()
+        super().__init__(channel)
         self.distance = 0
-    def get_distance(self):
+    def GetDistance(self):
         return self.distance
    
    
 def run_test():
     test = Test()
-    '''test.test_get_frisbee_count()'''
+    test.test_get_frisbee_count()
     test.test_feed()
