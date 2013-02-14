@@ -11,6 +11,8 @@ import_robot = False
 
 import inspect
 import fake_wpilib as wpilib
+import sys
+import os
 
 # make importing _unittest_util possible
 sys.path.append(os.path.dirname(__file__))
@@ -100,7 +102,7 @@ class Test(object):
             
             '''motor control tests'''
             #our speed has over shot    
-            self.shooterMotter.speed = speed + 1
+            self.shooterMotor.speed = speed + 1
             
             self.tested_shooter_wheel.update()
             
@@ -108,7 +110,7 @@ class Test(object):
                 print("Error: Shooter Motor set incorrectly, should be set to 0")
             
             #our speed is now lower    
-            self.shooterMotter.speed = speed - 1
+            self.shooterMotor.speed = speed - 1
             
             self.tested_shooter_wheel.update()
             
