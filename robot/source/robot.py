@@ -29,9 +29,9 @@ angle_motor = wpilib.CANJaguar(4)
 feed_motor = wpilib.CANJaguar(5)
 
 #sensors connected to jags: chamber_sensor detects frisbees being held
-chamber_sensor = generic_distance_sensor.GenericDistanceSensor(3, generic_distance_sensor.E4P_250_250)
-feed_sensor = generic_distance_sensor.GenericDistanceSensor(4, generic_distance_sensor.E4P_250_250)
-shooter_sensor = generic_distance_sensor.GenericDistanceSensor(5, generic_distance_sensor.E4P_250_250)
+chamber_sensor = generic_distance_sensor.GenericDistanceSensor(3, generic_distance_sensor.GP2D120)
+feed_sensor = generic_distance_sensor.GenericDistanceSensor(4, generic_distance_sensor.GP2D120)
+shooter_sensor = generic_distance_sensor.GenericDistanceSensor(5, generic_distance_sensor.GP2D120)
 
 #motor positions
 feed_motor_postion = feed_motor.GetPosition()

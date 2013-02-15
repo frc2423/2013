@@ -14,7 +14,7 @@ except:
     import fake_wpilib as wpilib
 
 
-E4P_250_250 = 0
+GP2D120 = 0
 def lineno():
     #returns current line
     return currentframe().f_back.f_lineno
