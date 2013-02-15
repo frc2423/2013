@@ -7,39 +7,42 @@ except:
 
 INITIAL_SPD = 0
 FEED_SPD = 1
-ZERO_FRISBEE = 0
 ONE_FRISBEE = 1
 TWO_FRISBEE = 2
 THREE_FRISBEE = 3
 FOUR_FRISBEE = 4
 FEEDER_READY_DISTANCE = 2
-   
 FrisbeeCount = "Frisbee Count"
-
 STATE_FEED = 0
 STATE_READY = 1
 
 class Feeder():
+    
+    '''Contains all the functions that control the cam motor'''
 
     def __init__(self, feed_motor, frisbee_sensor, feed_sensor):
+        
+        '''saves all the variables, sets the state and sets FEEDER_READY_DISTANCE'''
         self.feed_motor = feed_motor
         self.frisbee_sensor = frisbee_sensor
         self.feed_sensor = feed_sensor
         self.feed_motor.Set(INITIAL_SPD)
         self.updated = None
         self.state = STATE_READY
-        self.FEEDER_READY_DISTANCE = 2   
-        
+        self.FEEDER_READY_DISTANCE = 2
+        self.distance = self.frisbee_sensor.GetDistance()
     
     def feed(self):
         
-        if self.feed_sensor.GetDistance() > FEEDER_READY_DISTANCE and \
-            self.state = STATE_READY:
+        '''feeds the frisbee'''
+        
+        if self.feed_sensor.GetDistance() >= FEEDER_READY_DISTANCE and \
+            self.state == STATE_READY:
             
             self.updated = False
             self.state = STATE_FEED
             
-        if self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE and \
+        if self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE and\
             self.state == STATE_FEED:
             
             self.updated = 1
@@ -55,9 +58,9 @@ class Feeder():
             self.updated = True    
             
     def ready_feeder(self):
-         '''Rotates the cam until it is above the sensor'''
+        '''Rotates the cam until it is above the sensor'''
          
-         if self.state == STATE_READY:
+        if self.state == STATE_READY:
             self.updated = True
             self.state = STATE_FEED
             
@@ -67,29 +70,28 @@ class Feeder():
             self.state = STATE_FEED
             
     def get_frisbee_count(self):
-        '''Gets the distance away an object is from the sensor based on the voltage of the sensor'''
+        '''Gets the self.self.distance away an object is from the sensor based on the voltage of the sensor'''
         
-        if self.frisbee_sensor.GetDistance() == ONE_FRISBEE:
-            frisbee_count = 1
+        if self.self.distance >= ONE_FRISBEE and self.distance <= TWO_FRISBEE:
+            self.frisbee_count = 1
         
-        elif self.frisbee_sensor.GetDistance() == TWO_FRISBEE:
-            frisbee_count = 2
+        elif self.self.distance >= TWO_FRISBEE and self.distance <= THREE_FRISBEE:
+            self.frisbee_count = 2
         
-        elif self.frisbee_sensor.GetDistance() == THREE_FRISBEE:
-            frisbee_count = 3
+        elif self.self.distance >= THREE_FRISBEE and self.distance <= FOUR_FRISBEE:
+            self.frisbee_count = 3
 
-        elif self.frisbee_sensor.GetDistance() == FOUR_FRISBEE:
-            frisbee_count = 4
+        elif self.self.distance >= FOUR_FRISBEE:
+            self.frisbee_count = 4
        
         else:
-            frisbee_count = 0
-        
-        wpilib.SmartDashboard.PutNumber(FrisbeeCount, frisbee_count)
-        return frisbee_count
+            self.frisbee_count = 0
+        print(self.frisbee_count)
+        wpilib.SmartDashboard.PutNumber(FrisbeeCount, self.frisbee_count)
+        return self.frisbee_count
     
     def update(self):
-        
-        print(self.state)
+        '''sets all the Jaguars'''
         
         if self.updated == True and get_frisbee_count > 0:
             self.feed_motor.Set(FEED_SPD)
