@@ -75,23 +75,7 @@ class ShooterWheel(object):
 
 
     def update(self):
-        ''' wrong'''
-        self.updated = True
-        
-        self.pre_angle = self.current_angle()
-        self.pre_speed = self.current_speed()
-        self.pre_d_angle = self.d_angle
-        self.pre_d_speed = self.d_speed
-        self.pre_is_ready_angle = self.is_ready_angle(self.d_angle)
-        self.pre_is_ready_speed = self.is_ready_speed(self.d_speed)
-        
-        if self.pre_angle == self.d_angle:
-            angle_jag.Set(self.d_angle)
-            
-        else:
-             
-            
-        
+        ''' Displays values on SmartDashboard if changed, sets angle and speed if not ready''' 
         if self.pre_angle != self.current_angle():
             wpilib.SmartDashboard.PutNumber('current_angle', self.current_angle())
         if self.pre_d_angle != self.d_angle:
@@ -107,6 +91,8 @@ class ShooterWheel(object):
             wpilib.SmartDashboard.PutBoolean('is_ready_speed', self.is_ready_speed(self.d_speed))
         #prints to SmartDashboard when the (6) values change        
        
+        if self.pre_d_angle != self.d_angle:
+            self.angle_jag.Set(self.d_angle)
         
         if self.is_ready_speed(self.d_speed) == True:
             self.shooter_jag.Set(0)
@@ -115,7 +101,12 @@ class ShooterWheel(object):
             self.shooter_jag.Set(1)
         #coast if the angle/speed is ready, full power if not.    
             
-            self.updated = False    
+        self.pre_angle = self.current_angle()
+        self.pre_speed = self.current_speed()
+        self.pre_d_angle = self.d_angle
+        self.pre_d_speed = self.d_speed
+        self.pre_is_ready_angle = self.is_ready_angle(self.d_angle)
+        self.pre_is_ready_speed = self.is_ready_speed(self.d_speed)
             
         
             
