@@ -14,6 +14,15 @@ class ShooterWheel(object):
         self.shooter_jag = shooter_jag
         self.angle_threshold = angle_threshold
         self.speed_threshold = speed_threshold
+        self.d_angle = 0
+        self.d_speed = 0
+        self.pre_angle = self.current_angle()
+        self.pre_speed = self.current_speed()
+        self.pre_d_angle = self.d_angle
+        self.pre_d_speed = self.d_speed
+        self.pre_is_ready_angle = self.is_ready_angle()
+        self.pre_is_ready_speed = self.is_ready_speed()
+            
        
     def current_angle(self):
         ''' Gets the angle and is reused'''
@@ -42,7 +51,7 @@ class ShooterWheel(object):
         self.d_speed = 0
         #sets the two motors to stop when called
         
-    def is_ready_angle(self, d_angle):
+    def is_ready_angle(self):
         ''' checks if the angle is right''' 
         if self.current_angle() >= (self.d_angle - self.angle_threshold) and self.current_angle() <= (self.d_angle + self.angle_threshold):
             return True
@@ -52,7 +61,7 @@ class ShooterWheel(object):
         #returns true if current angle is within threshold.
         
    
-    def is_ready_speed(self, d_speed):
+    def is_ready_speed(self):
         ''' checks if the speed is right'''
         if self.current_speed() >= (self.d_speed - self.speed_threshold) and self.current_speed() <= (self.d_speed + self.speed_threshold):
             return True
@@ -63,11 +72,7 @@ class ShooterWheel(object):
         
     def is_ready(self):
         ''' checks if the shooter_wheel is ready to shoot'''
-        print ('self.d_angle =', self.d_angle)
-        print ('self.d_speed =', self.d_speed)
-        print ('self.current_angle()', self.current_angle())
-        print (' self.current_speed()', self.current_speed())
-        if self.is_ready_angle(self.d_angle) and self.is_ready_speed(self.d_speed) == True:
+        if self.is_ready_angle() and self.is_ready_speed() == True:
             return True
         else:
             return False
@@ -80,21 +85,22 @@ class ShooterWheel(object):
             wpilib.SmartDashboard.PutNumber('current_angle', self.current_angle())
         if self.pre_d_angle != self.d_angle:
             wpilib.SmartDashboard.PutNumber('desired_angle', self.d_angle)
-        if self.pre_is_ready_angle != self.is_ready_angle(self.d_angle):
-            wpilib.SmartDashboard.PutBoolean('is_ready_angle', self.is_ready_angle(self.d_angle))
+        if self.pre_is_ready_angle != self.is_ready_angle():
+            wpilib.SmartDashboard.PutBoolean('is_ready_angle', self.is_ready_angle())
 
         if self.pre_speed != self.current_speed():
             wpilib.SmartDashboard.PutNumber('current_speed', self.current_speed())
         if self.pre_d_speed != self.d_speed:
             wpilib.SmartDashboard.PutNumber('desired_speed', self.d_speed)
-        if self.pre_is_ready_speed != self.is_ready_speed(self.d_speed):
-            wpilib.SmartDashboard.PutBoolean('is_ready_speed', self.is_ready_speed(self.d_speed))
+        if self.pre_is_ready_speed != self.is_ready_speed():
+            wpilib.SmartDashboard.PutBoolean('is_ready_speed', self.is_ready_speed())
         #prints to SmartDashboard when the (6) values change        
        
         if self.pre_d_angle != self.d_angle:
             self.angle_jag.Set(self.d_angle)
+        print("Angle set :", self.angle_jag.value)
         
-        if self.is_ready_speed(self.d_speed) == True:
+        if self.current_speed() >= self.d_speed:
             self.shooter_jag.Set(0)
         
         else:
@@ -105,8 +111,8 @@ class ShooterWheel(object):
         self.pre_speed = self.current_speed()
         self.pre_d_angle = self.d_angle
         self.pre_d_speed = self.d_speed
-        self.pre_is_ready_angle = self.is_ready_angle(self.d_angle)
-        self.pre_is_ready_speed = self.is_ready_speed(self.d_speed)
+        self.pre_is_ready_angle = self.is_ready_angle()
+        self.pre_is_ready_speed = self.is_ready_speed()
             
         
             
