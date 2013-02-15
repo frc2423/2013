@@ -11,10 +11,12 @@ stick1 = wpilib.Joystick(1)
 stick2 = wpilib.Joystick(2)
 
 #PWM Motors
-l_motor = wpilib.Jaguar(2)
-r_motor = wpilib.Jaguar(1)
+l_motor = wpilib.Jaguar(1)
+r_motor = wpilib.Jaguar(2)
 
 #CAN Motors
+
+# shooter: -1 is full on
 shooter_motor = wpilib.CANJaguar(7)
 shooter_motor.SetSpeedReference(wpilib.CANJaguar.kSpeedRef_QuadEncoder)
 shooter_motor.ConfigEncoderCodesPerRev(360)
@@ -25,7 +27,7 @@ angle_motor.SetPositionReference(wpilib.CANJaguar.kPosRef_Potentiometer)
 angle_motor.ConfigPotentiometerTurns(1)
 angle_motor.ConfigNeutralMode(wpilib.CANJaguar.kNeutralMode_Brake)
 
-loader_cam_motor = wpilib.CANJaguar(6)
+loader_cam_motor = wpilib.CANJaguar(3)
 
 
 # optical sensors
@@ -85,10 +87,14 @@ class MyRobot(wpilib.SimpleRobot):
             # loader cam motor
             if stick1.GetTrigger():
                 loader_cam_motor.Set(stick1.GetZ())
+            else:
+                loader_cam_motor.Set(0)
                 
             # shooter wheel motor
             if stick2.GetTrigger():
                 shooter_motor.Set(stick2.GetZ())
+            else:
+                shooter_motor.Set(0)
             
             # Angle motor
             angle_motor.Set(stick2.GetY())
