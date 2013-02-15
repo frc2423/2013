@@ -80,10 +80,10 @@ class MyRobot(wpilib.SimpleRobot):
         while self.IsOperatorControl():
             pass
     
-        self.wpilib.SmartDashboard.PutNumber(feedMotor, feed_motor_spd)
-        self.wpilib.SmartDashboard.PutNumber(angleMotor, angle_motor_position)
-        self.wpilib.SmartDashboard.PutNumber(frisbeeCount, frisbee_count)
-        self.wpilib.SmartDashboard.PutNumber(shooterEncoder, shooter_encoder_position)
+        self.wpilib.SmartDashboard.PutNumber('feed_motor', feed_motor_spd)
+        self.wpilib.SmartDashboard.PutNumber('angle_motor', angle_motor_position)
+        self.wpilib.SmartDashboard.PutNumber('frisbee_count', frisbee_count)
+        self.wpilib.SmartDashboard.PutNumber('shooter_encoder', shooter_encoder_position)
         
         dog.Feed()
         wpilib.Wait(control_loop_wait_time)

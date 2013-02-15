@@ -40,7 +40,7 @@ class Test(object):
         if self.tested_feeder.get_frisbee_count() != 0:
             raise Exception("Wrong Frisbee Count")
         
-        self.frisbee_sensor.distance = random.uniform(feeder.ZERO_FRISBEE, feeder.ONE_FRISBEE)
+        self.frisbee_sensor.distance = random.uniform(0, feeder.ONE_FRISBEE)
         
         if self.tested_feeder.get_frisbee_count() != 0:
             raise Exception("Wrong Frisbee Count (expected 0; distance: %s)" % self.frisbee_sensor.distance)
@@ -72,6 +72,7 @@ class Test(object):
         if not getattr(self.tested_feeder, "FEEDER_READY_DISTANCE") :
             raise Exception("Need to set a distance at which the feeder will be ready")
         
+        self.frisbee_sensor.distance = FEEDER_READY_DISTANCE
         '''feeder is in ready position'''
         self.frisbee_sensor.distance = random.uniform(self.tested_feeder.FEEDER_READY_DISTANCE, 1)
         if not getattr(self.tested_feeder, "feed"):
@@ -85,7 +86,7 @@ class Test(object):
         
         if self.feeder_motor.value != 1:
             raise Exception("Feeder should move now")
-        
+       
         ''' feeder has left ready position'''            
         self.frisbee_sensor.distance = random.uniform(self.tested_feeder.FEEDER_READY_DISTANCE+ 5\
                                                       ,self.tested_feeder.FEEDER_READY_DISTANCE) 
