@@ -1,7 +1,7 @@
 
 from autonomous import AutonomousModeManager
 from common import *
-from components import *
+from components import shooter_wheel, feeder, driving 
 from systems import shooter
 
 try:
@@ -30,8 +30,8 @@ shooter_motor = wpilib.EzCANJaguar(7)
 angle_motor = wpilib.EzCANJaguar(4)
 feed_motor = wpilib.EzCANJaguar(5)
 
-#sensors connected to jags: chamber_sensor detects frisbees being held
-chamber_sensor = generic_distance_sensor.GenericDistanceSensor(3, generic_distance_sensor.GP2D120)
+#sensors connected to jags: frisbee_sensor detects frisbees being held
+frisbee_sensor = generic_distance_sensor.GenericDistanceSensor(3, generic_distance_sensor.GP2D120)
 feed_sensor = generic_distance_sensor.GenericDistanceSensor(4, generic_distance_sensor.GP2D120)
 shooter_sensor = generic_distance_sensor.GenericDistanceSensor(5, generic_distance_sensor.GP2D120)
 
@@ -41,7 +41,7 @@ angle_motor_position = angle_motor.GetPosition()
 shooter_encoder_position = shooter_motor.GetPosition()
 
 # counting frisbees
-frisbee_count = chamber_sensor.Get()
+frisbee_count = frisbee_sensor.Get()
 
 #Motor Speeds
 feed_motor_spd = 1
@@ -50,14 +50,24 @@ shooter_motor_spd = 1
 #Loop time
 control_loop_wait_time = 0.02
 
+#component constructor parameters
+angle_threshold = 1 
+speed_threshold = 1
+drive = wpilib.RobotDrive()
+
 # TODO
 components = {}
 autonomous_mode = AutonomousModeManager(components)
-
+                                                            
 class MyRobot(wpilib.SimpleRobot):
 
     def __init__(self):
         wpilib.SimpleRobot.__init__(self)
+        self.my_shooter_wheel = shooter_wheel.ShooterWheel(self.angleMotor, self.shooterMotor,\
+                                                          angle_threshold, speed_threshold)
+        self.my_feeder = feeder.Feeder(feed_motor, frisbee_sensor, feed_sensor)
+        self.my_drive = driving.Driving(drive)
+        self.my_shooter = shooter.Shooter()
 
     def RobotInit(self):
         pass
@@ -80,16 +90,28 @@ class MyRobot(wpilib.SimpleRobot):
         dog.SetEnabled(True)
         dog.SetExperation(0.25)
         while self.IsOperatorControl():
-            pass
-    
-        self.wpilib.SmartDashboard.PutNumber('feed_motor', feed_motor_spd)
-        self.wpilib.SmartDashboard.PutNumber('angle_motor', angle_motor_position)
-        self.wpilib.SmartDashboard.PutNumber('frisbee_count', frisbee_count)
-        self.wpilib.SmartDashboard.PutNumber('shooter_encoder', shooter_encoder_position)
-        
-        dog.Feed()
-        wpilib.Wait(control_loop_wait_time)
+            #need a set_angle and set_speed function
+            if stick1.GetX():
+                self.my_drive.drive(1, 1)
+            if stick2.GetY():
+                self.my_shooter.set_angle()
+            if stick2.Getz():
+                self.my_shooter.set_speed()
+            if stick2.GetTrigger():
+                self.my_shooter.shoot_now()
+                
+            self.my_shooter_wheel.update()
+            self.my_feeder.update()
+            self.my_drive.update()
+            self.my_shooter.update()
+            self.wpilib.SmartDashboard.PutNumber('feed_motor', feed_motor_spd)
+            self.wpilib.SmartDashboard.PutNumber('angle_motor', angle_motor_position)
+            self.wpilib.SmartDashboard.PutNumber('frisbee_count', frisbee_count)
+            self.wpilib.SmartDashboard.PutNumber('shooter_encoder', shooter_encoder_position)
             
+            dog.Feed()
+            wpilib.Wait(control_loop_wait_time)
+                
 
         
 
@@ -98,6 +120,5 @@ def run():
     robot.StartCompetition()
     
     return robot
-
 
 
