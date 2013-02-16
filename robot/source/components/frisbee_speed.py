@@ -1,4 +1,7 @@
 from common import generic_distance_sensor
+from common import conversions
+from conversions import *
+
 from threading import condition
 
 try:
@@ -22,6 +25,10 @@ FRISBEE_LENGTH = 27
 
 '''other'''
 WAIT_TIME = .05
+
+''' settings '''
+METRIC = 0
+ENGLISH = 1
 class FrisbeeSpeed(object):
     ''' 
         Estimates frisbee speed based on how long a frisbee takes to pass and 
@@ -29,7 +36,7 @@ class FrisbeeSpeed(object):
         are in cm. To run, run start() on a new thread
     '''
     
-    def __init__(self, distance_sensor):
+    def __init__(self, distance_sensor, system = ENGLISH):
         '''
             initializes FrisbeeSpeed
             Parameters: distance_sensor,  a distance_sensor
@@ -38,7 +45,7 @@ class FrisbeeSpeed(object):
         self.distance_sensor = distance_sensor
         self.timer = wpilib.Timer()
         self.condition = Condition()
-        
+        self.system =  system
         ''' I hate the english system '''
     
         self.distance_sensor.system = generic_distance_sensor.METRIC
@@ -69,7 +76,12 @@ class FrisbeeSpeed(object):
             if distance < FRISBEE_FUZY_EDGE:
                 self.timer.Stop()
                 time = self.timer.Get()
+                ''' in cm per second'''
                 self.speed = FRISBEE_LENGTH / time
+                
+                if self.system == ENGLISH:
+                    self.speed *= CM_TO_FEET
+                
                 wpilib.SmartDashboard.PutNumber(DASH_STRING, self.speed)
                 self.state = NO_FRISBEE
 
