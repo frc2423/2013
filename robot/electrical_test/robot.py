@@ -25,9 +25,9 @@ camera_led_relay = 1
 compressor_relay = 2
 
 # Analog channels
-loader_sensor_analog = 3
-loader_cam_sensor_analog = 4
-shooter_detect_sensor = 5
+frisbee_sensor_channel = 3
+feeder_sensor_channel = 4
+shooter_sensor_channel = 5
 
 # Digital channels
 compressor_switch = 1
@@ -70,13 +70,14 @@ compressor = wpilib.Compressor(compressor_switch, compressor_relay)
 compressor.Start()
 
 # solenoids for climber
+# -> TODO: should we use the DoubleSolenoid class instead?
 valve1 = wpilib.Solenoid(valve1_channel)
 valve2 = wpilib.Solenoid(valve2_channel)
 
 # optical sensors
-loader_sensor = wpilib.AnalogChannel(loader_sensor_analog)
-loader_cam_sensor = wpilib.AnalogChannel(loader_cam_sensor_analog)
-shooter_detect_sensor = wpilib.AnalogChannel(shooter_detect_sensor)
+frisbee_sensor = wpilib.AnalogChannel(frisbee_sensor_channel)
+feeder_sensor = wpilib.AnalogChannel(feeder_sensor_channel)
+shooter_sensor = wpilib.AnalogChannel(shooter_sensor_channel)
 
 # drive object
 drive = wpilib.RobotDrive(l_motor, r_motor)
@@ -148,9 +149,9 @@ class MyRobot(wpilib.SimpleRobot):
             valve2.Set(stick2.GetRawButton(7))
                 
             # sensor status
-            wpilib.SmartDashboard.PutNumber('Loader', loader_sensor.GetVoltage())
-            wpilib.SmartDashboard.PutNumber('Loader cam', loader_cam_sensor.GetVoltage())
-            wpilib.SmartDashboard.PutNumber('Shooter detect', shooter_detect_sensor.GetVoltage())
+            wpilib.SmartDashboard.PutNumber('Frisbee Sensor', frisbee_sensor.GetVoltage())
+            wpilib.SmartDashboard.PutNumber('Feeder', feeder_sensor.GetVoltage())
+            wpilib.SmartDashboard.PutNumber('Shooter detect', shooter_sensor.GetVoltage())
             
             # motor status
             wpilib.SmartDashboard.PutNumber('Angle', angle_motor.GetPosition())
@@ -161,6 +162,7 @@ class MyRobot(wpilib.SimpleRobot):
             dog.Feed()
             
             # how long does it take us to run the loop?
+            # -> we're using a lot of globals, what happens when we change it?
             wpilib.SmartDashboard.PutNumber('Loop time', wpilib.Timer.GetPPCTimestamp() - start)
             
             wpilib.Wait(0.04)
