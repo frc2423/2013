@@ -1,6 +1,8 @@
 
 from autonomous import AutonomousModeManager
-from components import generic_distance_sensor
+from common import *
+from components import *
+from systems import shooter
 
 try:
     import wpilib 
@@ -24,9 +26,9 @@ l_motor = wpilib.Jaguar(2)
 r_motor = wpilib.Jaguar(1)
 
 #CAN Motors
-shooter_motor = wpilib.CANJaguar(7)
-angle_motor = wpilib.CANJaguar(4)
-feed_motor = wpilib.CANJaguar(5)
+shooter_motor = wpilib.EzCANJaguar(7)
+angle_motor = wpilib.EzCANJaguar(4)
+feed_motor = wpilib.EzCANJaguar(5)
 
 #sensors connected to jags: chamber_sensor detects frisbees being held
 chamber_sensor = generic_distance_sensor.GenericDistanceSensor(3, generic_distance_sensor.GP2D120)
