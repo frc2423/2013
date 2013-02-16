@@ -142,6 +142,10 @@ class MyRobot(wpilib.SimpleRobot):
             
             # Angle motor
             angle_motor.Set(stick2.GetY())
+            
+            # Solenoids
+            valve1.Set(stick2.GetRawButton(6))
+            valve2.Set(stick2.GetRawButton(7))
                 
             # sensor status
             wpilib.SmartDashboard.PutNumber('Loader', loader_sensor.GetVoltage())
