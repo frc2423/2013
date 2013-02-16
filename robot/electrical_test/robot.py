@@ -6,41 +6,86 @@ try:
 except ImportError:
     import fake_wpilib as wpilib
 
+#
+#    Declare all the ports and channels here
+#    Note: these are shared between the electrical test and main code!
+#
+
+# PWM channels
+l_motor_pwm = 1
+r_motor_pwm = 2
+
+# CAN channels
+feeder_motor_can = 3
+angle_motor_can = 4
+shooter_motor_can = 7
+
+# Relay channels
+camera_led_relay = 1
+compressor_relay = 2
+
+# Analog channels
+frisbee_sensor_channel = 3
+feeder_sensor_channel = 4
+shooter_sensor_channel = 5
+
+# Digital channels
+compressor_switch = 1
+
+# Solenoids
+valve1_channel = 1
+valve2_channel = 2
+
+
+#
+#    Create robot motors/sensors here
+#
+
+
 #Joysticks
 stick1 = wpilib.Joystick(1)
 stick2 = wpilib.Joystick(2)
 
 #PWM Motors
-l_motor = wpilib.Jaguar(1)
-r_motor = wpilib.Jaguar(2)
+l_motor = wpilib.Jaguar(l_motor_pwm)
+r_motor = wpilib.Jaguar(r_motor_pwm)
 
 #CAN Motors
 
 # shooter: -1 is full on
-shooter_motor = wpilib.CANJaguar(7)
+shooter_motor = wpilib.CANJaguar(shooter_motor_can)
 shooter_motor.SetSpeedReference(wpilib.CANJaguar.kSpeedRef_QuadEncoder)
 shooter_motor.ConfigEncoderCodesPerRev(360)
 shooter_motor.ConfigNeutralMode(wpilib.CANJaguar.kNeutralMode_Brake)
 
-angle_motor = wpilib.CANJaguar(4)
+angle_motor = wpilib.CANJaguar(angle_motor_can)
 angle_motor.SetPositionReference(wpilib.CANJaguar.kPosRef_Potentiometer)
 angle_motor.ConfigPotentiometerTurns(1)
 angle_motor.ConfigNeutralMode(wpilib.CANJaguar.kNeutralMode_Brake)
 
-loader_cam_motor = wpilib.CANJaguar(3)
+feeder_motor = wpilib.CANJaguar(feeder_motor_can)
 
+# compressor for pneumatics 
+compressor = wpilib.Compressor(compressor_switch, compressor_relay)
+compressor.Start()
+
+# solenoids for climber
+# -> TODO: should we use the DoubleSolenoid class instead?
+valve1 = wpilib.Solenoid(valve1_channel)
+valve2 = wpilib.Solenoid(valve2_channel)
 
 # optical sensors
-loader_sensor = wpilib.AnalogChannel(3)
-loader_cam_sensor = wpilib.AnalogChannel(4)
-shooter_detect_sensor = wpilib.AnalogChannel(5)
-
+frisbee_sensor = wpilib.AnalogChannel(frisbee_sensor_channel)
+feeder_sensor = wpilib.AnalogChannel(feeder_sensor_channel)
+shooter_sensor = wpilib.AnalogChannel(shooter_sensor_channel)
 
 # drive object
 drive = wpilib.RobotDrive(l_motor, r_motor)
 
 # TODO: Fix this. 
 drive.SetSafetyEnabled(False)
+
+
 
 class MyRobot(wpilib.SimpleRobot):
 
@@ -86,9 +131,9 @@ class MyRobot(wpilib.SimpleRobot):
             
             # loader cam motor
             if stick1.GetTrigger():
-                loader_cam_motor.Set(stick1.GetZ())
+                feeder_motor.Set(stick1.GetZ())
             else:
-                loader_cam_motor.Set(0)
+                feeder_motor.Set(0)
                 
             # shooter wheel motor
             if stick2.GetTrigger():
@@ -98,11 +143,15 @@ class MyRobot(wpilib.SimpleRobot):
             
             # Angle motor
             angle_motor.Set(stick2.GetY())
+            
+            # Solenoids
+            valve1.Set(stick2.GetRawButton(6))
+            valve2.Set(stick2.GetRawButton(7))
                 
             # sensor status
-            wpilib.SmartDashboard.PutNumber('Loader', loader_sensor.GetVoltage())
-            wpilib.SmartDashboard.PutNumber('Loader cam', loader_cam_sensor.GetVoltage())
-            wpilib.SmartDashboard.PutNumber('Shooter detect', shooter_detect_sensor.GetVoltage())
+            wpilib.SmartDashboard.PutNumber('Frisbee Sensor', frisbee_sensor.GetVoltage())
+            wpilib.SmartDashboard.PutNumber('Feeder', feeder_sensor.GetVoltage())
+            wpilib.SmartDashboard.PutNumber('Shooter detect', shooter_sensor.GetVoltage())
             
             # motor status
             wpilib.SmartDashboard.PutNumber('Angle', angle_motor.GetPosition())
@@ -113,6 +162,7 @@ class MyRobot(wpilib.SimpleRobot):
             dog.Feed()
             
             # how long does it take us to run the loop?
+            # -> we're using a lot of globals, what happens when we change it?
             wpilib.SmartDashboard.PutNumber('Loop time', wpilib.Timer.GetPPCTimestamp() - start)
             
             wpilib.Wait(0.04)
