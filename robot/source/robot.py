@@ -1,42 +1,90 @@
 
+try:
+    import wpilib 
+except ImportError:
+    import fake_wpilib as wpilib
+    
+
 from autonomous import AutonomousModeManager
 from common import *
 from components import shooter_wheel, feeder, driving 
 from systems import shooter
+ 
 
-try:
-    import wpilib 
-except ImportError:
-    import fake_wpilib as wpilib 
-    
-    #Variables as strings
-switch_1 = "Switch 1"
-switch_2 = "Switch 2"
-angleMotor = "Angle Motor"
-feedMotor = "Feed Motor"
-shooterEncoder = "Shooter Encoder"
-frisbeeCount = "Frisbee Count"
+#
+#    Declare all the ports and channels here
+#    Note: these are shared between the electrical test and main code!
+#
 
-#Joysticks
+# PWM channels
+l_motor_pwm = 1
+r_motor_pwm = 2
+
+# CAN channels
+feeder_motor_can = 3
+angle_motor_can = 4
+shooter_motor_can = 7
+
+# Relay channels
+camera_led_relay = 1
+compressor_relay = 2
+
+# Analog channels
+frisbee_sensor_channel = 3
+feeder_sensor_channel = 4
+shooter_sensor_channel = 5
+
+# Digital channels
+compressor_switch = 1
+
+# Solenoids
+valve1_channel = 1
+valve2_channel = 2
+
+
+#
+#    Create robot motors/sensors here
+#
+
+
+# Joysticks
 stick1 = wpilib.Joystick(1)
 stick2 = wpilib.Joystick(2)
 
-#PWM Motors
-l_motor = wpilib.Jaguar(2)
-r_motor = wpilib.Jaguar(1)
+# PWM Motors
+l_motor = wpilib.Jaguar(l_motor_pwm)
+r_motor = wpilib.Jaguar(r_motor_pwm)
 
-#CAN Motors
-shooter_motor = wpilib.EzCANJaguar(7)
-angle_motor = wpilib.EzCANJaguar(4)
-feed_motor = wpilib.EzCANJaguar(5)
+# CAN Motors
+shooter_motor = wpilib.EzCANJaguar(shooter_motor_can)
+shooter_motor.SetSpeedReference(wpilib.CANJaguar.kSpeedRef_QuadEncoder)
+shooter_motor.ConfigEncoderCodesPerRev(360)
+shooter_motor.ConfigNeutralMode(wpilib.CANJaguar.kNeutralMode_Brake)
 
-#sensors connected to jags: frisbee_sensor detects frisbees being held
-frisbee_sensor = generic_distance_sensor.GenericDistanceSensor(3, generic_distance_sensor.GP2D120)
-feed_sensor = generic_distance_sensor.GenericDistanceSensor(4, generic_distance_sensor.GP2D120)
-shooter_sensor = generic_distance_sensor.GenericDistanceSensor(5, generic_distance_sensor.GP2D120)
+angle_motor = wpilib.EzCANJaguar(angle_motor_can)
+angle_motor.SetPositionReference(wpilib.CANJaguar.kPosRef_Potentiometer)
+angle_motor.ConfigPotentiometerTurns(1)
+angle_motor.ConfigNeutralMode(wpilib.CANJaguar.kNeutralMode_Brake)
 
-#motor positions
-feed_motor_postion = feed_motor.GetPosition()
+feeder_motor = wpilib.EzCANJaguar(feeder_motor_can)
+
+# compressor for pneumatics 
+compressor = wpilib.Compressor(compressor_switch, compressor_relay)
+compressor.Start()
+
+# solenoids for climber
+# -> TODO: should we use the DoubleSolenoid class instead?
+valve1 = wpilib.Solenoid(valve1_channel)
+valve2 = wpilib.Solenoid(valve2_channel)
+
+# sensors connected to jags: frisbee_sensor detects frisbees being held
+frisbee_sensor = generic_distance_sensor.GenericDistanceSensor(frisbee_sensor_channel, generic_distance_sensor.GP2D120)
+feeder_sensor = generic_distance_sensor.GenericDistanceSensor(feeder_sensor_channel, generic_distance_sensor.GP2D120)
+shooter_sensor = generic_distance_sensor.GenericDistanceSensor(shooter_sensor_channel, generic_distance_sensor.GP2D120)
+
+# motor positions
+# -> THIS IS WRONG. Think about it. 
+feed_motor_postion = feeder_motor.GetPosition()
 angle_motor_position = angle_motor.GetPosition()
 shooter_encoder_position = shooter_motor.GetPosition()
 
@@ -56,19 +104,37 @@ speed_threshold = 1
 drive = wpilib.RobotDrive()
 
 # TODO
-components = {}
-autonomous_mode = AutonomousModeManager(components)
+
                                                             
 class MyRobot(wpilib.SimpleRobot):
 
     def __init__(self):
         wpilib.SimpleRobot.__init__(self)
-        self.my_shooter_wheel = shooter_wheel.ShooterWheel(self.angleMotor, self.shooterMotor,\
-                                                          angle_threshold, speed_threshold)
-        self.my_feeder = feeder.Feeder(feed_motor, frisbee_sensor, feed_sensor)
+        
+        # create the components
+        self.my_shooter_wheel = shooter_wheel.ShooterWheel(angle_motor, shooter_motor,
+                                                           angle_threshold, speed_threshold)
+        self.my_feeder = feeder.Feeder(feeder_motor, frisbee_sensor, feeder_sensor)
         self.my_drive = driving.Driving(drive)
+        
+        # create the systems
         self.my_shooter = shooter.Shooter()
-
+        
+        # autonomous mode needs a dict of components
+        components = {
+            'drive': self.my_drive,
+            'feeder': self.my_feeder,
+            'shooter': self.my_shooter,
+            'shooter_wheel': self.my_shooter_wheel,
+        }
+        
+        # store a list of components for later on
+        # -> TODO: Does ordering matter here?
+        self.components = [v for v in components.values()]
+        
+        self.autonomous_mode = AutonomousModeManager(components)
+        
+        
     def RobotInit(self):
         pass
 
@@ -82,7 +148,7 @@ class MyRobot(wpilib.SimpleRobot):
         print("MyRobot::Autonomous()")
         
         # this does all the autonomous mode work for us
-        autonomous_mode.run(self, control_loop_wait_time)
+        self.autonomous_mode.run(self, control_loop_wait_time)
         
     def OperatorControl(self):
         print("MyRobot::OperatorControl()")
@@ -95,24 +161,29 @@ class MyRobot(wpilib.SimpleRobot):
                 self.my_drive.drive(1, 1)
             if stick2.GetY():
                 self.my_shooter.set_angle()
-            if stick2.Getz():
+            if stick2.GetZ():
                 self.my_shooter.set_speed()
             if stick2.GetTrigger():
                 self.my_shooter.shoot_now()
-                
-            self.my_shooter_wheel.update()
-            self.my_feeder.update()
-            self.my_drive.update()
-            self.my_shooter.update()
+            
+            # call update function on all components
+            self.update()    
+            
             self.wpilib.SmartDashboard.PutNumber('feed_motor', feed_motor_spd)
             self.wpilib.SmartDashboard.PutNumber('angle_motor', angle_motor_position)
             self.wpilib.SmartDashboard.PutNumber('frisbee_count', frisbee_count)
             self.wpilib.SmartDashboard.PutNumber('shooter_encoder', shooter_encoder_position)
             
             dog.Feed()
+            
+            # TODO: Fix this to be consistent
+            # TODO: Determine loop period time
             wpilib.Wait(control_loop_wait_time)
                 
-
+    def update(self):
+        '''Runs update on all components'''
+        for component in self.components:
+            component.update()
         
 
 def run():
