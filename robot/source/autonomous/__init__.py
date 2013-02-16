@@ -157,6 +157,7 @@ class AutonomousModeManager(object):
             
             robot.update()
              
+            # TODO: Fix this, since this isn't a consistent wait period
             wpilib.Wait(control_loop_wait_time)
             
         #
