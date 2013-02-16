@@ -16,9 +16,9 @@ l_motor_pwm = 1
 r_motor_pwm = 2
 
 # CAN channels
-loader_cam_can = 3
+feeder_motor_can = 3
 angle_motor_can = 4
-shooter_wheel_can = 7
+shooter_motor_can = 7
 
 # Relay channels
 camera_led_relay = 1
@@ -53,7 +53,7 @@ r_motor = wpilib.Jaguar(r_motor_pwm)
 #CAN Motors
 
 # shooter: -1 is full on
-shooter_motor = wpilib.CANJaguar(shooter_wheel_can)
+shooter_motor = wpilib.CANJaguar(shooter_motor_can)
 shooter_motor.SetSpeedReference(wpilib.CANJaguar.kSpeedRef_QuadEncoder)
 shooter_motor.ConfigEncoderCodesPerRev(360)
 shooter_motor.ConfigNeutralMode(wpilib.CANJaguar.kNeutralMode_Brake)
@@ -63,22 +63,20 @@ angle_motor.SetPositionReference(wpilib.CANJaguar.kPosRef_Potentiometer)
 angle_motor.ConfigPotentiometerTurns(1)
 angle_motor.ConfigNeutralMode(wpilib.CANJaguar.kNeutralMode_Brake)
 
-loader_cam_motor = wpilib.CANJaguar(loader_cam_can)
+feeder_motor = wpilib.CANJaguar(feeder_motor_can)
 
+# compressor for pneumatics 
+compressor = wpilib.Compressor(compressor_switch, compressor_relay)
+compressor.Start()
+
+# solenoids for climber
+valve1 = wpilib.Solenoid(valve1_channel)
+valve2 = wpilib.Solenoid(valve2_channel)
 
 # optical sensors
 loader_sensor = wpilib.AnalogChannel(loader_sensor_analog)
 loader_cam_sensor = wpilib.AnalogChannel(loader_cam_sensor_analog)
 shooter_detect_sensor = wpilib.AnalogChannel(shooter_detect_sensor)
-
-# compressor
-compressor = wpilib.Compressor(compressor_switch, compressor_relay)
-compressor.Start()
-
-# solenoids
-valve1 = wpilib.Solenoid(valve1_channel)
-valve2 = wpilib.Solenoid(valve2_channel)
-
 
 # drive object
 drive = wpilib.RobotDrive(l_motor, r_motor)
@@ -132,9 +130,9 @@ class MyRobot(wpilib.SimpleRobot):
             
             # loader cam motor
             if stick1.GetTrigger():
-                loader_cam_motor.Set(stick1.GetZ())
+                feeder_motor.Set(stick1.GetZ())
             else:
-                loader_cam_motor.Set(0)
+                feeder_motor.Set(0)
                 
             # shooter wheel motor
             if stick2.GetTrigger():
