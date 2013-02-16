@@ -33,14 +33,14 @@ class Test(object):
         
     def test_get_frisbee_count(self):
         from components import feeder
-        self.frisbee_sensor.distance = 0
+        self.frisbee_sensor.distance = 99
         if not hasattr(self.tested_feeder, "get_frisbee_count"):
             raise Exception("Please use proper naming conventions")
             
         if self.tested_feeder.get_frisbee_count() != 0:
             raise Exception("Wrong Frisbee Count")
         
-        self.frisbee_sensor.distance = random.uniform(0, feeder.ONE_FRISBEE)
+        self.frisbee_sensor.distance = random.uniform(12 , feeder.ONE_FRISBEE)
         
         if self.tested_feeder.get_frisbee_count() != 0:
             raise Exception("Wrong Frisbee Count (expected 0; distance: %s)" % self.frisbee_sensor.distance)
@@ -60,7 +60,7 @@ class Test(object):
         if self.tested_feeder.get_frisbee_count() != 3:
             raise Exception("Wrong Frisbee Count (expected 3; distance: %s)" % self.frisbee_sensor.distance)
         
-        self.frisbee_sensor.distance = random.uniform(feeder.FOUR_FRISBEE, 5)
+        self.frisbee_sensor.distance = random.uniform(feeder.FOUR_FRISBEE, 1)
         
         if self.tested_feeder.get_frisbee_count() != 4:
             raise Exception("Wrong Frisbee Count (expected 4; distance: %s)" % self.frisbee_sensor.distance)
@@ -72,9 +72,9 @@ class Test(object):
         if not getattr(self.tested_feeder, "FEEDER_READY_DISTANCE") :
             raise Exception("Need to set a distance at which the feeder will be ready")
         
-        self.frisbee_sensor.distance = FEEDER_READY_DISTANCE
+        self.feed_sensor.distance = self.tested_feeder.FEEDER_READY_DISTANCE
         '''feeder is in ready position'''
-        self.frisbee_sensor.distance = random.uniform(self.tested_feeder.FEEDER_READY_DISTANCE, 1)
+        self.feed_sensor.distance = random.uniform(self.tested_feeder.FEEDER_READY_DISTANCE, 1)
         if not getattr(self.tested_feeder, "feed"):
             raise Exception("Need to set a distance at which the feeder will be ready")
             
@@ -88,7 +88,7 @@ class Test(object):
             raise Exception("Feeder should move now")
        
         ''' feeder has left ready position'''            
-        self.frisbee_sensor.distance = random.uniform(self.tested_feeder.FEEDER_READY_DISTANCE+ 5\
+        self.feed_sensor.distance = random.uniform(self.tested_feeder.FEEDER_READY_DISTANCE+ 5\
                                                       ,self.tested_feeder.FEEDER_READY_DISTANCE) 
         self.tested_feeder.feed()
         if self.feeder_motor.value != 1:
@@ -100,7 +100,7 @@ class Test(object):
                             , " that the feeder has left the sensor")
         
         '''feeder came back to ready position but feed was called right as that happened'''
-        self.frisbee_sensor.distance = random.uniform(self.tested_feeder.FEEDER_READY_DISTANCE, 1) 
+        self.feed_sensor.distance = random.uniform(self.tested_feeder.FEEDER_READY_DISTANCE, 1) 
         self.tested_feeder.feed()
         self.tested_feeder.update()
         if self.feeder_motor.value != 1:
@@ -108,7 +108,7 @@ class Test(object):
                             , " right as we reach the ready position")
         
         ''' feeder has left ready position'''            
-        self.frisbee_sensor.distance = random.uniform(self.tested_feeder.FEEDER_READY_DISTANCE+ 5\
+        self.feed_sensor.distance = random.uniform(self.tested_feeder.FEEDER_READY_DISTANCE+ 5\
                                                       ,self.tested_feeder.FEEDER_READY_DISTANCE) 
         self.tested_feeder.feed()
         if self.feeder_motor.value != 1:
@@ -120,7 +120,7 @@ class Test(object):
                             , " that the feeder has left the sensor")
         
         '''were back at ready position should stop now'''
-        self.frisbee_sensor.distance = random.uniform(self.tested_feeder.FEEDER_READY_DISTANCE, 1)  
+        self.feed_sensor.distance = random.uniform(self.tested_feeder.FEEDER_READY_DISTANCE, 1)  
         self.tested_feeder.update()
         if self.feeder_motor.value != 0:
             raise Exception("Motor should stop once we hit the target and feed was not called")

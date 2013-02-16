@@ -18,18 +18,17 @@ class Shooter():
     
         while feeder.Feeder.get_frisbee_count() > 0:
         
-            if shooter_wheel.ShooterWheel.is_ready_angle(self, self.d_angle)IsReadyAngle() == True and shooter_wheel.ShooterWheel.IsReadySpeed() == True:
+            if shooter_wheel.ShooterWheel.is_ready_angle() == True and shooter_wheel.ShooterWheel.is_ready_speed() == True:
             
                 self.Updated = True
             
     def shoot_now(self):
     
         self.Updated = True
-            		
-    def update():
         
-        if self.updated == True
+    def update(self):
         
-            feeder.Feed()
+        if self.updated == True:
+        
+            feeder.Feeder.feed()
             self.Updated = None
-     
