@@ -21,8 +21,8 @@ angle_motor_can = 4
 shooter_motor_can = 7
 
 # Relay channels
-camera_led_relay = 1
-compressor_relay = 2
+camera_led_relay = 2
+compressor_relay = 1
 
 # Analog channels
 frisbee_sensor_channel = 3
@@ -64,6 +64,7 @@ angle_motor.ConfigPotentiometerTurns(1)
 angle_motor.ConfigNeutralMode(wpilib.CANJaguar.kNeutralMode_Brake)
 
 feeder_motor = wpilib.CANJaguar(feeder_motor_can)
+feeder_motor.ConfigNeutralMode(wpilib.CANJaguar.kNeutralMode_Brake)
 
 # compressor for pneumatics 
 compressor = wpilib.Compressor(compressor_switch, compressor_relay)
