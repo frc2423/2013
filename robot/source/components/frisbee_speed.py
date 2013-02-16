@@ -1,8 +1,7 @@
-from common import generic_distance_sensor
-from common import conversions
-from conversions import *
 
-from threading import condition
+from common.conversions import *
+
+from threading import Condition
 
 try:
     import wpilib
@@ -48,7 +47,7 @@ class FrisbeeSpeed(object):
         self.system =  system
         ''' I hate the english system '''
     
-        self.distance_sensor.system = generic_distance_sensor.METRIC
+        self.distance_sensor.system = self.distance_sensor.METRIC
             
     def process_speed(self):
         '''
