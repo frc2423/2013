@@ -1,26 +1,27 @@
-try:
-    import wpilib 
-except ImportError:
-    import fake_wpilib as wpilib 
-    
-    
+'''
+    Author: Arshdeep
+'''
+
 class Driving(object):
+    '''
+        Wrapper around the RobotDrive class for driving
+    '''
 
     def __init__ (self, drive):
-        self.updated = False
-        self.drive = drive 
+        self.drive = drive
+        self.speed = None
      
-    def drive(self, rot, speed):
-        self.updated =  True
-        self.rot = rot
-        self.speed = speed       
+    def drive(self, speed, rotate):
+        '''Set driving parameters'''
+        self.speed = speed
+        self.rotate = rotate
        
     def update(self):
-        if self.updated == True:
-            self.drive.ArcadeDrive(self.speed, self.rot)
-            
+        '''Actually communicates with the motors'''
+        
+        if self.speed is not None:
+            self.drive.ArcadeDrive(self.speed, self.rotate)
+            self.speed = None
         else:
             self.drive.ArcadeDrive(0,0)
-            self.updated = False
-        
             
