@@ -7,8 +7,8 @@ except ImportError:
 
 from autonomous import AutonomousModeManager
 from common import *
-from components import shooter_wheel, feeder, driving 
-from systems import shooter
+from components import *
+from systems import *
  
 
 '''Declare all the ports and channels here'''
@@ -138,26 +138,55 @@ class MyRobot(wpilib.SimpleRobot):
     def Autonomous(self):        
         print("MyRobot::Autonomous()")
         
-        '''this does all the autonomous mode work for us'''
+        # this does all the autonomous mode work for us
         self.autonomous_mode.run(self, control_loop_wait_time)
         
     def OperatorControl(self):
         print("MyRobot::OperatorControl()")
         dog = self.GetWatchdog()
         dog.SetEnabled(True)
-        dog.SetExperation(0.25)
+        dog.SetExpiration(0.25)
         while self.IsOperatorControl():
-            '''need a set_angle and set_speed function'''
+            # joystick button variables 
             drive_speed = stick1.GetY() 
             drive_rotate = stick1.GetX() 
             speed = stick2.GetZ()
+            angle = stick2.GetY()
+            
             self.my_drive.drive(drive_speed, drive_rotate)
-            self.my_shooter.set_speed(speed)
             
-            if stick2.GetTrigger():
+            
+            # needs a set_angle and set_speed function
+            # needs a shooter.auto and angle.auto defined 
+            if self.shooter.auto == True:
+                speed = 0
+                # sets default speed
+            else:
+                self.my_shooter.auto.set_speed(speed)
+                
+            if self.angle.auto == True:
+                angle = 0
+                #sets the default angle
+            else:
+                self.my_shooter.auto.set_angle(angle)
+                
+                
+            if self.shooter.auto == True and self.angle.auto == True:
                 self.my_shooter.shoot_when_ready()
-            
-            '''calls update function on all components'''
+           
+            if stick2.GetTrigger() == True:
+                self.my_shooter.shoot_now()
+                
+            if stick2.GetRawButton(1) == True:
+                self.shoot_when_ready()
+                
+            if stick2.GetRawButton(2) == True:
+                self.continous_shoot()
+                
+            if stick2.GetRawButton(3) == True:
+                self.shoot_now()
+                
+            # calls update function on all components
             self.update()    
             
             self.wpilib.SmartDashboard.PutNumber('feed_motor', feed_motor_spd)
