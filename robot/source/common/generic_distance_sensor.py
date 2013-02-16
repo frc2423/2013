@@ -9,6 +9,9 @@
 '''
 import sys
 from inspect import currentframe, getframeinfo
+from common import conversions
+from conversions import *
+
 try:
     import wpilib
 except:
@@ -21,8 +24,6 @@ GP2D120 = 0
 METRIC = 0
 ENGLISH = 1
 
-''' conversions '''
-INCH_TO_CM = 2.54
 
 def lineno():
     #returns current line
