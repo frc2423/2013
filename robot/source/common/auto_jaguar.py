@@ -15,6 +15,8 @@ class _AutoJaguar(object):
     '''
     
     MANUAL = CANJaguar.kPercentVbus
+    BANG_BANG = 99
+    AUTO = None
     
     def __init__(self, motor, threshold):
         '''
@@ -64,17 +66,23 @@ class _AutoJaguar(object):
     
     def update(self):
         '''Sets the motor position/speed'''
-        
         if self.mode is not None:
+            # BANG_BANG runs in manual mode
+            if self.mode == self.BANG_BANG:
+                self.mode = self.MANUAL
             # Set the control mode for the Jaguar appropriately
-            self.motor.ChangeControlMode(self.mode)
-            self.mode = None
+            self.motor.ChangeControlMode(self.mode)        
         
-        # Both modes use the same function... 
-        self.motor.Set(self.value)
+        # BANG_BANG mode does this diffrently
+        if self.AUTO != BANG_BANG:
+            # Both modes use the same function... 
+            self.motor.Set(self.value)
+            
+            if self.motor.control_mode == self.MANUAL:            
+                self.value = 0.0
         
-        if self.motor.control_mode == self.MANUAL:            
-            self.value = 0.0
+        else:
+            self.set_value = self.value
 
 
 class PositionJaguar(_AutoJaguar):
@@ -101,16 +109,27 @@ class PositionJaguar(_AutoJaguar):
     
 class SpeedJaguar(_AutoJaguar):
     '''
-        Implementation of a PID-controlled Jaguar for speed
+        Implementation of a PID-controlled or BANG BANG controlled Jaguar for 
+        speed
     '''
     
+    from threading import Lock
+    from threading import Thread
+    
     AUTO = CANJaguar.kSpeed
+    ''' arbitrary large number as not to conflict with CANJaguars enums '''
+
+    
     
     def __init__(self, motor, threshold):
         '''See constructor for AutoJaguar'''
         self.get_value = self.motor.GetSpeed
         _AutoJaguar.__init__(self, motor, threshold)
-    
+        self.bang_bang_thread = None
+        self.condition = Condition()
+        self.waiting = False
+        self.set_value = 0
+        
     def get_speed(self):
         '''Returns current speed as calculated by the speed reference'''
         return self.motor.GetSpeed()
@@ -119,4 +138,42 @@ class SpeedJaguar(_AutoJaguar):
         '''Tell the motor to go to a specific speed'''
         self.mode = self.AUTO
         self.value = speed
-
+        
+    def set_auto_mode(self, mode): 
+        '''sets auto mode to bang bang or PID'''
+        if mode == self.BANG_BANG:
+            self.AUTO = self.BANG_BANG
+            # if thread hasn't started yet, create it and start it
+            if self.bang_bang_thread == None:
+                self.bang_bang_thread = Thread(target = _threaded_bang_bang)
+                self.bang_bang_thread.start()
+                self.bang_bang_thread.join()
+                self.waiting = True
+                
+            while self.waiting:
+                with condition:
+                    condition.notify()
+            
+        else:
+            self.AUTO = CANJaguar.kSpeed
+            self.waiting = True
+            
+    def _threaded_bang_bang(self):
+        ''' 
+            is to be run in separate thread launched when set into 
+            BANG_BANG mode, only active while auto is in BANG_BANG mode
+        '''
+        self.keep_alive = True
+        #set mode to manual,set speed goals
+        self.update()
+        while self.keep_alive:
+            with condition: 
+                self.condition.wait()
+                self.waiting = False
+                while self.AUTO == self.BANG_BANG:
+                    
+                    if self.get_speed() >= self.set_value:
+                        self.motor.Set(0)
+        
+                    else:
+                        self.motor.Set(1)
