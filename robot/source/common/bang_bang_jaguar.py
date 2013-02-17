@@ -2,12 +2,12 @@ from .auto_jaguar import _AutoJaguar
 from threading import Condition
 from threading import Thread
     
-class BangBangJaguar(_AutoJaguar):
+class BangBangJaguar(SpeedJaguar):
     '''
         Implements a wrapper around a CANJaguar for automated control for 
-        a bang bang motor controler
+        a bang bang motor controller
     '''
-    
+    #arbitrary large number not to conflict with 
     BANG_BANG = 99
     AUTO = BANG_BANG
 
@@ -20,7 +20,6 @@ class BangBangJaguar(_AutoJaguar):
             :param threshold: Amount position may vary to be considered correct
             
         '''
-        self.get_value = self.motor.GetSpeed
         super.__init__(self, motor, threshold)
         self.condition = Condition()
         self.set_value = 0
@@ -71,15 +70,6 @@ class BangBangJaguar(_AutoJaguar):
             while not self.run_bang_bang:
                 with condition:
                     condition.notify()
-        
-    def get_speed(self):
-        '''Returns current speed as calculated by the speed reference'''
-        return self.motor.GetSpeed()
-    
-    def set_speed(self, speed):
-        '''Tell the motor to go to a specific speed'''
-        self.mode = self.AUTO
-        self.value = speed
         
     #
     # Thread on which to run
