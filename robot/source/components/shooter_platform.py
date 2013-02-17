@@ -9,7 +9,7 @@ class ShooterPlatform(object):
     
     def __init__(self, angle_jag, shooter_jag):
         ''' 
-            Initializes ShooterWheel object
+            Initializes ShooterPlatform object
             
             Parameters:
                 angle_jag -- an AutoJaguar configured for position control
@@ -97,7 +97,7 @@ class ShooterPlatform(object):
     def is_ready_speed(self):
         ''' checks if the speed is right'''
         #returns true if current speed is within threshold.
-        return self.wheel_jag.is_ready()
+        return self.shooter_jag.is_ready()
         
     def is_ready(self):
         ''' checks if the shooter_platform is ready to shoot'''
@@ -139,13 +139,13 @@ class ShooterPlatform(object):
         #
         #update smart dashboard
         #
-        _update_smart_dashboard()
+        self._update_smart_dashboard()
         
         #
         #Update jags, the AutoJag class handles the hard stuff
         #
-        self.angle_jag.Update()
-        self.shooter_jag.Update()
+        self.angle_jag.update()
+        self.shooter_jag.update()
         
         #
         #Set all pre variables, since we are done with the current ones
