@@ -13,7 +13,7 @@ from common.generic_distance_sensor import GenericDistanceSensor, GP2D120
 
 from components.climber import Climber
 from components.driving import Driving
-from components.feeder import Feeder
+from components.feeder_pro import FeederPro
 from components.shooter_platform import ShooterPlatform
 from components.target_detector import TargetDetector
 
@@ -172,7 +172,7 @@ class MyRobot(wpilib.SimpleRobot):
         
         self.my_drive = Driving(drive)
         
-        self.my_feeder = Feeder(feeder_motor, 
+        self.my_feeder = FeederPro(feeder_motor, 
                                 frisbee_sensor, 
                                 feeder_sensor)
         
