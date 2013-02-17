@@ -17,23 +17,24 @@ FEEDER_READY_DISTANCE = 2
 FrisbeeCount = "Frisbee Count"
 
 #State variables
-STATE_FEED = 0
-STATE_READY = 1
-IS_UPDATED = 2
-IS_NOT_UPDATED = 3
-STOP = 4
-MANUAL = 5
-ZERO = 6
-AUTO = 7
-REVERSE = 8
+FEEDING = 0
+STOP_FEEDING = 1
+STOP = 2
+MANUAL = 3
+AUTO = 4
+REVERSE = 5
+START_FEEDING = 6
+
 #Speed variables
 REVERSE_FEED_SPEED = -1
-INITIAL_SPEED = 0
 FEED_SPEED = 1
+ZERO = 0
 
+#Modes
+BACKWARDS = 0
+FORWARDS = 1
 
-
-class Feeder():
+class feeder():
     
     '''Contains all the functions that control the cam motor'''
 
@@ -44,9 +45,9 @@ class Feeder():
         self.frisbee_sensor = frisbee_sensor
         self.feed_sensor = feed_sensor
         self.frisbee_sensor_switch = frisbee_sensor_switch
-        self.feed_motor.Set(INITIAL_SPEED)
-        self.updated = None
-        self.state = STATE_READY
+        self.FEEDING_motor.Set(ZERO)
+        self.state = None
+        self.state = STOP_FEEDING
         self.distance = self.frisbee_sensor.GetDistance()
         self.fed = 1
         
@@ -67,41 +68,10 @@ class Feeder():
         self.state = MANUAL
         
         
-    def feed(self):
-        
-        '''Manual feeding. Moves cam while function is called'''
-        
-        self.updated = IS_UPDATED
-        
-        
     def reverse_feed(self):
         '''makes the cam reverse'''
         
-        self.updated = REVERSE
-       
-    def feed_when_ready(self):
-        '''makes the feed motor go 1 full rotation then stops'''
-        if self.feed_sensor.GetDistance() > FEEDER_READY_DISTANCE:  
-            self.updated = IS_NOT_UPDATED
-            
-            
-        if self.state == STATE_FEED and \
-            self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE:
-            self.updated = IS_UPDATED   
-            
-            
-    def ready_feeder(self):
-        '''Rotates the cam until it is above the sensor'''
-         
-        if self.state == STATE_READY:
-            self.updated = IS_UPDATED
-            self.state = STATE_FEED
-            
-            
-        if self.state == STATE_READY and \
-            self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE:
-            self.updated = IS_NOT_UPDATED
-            self.state = STATE_FEED
+        self.state = REVERSE
         
     def is_sensor_working(self):
         if self.frisbee_sensor_switch == True:
@@ -139,53 +109,57 @@ class Feeder():
         return self.frisbee_count
     def update(self):
         '''sets all the Jaguars'''
-        
-        if self.updated == IS_UPDATED:
-            self.feed_motor.Set(FEED_SPEED)
-            self.updated = None
             
-        if self.updated == IS_NOT_UPDATED:
-            self.feed_motor.Set(INITIAL_SPEED)
-            self.updated = None
+        if self.state == REVERSE:
             
-        if self.updated == REVERSE:
-            
-            self.feed_motor.Set(REVERSE_FEED_SPEED)
-            self.updated= None
+            self.mode = BACKWARDS
+            self.state= START_FEEDING
             
         if self.state == MANUAL:
             
-            self.feed_motor.Set(FEED_SPEED)
-            
-            self.state = STOP
+            self.state = START_FEEDING
+            self.mode = FORWARDS
             
         if self.state == AUTO:
             '''if the cam is not on the sensor, move the cam. 
-            If it is  and has just feed stop. 
-            If it was not feeding and the cam is on the sensor start moving'''
+            If it is  and has just FEEDING stop. 
+            If it was not FEEDINGing and the cam is on the sensor start moving'''
         
             #there is no cam above the sensor
             if self.feed_sensor.GetDistance() > FEEDER_READY_DISTANCE:
             
-                self.state = STATE_FEED
-                self.updated = IS_UPDATED
-            
+                self.state = START_FEEDING
+                self.mode = FORWARDS
             
             #there is a cam above the sensor and it was feeding
             elif self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE and \
-                self.state == STATE_FEED:
+                self.state == FEEDING:
             
-                self.state = STATE_READY
-                self.updated = IS_NOT_UPDATED
-            
+                self.state = STOP_FEEDING
+                self.mode = FORWARDS
+                
             #there is a cam above the sensor and it was not feeding
             elif self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE and \
-                self.state == STATE_READY:
+                self.state == STOP_FEEDING:
+                
+                self.state = START_FEEDING
+                self.mode = FORWARDS
+                
+        if self.state == START_FEEDING:
             
-                self.state = STATE_FEED
-                self.updated = IS_UPDATED
+            if self.mode == FORWARDS:
             
+                self.feed_motor.Set(FEED_SPEED)
+                
+                
+            elif self.mode == BACKWARDS:
+                
+                self.feed_motor.Set(REVERSE_FEED_SPEED)
+                
+        if self.state == STOP_FEEDING:
+            self.state = STOP
+        
             
         if self.state == STOP:
-            self.feed_motor.Set(ZERO)
+            self.FEEDING_motor.Set(ZERO)
                 
