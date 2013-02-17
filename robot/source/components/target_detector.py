@@ -30,7 +30,7 @@ class TargetDetector(ITableListener):
         table = NetworkTable.GetTable(table_name)
         table.AddTableListener('targeting', self, False)
         
-    def GetData(self):
+    def get_data(self):
         '''Returns a tuple of horizontal angle, vertical angle, distance. Check to see
            if any of them are None before using them
            
@@ -51,3 +51,6 @@ class TargetDetector(ITableListener):
             self.hangle = v[0]
             self.vangle = v[1]
             self.distance = v[2]
+            
+    def update(self):
+        pass

@@ -82,8 +82,9 @@ class FrisbeeSpeed(object):
                     self.speed *= CM_TO_FEET
                 
                 wpilib.SmartDashboard.PutNumber(DASH_STRING, self.speed)
+                
                 self.state = NO_FRISBEE
-
+                self.timer.Reset()
 
         
     def run(self):

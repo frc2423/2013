@@ -7,21 +7,22 @@ class Driving(object):
         Wrapper around the RobotDrive class for driving
     '''
 
-    def __init__ (self, drive):
-        self.drive = drive
+    def __init__ (self, robot_drive):
+        self.robot_drive = robot_drive
         self.speed = None
      
-    def drive(self, speed, rotate):
+    def drive(self, speed, rotate, faster=False):
         '''Set driving parameters'''
         self.speed = speed
         self.rotate = rotate
+        self.faster = faster
        
     def update(self):
         '''Actually communicates with the motors'''
         
         if self.speed is not None:
-            self.drive.ArcadeDrive(self.speed, self.rotate)
+            self.robot_drive.ArcadeDrive(self.speed, self.rotate, not self.faster)
             self.speed = None
         else:
-            self.drive.ArcadeDrive(0,0)
+            self.robot_drive.ArcadeDrive(0,0)
             
