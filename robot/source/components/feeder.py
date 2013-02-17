@@ -19,6 +19,7 @@ FrisbeeCount = "Frisbee Count"
 STATE_FEED = 0
 STATE_READY = 1
 STATE_DONE = 2
+REVERSE_FEED_SPD = -1
 
 class Feeder():
     
@@ -38,48 +39,54 @@ class Feeder():
         self.fed = 1
         
         
-    def feed(self):
         
-        '''feeds the frisbee'''
         
-        if self.feed_sensor.GetDistance() > FEEDER_READY_DISTANCE and \
-            self.state == STATE_FEED:
-            
+        
+    def auto_feed(self): 
+        '''if the cam is not on the sensor, move the cam. 
+        If it is  and has just feed stop. 
+        If it was not feeding and the cam is on the sensor start moving'''
+        
+        '''there is no cam'''
+        if self.feed_sensor.GetDistance() > FEEDER_READY_DISTANCE:
             
             self.state = STATE_FEED
             self.updated = True
-            print("State is : ", 1)  
             
-        
             
+            '''there is a cam and it was feeding'''
         elif self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE and \
             self.state == STATE_FEED:
             
-            
             self.state = STATE_READY
             self.updated = False
-            print("State is : ", 2)
             
+            '''there is a cam and it was not feeding'''
         elif self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE and \
             self.state == STATE_READY:
             
             self.state = STATE_FEED
             self.updated = True
-            print("State is : ", 3)
-            
-        elif self.frisbee_sensor.GetDistance() > FEEDER_READY_DISTANCE and \
-            self.state == STATE_READY:   
-            
-            self.state = 2
-            self.state = None
-            self.updated = False
-            print("State is : ", 4)
         
-        self.run_once = True
-        print("Frisbee Distance Is: ", self.feed_sensor.GetDistance())
+        
+        
+        
+        
+    def feed(self):
+        
+        '''Manual feeding. Moves cam while function is called'''
+        
+        self.updated = True
+        
+        
+    def reverse_feed(self):
+        '''makes the cam reverse'''
+        
+        self.updated = 1
+       
     def feed_when_ready(self):
         '''makes the feed motor go 1 full rotation then stops'''
-        if feed_sensor.GetDistance() > FEEDER_READY_DISTANCE:  
+        if self.feed_sensor.GetDistance() > FEEDER_READY_DISTANCE:  
             self.updated = False
             
             
@@ -130,34 +137,18 @@ class Feeder():
         if self.updated == True:
             self.feed_motor.Set(FEED_SPD)
             self.updated = None
-            print('update ', 1)
-            
-        if self.updated == 1:
-            self.feed_motor.Set(FEED_SPD)
-            self.updated = None
-            print('update state is: ', 2)
             
         if self.updated == False:
             self.feed_motor.Set(INITIAL_SPD)
             self.updated = None
-            print('update state is: ', 3)
             
-        if self.updated == 2:
-            self.state = STATE_READY
-            self.feed_motor.Set(INITIAL_SPD)
-            print('update state is', 4)
-        print("Feed speed is: ", self.feed_motor.value)
+        if self.updated == 1:
+            self.feed_motor.Set(REVERSE_FEED_SPD)
+            self.updated= None
+
+                
+                
         
-        if self.updated == 3:
-            
-            if self.state != STATE_FEED:
-                self.updated = True
-                self.fed = 2
-                
-                
-            elif self.state == STATE_FEED:
-                self.wait = True
-                
             
                 
             

@@ -8,6 +8,8 @@
 # directory of component to test
 robot_path = '../../robot/source/components'
 import_robot = False
+import sys
+import os
 
 import fake_wpilib as wpilib
 

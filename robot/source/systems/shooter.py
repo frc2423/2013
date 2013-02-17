@@ -1,4 +1,4 @@
-from components import shooter_wheel
+from components import shooter_platform
 from components import feeder
 
 class Shooter():

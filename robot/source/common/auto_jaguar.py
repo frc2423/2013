@@ -47,7 +47,7 @@ class _AutoJaguar(object):
             return True
         
         value = self.get_value()
-        return value >= (self.value - self.threshold) and value <= (self.value + self.threshold)
+        return abs(self.value - value) <= self.threshold
         
     #
     # Actions
@@ -86,7 +86,7 @@ class PositionJaguar(_AutoJaguar):
     
     def __init__(self, motor, threshold):
         '''See constructor for AutoJaguar'''
-        self.get_value = self.motor.GetPosition
+        self.get_value = motor.GetPosition
         _AutoJaguar.__init__(self, motor, threshold)
         
     def get_position(self):
@@ -108,7 +108,7 @@ class SpeedJaguar(_AutoJaguar):
     
     def __init__(self, motor, threshold):
         '''See constructor for AutoJaguar'''
-        self.get_value = self.motor.GetSpeed
+        self.get_value = motor.GetSpeed
         _AutoJaguar.__init__(self, motor, threshold)
     
     def get_speed(self):

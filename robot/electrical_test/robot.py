@@ -128,7 +128,7 @@ class MyRobot(wpilib.SimpleRobot):
             # measure loop time
             start = wpilib.Timer.GetPPCTimestamp()
             
-            drive.ArcadeDrive(stick1)
+            drive.ArcadeDrive(stick1, not stick1.GetTop())
             
             # loader cam motor
             if stick1.GetTrigger():
