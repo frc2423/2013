@@ -37,6 +37,7 @@ def process_static_images(path, process_fn):
             cvimg = CvImg.from_file(image)
         except IOError as e:
             print "Error opening %s: %s" % (path, e)
+            idx += 1
             continue
         
         print 'Starting processing. Press ESC to exit, ENTER for next image'
@@ -45,17 +46,21 @@ def process_static_images(path, process_fn):
         process_fn(cvimg.img)
         
         while True:
-            key = 0xff & cv2.waitKey(1)
-            if key == ord('\n'):
+            code = cv2.waitKey(1)
+            key = 0xff & code
+            if key == ord('\n') or key == ord('\r'):
                 idx += 1
                 break
             elif key == 27:
                 idx = len(images)
                 break
-            elif key == 83:
+            # right key
+            elif key == 83 or code == 0x270000:
                 idx += 1
                 break
-            elif key == 81:
+            
+            # left key
+            elif key == 81 or code == 0x250000:
                 idx -= 1
                 break
     
