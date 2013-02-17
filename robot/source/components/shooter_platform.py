@@ -44,9 +44,9 @@ class ShooterPlatform(object):
         ''' Gets the real speed'''
         return self.shooter_jag.get_speed()
      
-    def set_angle(self, d_angle):
+    def set_angle_auto(self, d_angle):
         '''
-            Presets the angle to the desired angle stores the past 
+            Presets the angle automatically to the desired angle stores the past 
             parameter with the instance. Must call Update() to actually set
             the motor to go to said value.
             
@@ -56,9 +56,9 @@ class ShooterPlatform(object):
         self.d_angle = d_angle
 
     
-    def set_speed(self, d_speed):
+    def set_speed_auto(self, d_speed):
         '''
-            Sets the angle to the desired angle stores the past 
+            Presets the angle automatically to the desired speed stores the past 
             parameter w/ the instance. Must call Update() to actually set
             the motor to go to said value.
             
@@ -66,6 +66,28 @@ class ShooterPlatform(object):
         '''
         self.shooter_jag.set_speed(d_speed)
         self.d_speed = d_speed
+        
+    def set_angle_man(self, d_angle):
+        '''
+            Presets the angle manually using %Vbus to the desired angle.
+            Must call Update() to actually set
+            the motor to go to said value.
+            
+            param : d_angle - The desired angle
+        '''
+        self.angle_jag.set_manual_motor_value(d_angle)
+        self.d_angle = 0
+
+    def set_speed_man(self, d_speed):
+        '''
+            Presets the angle manually using %Vbus to the desired speed.
+            Must call Update() to actually set
+            the motor to go to said value.
+            
+            param : d_angle - The desired angle
+        '''
+        self.shooter_jag.set_manual_motor_value(d_speed)
+        self.d_speed = 0
         
     def is_ready_angle(self):
         ''' checks if the angle is right''' 
