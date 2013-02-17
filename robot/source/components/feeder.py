@@ -148,8 +148,8 @@ class Feeder():
             
         if self.state == AUTO:
             '''if the cam is not on the sensor, move the cam. 
-        If it is  and has just feed stop. 
-        If it was not feeding and the cam is on the sensor start moving'''
+            If it is  and has just feed stop. 
+            If it was not feeding and the cam is on the sensor start moving'''
         
             #there is no cam above the sensor
             if self.feed_sensor.GetDistance() > FEEDER_READY_DISTANCE:
