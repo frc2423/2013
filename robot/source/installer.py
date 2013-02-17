@@ -20,10 +20,6 @@ files = [
 ]
 
 dirs = [
-    'autonomous',
-    'common',
-    'components',
-    'systems',
 ]
 
 
@@ -40,11 +36,10 @@ if __name__ == '__main__':
     
     print('Importing robot.py...')
     
-    
     if sys.platform == 'win32':
-        ret = subprocess.call([relpath('../run_test.bat'), '--import', relpath('.')], shell=True)
+        ret = subprocess.call([relpath('../run_test.bat'), 'import_test', '--robot-path', relpath('.')], shell=True)
     else:
-        ret = subprocess.call([relpath('../run_test.sh'), ' --import', relpath('.')], shell=True)
+        ret = subprocess.call([relpath('../run_test.sh'), 'import_test', '--robot-path', relpath('.')], shell=True)
         
     if ret != 0:
         print("Failure detected, aborting import")
@@ -97,8 +92,20 @@ if __name__ == '__main__':
     for dir in dirs:
         server.upload_directory(remote_root + '/' + dir, os.path.join(local_root, dir), verbose=True)
     
-    print('Upload complete. Press any key to continue.')
+    print('Upload complete.')
     
     # close the installer
     server.close()
-    getch()
+    
+    # ask the user to reboot after installation?
+    while True:
+        if sys.version_info[0] < 3:
+            yn = str(raw_input("Reboot robot? [y/n]")).strip().lower()
+        else:
+            yn = str(input("Reboot robot? [y/n]")).strip().lower()
+            
+        if yn == 'y':
+            installer.reboot_crio()
+            break
+        elif yn == 'n':
+            break

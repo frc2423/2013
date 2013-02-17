@@ -92,8 +92,20 @@ if __name__ == '__main__':
     for dir in dirs:
         server.upload_directory(remote_root + '/' + dir, os.path.join(local_root, dir), verbose=True)
     
-    print('Upload complete. Press any key to continue.')
+    print('Upload complete.')
     
     # close the installer
     server.close()
-    getch()
+    
+    # ask the user to reboot after installation?
+    while True:
+        if sys.version_info[0] < 3:
+            yn = str(raw_input("Reboot robot? [y/n]")).strip().lower()
+        else:
+            yn = str(input("Reboot robot? [y/n]")).strip().lower()
+            
+        if yn == 'y':
+            installer.reboot_crio()
+            break
+        elif yn == 'n':
+            break
