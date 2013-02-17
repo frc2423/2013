@@ -1,6 +1,7 @@
 '''
     Author: Sam Rosenblum
     Date:   2/11/2013
+    Updated: 2/5/2013
     
     This file holds the class GenericDistanceSensor which holds with in it
     equations that holds a map that represent best fit equations for different 
@@ -8,13 +9,22 @@
 '''
 import sys
 from inspect import currentframe, getframeinfo
+from common import conversions
+from conversions import *
+
 try:
     import wpilib
 except:
     import fake_wpilib as wpilib
 
-
+''' sensors '''
 GP2D120 = 0
+
+''' settings '''
+METRIC = 0
+ENGLISH = 1
+
+
 def lineno():
     #returns current line
     return currentframe().f_back.f_lineno
@@ -28,7 +38,7 @@ class GenericDistanceSensor(wpilib.AnalogChannel):
     #sensor_dict hold the map of sensor type to distance equations
     sensor_dict = {0, lambda v: math.pow((v/11.036), -1/.947)}
     
-    def __init__(self, channel, sensor_type): 
+    def __init__(self, channel, sensor_type, system = ENGLISH): 
         '''
             constructor takes a channel and a sensor_type to figure out the
             real distance
@@ -36,6 +46,7 @@ class GenericDistanceSensor(wpilib.AnalogChannel):
         
         super().__init__(channel)
         self.sensor_type = sensor_type
+        self.system = system
         
     def GetDistance(self):
         '''gets distance based on the voltage''' 
@@ -44,8 +55,15 @@ class GenericDistanceSensor(wpilib.AnalogChannel):
         if v != 0:
             
             if self.sensor_type in sensor_dict:
-            
-                return sensor_dict[sensor_type](v)
+                
+                distance = sensor_dict[sensor_type](v)
+                
+                ''' convert from metric '''
+                if self.system == ENGLISH:
+                    
+                    distance /= INCH_TO_CM
+                    
+                return distance
             
             else:
                 
@@ -64,7 +82,14 @@ class GenericDistanceSensor(wpilib.AnalogChannel):
         if v != 0:
             if self.sensor_type in sensor_dict:
             
-                return sensor_dict[sensor_type](v)
+                distance = sensor_dict[sensor_type](v)
+
+                ''' convert from metric '''                
+                if self.system == ENGLISH:
+                    
+                    distance /= INCH_TO_CM
+                
+                return distance
             
             else:
                 

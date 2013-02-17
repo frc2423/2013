@@ -18,7 +18,8 @@ FEEDER_READY_DISTANCE = 2
 FrisbeeCount = "Frisbee Count"
 STATE_FEED = 0
 STATE_READY = 1
-reset = 2
+STATE_DONE = 2
+
 class Feeder():
     
     '''Contains all the functions that control the cam motor'''
@@ -34,7 +35,9 @@ class Feeder():
         self.state = STATE_READY
         self.FEEDER_READY_DISTANCE = 2
         self.distance = self.frisbee_sensor.GetDistance()
-    
+        self.fed = 1
+        
+        
     def feed(self):
         
         '''feeds the frisbee'''
@@ -42,14 +45,19 @@ class Feeder():
         if self.feed_sensor.GetDistance() > FEEDER_READY_DISTANCE and \
             self.state == STATE_FEED:
             
+            
             self.state = STATE_FEED
             self.updated = True
             print("State is : ", 1)  
             
+        
+            
         elif self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE and \
             self.state == STATE_FEED:
             
-            self.updated = reset
+            
+            self.state = STATE_READY
+            self.updated = False
             print("State is : ", 2)
             
         elif self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE and \
@@ -92,9 +100,9 @@ class Feeder():
             self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE:
             self.updated = False
             self.state = STATE_FEED
-            
-            
+        
     def get_frisbee_count(self):
+        
         '''Gets the self.self.distance away an object is from the sensor based on the voltage of the sensor'''
         self.frisbee_count = None
         self.distance = self.frisbee_sensor.GetDistance()
@@ -122,18 +130,34 @@ class Feeder():
         if self.updated == True:
             self.feed_motor.Set(FEED_SPD)
             self.updated = None
-            
+            print('update ', 1)
             
         if self.updated == 1:
             self.feed_motor.Set(FEED_SPD)
             self.updated = None
-            
+            print('update state is: ', 2)
             
         if self.updated == False:
             self.feed_motor.Set(INITIAL_SPD)
             self.updated = None
+            print('update state is: ', 3)
             
-            
-        
-            self.state = 0
+        if self.updated == 2:
+            self.state = STATE_READY
+            self.feed_motor.Set(INITIAL_SPD)
+            print('update state is', 4)
         print("Feed speed is: ", self.feed_motor.value)
+        
+        if self.updated == 3:
+            
+            if self.state != STATE_FEED:
+                self.updated = True
+                self.fed = 2
+                
+                
+            elif self.state == STATE_FEED:
+                self.wait = True
+                
+            
+                
+            
