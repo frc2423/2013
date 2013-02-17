@@ -113,11 +113,11 @@ class Feeder():
         if self.state == REVERSE:
             
             self.mode = BACKWARDS
-            self.state= START_FEEDING
+            self.state= FEEDING
             
         if self.state == MANUAL:
             
-            self.state = START_FEEDING
+            self.state = FEEDING
             self.mode = FORWARDS
             
         if self.state == AUTO:
@@ -128,7 +128,7 @@ class Feeder():
             #there is no cam above the sensor
             if self.feed_sensor.GetDistance() > FEEDER_READY_DISTANCE:
             
-                self.state = START_FEEDING
+                self.state = FEEDING
                 self.mode = FORWARDS
             
             #there is a cam above the sensor and it was feeding
@@ -141,8 +141,11 @@ class Feeder():
             elif self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE and \
                 self.state == STOP_FEEDING:
                 
-                self.state = START_FEEDING
+                self.state = FEEDING
                 self.mode = FORWARDS
+                
+        if self.state == FEEDING:
+            self.state = START_FEEDING        
                 
         if self.state == START_FEEDING:
             
