@@ -19,13 +19,13 @@ FrisbeeCount = "Frisbee Count"
 #State variables
 STATE_FEED = 0
 STATE_READY = 1
-IS_UPDATED = 1
-IS_NOT_UPDATED = 2
-STOP = 3
-MANUAL = 507
-ZERO = 0
-AUTO = 11
-
+IS_UPDATED = 2
+IS_NOT_UPDATED = 3
+STOP = 4
+MANUAL = 5
+ZERO = 6
+AUTO = 7
+REVERSE = 8
 #Speed variables
 REVERSE_FEED_SPEED = -1
 INITIAL_SPEED = 0
@@ -77,7 +77,7 @@ class Feeder():
     def reverse_feed(self):
         '''makes the cam reverse'''
         
-        self.updated = 1
+        self.updated = REVERSE
        
     def feed_when_ready(self):
         '''makes the feed motor go 1 full rotation then stops'''
@@ -106,6 +106,7 @@ class Feeder():
     def is_sensor_working(self):
         if self.frisbee_sensor_switch == True:
             return True
+        
         elif self.frisbee_sensor_switch == False:
             return False
         
@@ -147,7 +148,8 @@ class Feeder():
             self.feed_motor.Set(INITIAL_SPEED)
             self.updated = None
             
-        if self.updated == 1:
+        if self.updated == REVERSE:
+            
             self.feed_motor.Set(REVERSE_FEED_SPEED)
             self.updated= None
             
