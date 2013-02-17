@@ -41,7 +41,7 @@ class BangBangJaguar(SpeedJaguar):
             return True
         
         value = self.get_value()
-        return value >= (self.value - self.threshold) and value <= (self.value + self.threshold)
+        return abs(self.value - value) < self.threshold
     
     #
     # Update
@@ -50,7 +50,7 @@ class BangBangJaguar(SpeedJaguar):
     def update(self):
         '''Sets the motor position/speed'''
         # BANG_BANG mode does this differently
-        if self.mode == MANUAL:
+        if self.mode == self.MANUAL:
             #if thread exists, pause it
             if self.bang_bang_thread != None:
                 self.run_bang_bang = False
@@ -62,14 +62,14 @@ class BangBangJaguar(SpeedJaguar):
             self.set_value = self.value
             if self.bang_bang_thread == None:
                 # if thread hasn't started yet, create it and start it
-                self.bang_bang_thread = Thread(target = _threaded_bang_bang)
+                self.bang_bang_thread = Thread(target = self._threaded_bang_bang)
                 self.bang_bang_thread.start()
                 self.bang_bang_thread.join()
            
             #wait for thread to hit the running loop    
             while not self.run_bang_bang:
-                with condition:
-                    condition.notify()
+                with self.condition:
+                    self.condition.notify()
         
     #
     # Thread on which to run
@@ -81,7 +81,7 @@ class BangBangJaguar(SpeedJaguar):
         '''
         self.keep_alive = True
         while self.keep_alive:
-            with condition: 
+            with self.condition: 
                 self.condition.wait()
                 self.run_bang_bang = True
                 while self.run_bang_bang:
