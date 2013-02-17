@@ -5,8 +5,7 @@ except:
 
 
 
-INITIAL_SPD = 0
-FEED_SPD = 1
+
 
 ''' distances at which we think we detect different amount of frisbees '''
 ONE_FRISBEE = 9
@@ -19,7 +18,9 @@ FrisbeeCount = "Frisbee Count"
 STATE_FEED = 0
 STATE_READY = 1
 STATE_DONE = 2
-REVERSE_FEED_SPD = -1
+REVERSE_FEED_SPEED = -1
+INITIAL_SPEED = 0
+FEED_SPEED = 1
 IS_UPDATED = 1
 IS_NOT_UPDATED = 2
 STOP = 3
@@ -33,14 +34,13 @@ class Feeder():
 
     def __init__(self, feed_motor, frisbee_sensor, feed_sensor):
         
-        '''saves all the variables, sets the state and sets FEEDER_READY_DISTANCE'''
+        '''saves all the variables, sets the state, and sets the motor speed to zero'''
         self.feed_motor = feed_motor
         self.frisbee_sensor = frisbee_sensor
         self.feed_sensor = feed_sensor
-        self.feed_motor.Set(INITIAL_SPD)
+        self.feed_motor.Set(INITIAL_SPEED)
         self.updated = None
         self.state = STATE_READY
-        self.FEEDER_READY_DISTANCE = 2
         self.distance = self.frisbee_sensor.GetDistance()
         self.fed = 1
         
@@ -124,20 +124,20 @@ class Feeder():
         '''sets all the Jaguars'''
         
         if self.updated == IS_UPDATED:
-            self.feed_motor.Set(FEED_SPD)
+            self.feed_motor.Set(FEED_SPEED)
             self.updated = None
             
         if self.updated == IS_NOT_UPDATED:
-            self.feed_motor.Set(INITIAL_SPD)
+            self.feed_motor.Set(INITIAL_SPEED)
             self.updated = None
             
         if self.updated == 1:
-            self.feed_motor.Set(REVERSE_FEED_SPD)
+            self.feed_motor.Set(REVERSE_FEED_SPEED)
             self.updated= None
             
         if self.state == MANUAL:
             
-            self.feed_motor.Set(FEED_SPD)
+            self.feed_motor.Set(FEED_SPEED)
             
             self.state = STOP
             
@@ -170,39 +170,4 @@ class Feeder():
             
         if self.state == STOP:
             self.feed_motor.Set(ZERO)
-            
-        
-            
-            
-            
-            
-            
-            ''' #there is no cam above the sensor
-        if self.feed_sensor.GetDistance() > FEEDER_READY_DISTANCE:
-            
-            self.state = STATE_FEED
-            self.updated = IS_UPDATED
-            
-            
-            #there is a cam above the sensor and it was feeding
-        elif self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE and \
-            self.state == STATE_FEED:
-            
-            self.state = STATE_READY
-            self.updated = IS_NOT_UPDATED
-            
-            #there is a cam above the sensor and it was not feeding
-        elif self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE and \
-            self.state == STATE_READY:
-            
-            self.state = STATE_FEED
-            self.updated = IS_UPDATED'''
-            
-            
-
                 
-                
-        
-            
-                
-            
