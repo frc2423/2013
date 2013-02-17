@@ -34,7 +34,7 @@ ZERO = 0
 BACKWARDS = 0
 FORWARDS = 1
 
-class feeder():
+class Feeder():
     
     '''Contains all the functions that control the cam motor'''
 
@@ -136,7 +136,6 @@ class feeder():
                 self.state == FEEDING:
             
                 self.state = STOP_FEEDING
-                self.mode = FORWARDS
                 
             #there is a cam above the sensor and it was not feeding
             elif self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE and \
