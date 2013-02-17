@@ -64,7 +64,7 @@ class DaisyCv(object):
         cv2.split(self.hsv, [self.hue, self.sat, self.val])
         
         # uncommment this to draw on zeroed image
-        #img = np.zeros(img.shape, dtype=np.uint8)
+        img = np.zeros(img.shape, dtype=np.uint8)
         
         # Threshold each component separately
         # Hue
@@ -90,6 +90,8 @@ class DaisyCv(object):
 
         # Fill in any gaps using binary morphology
         cv2.morphologyEx(self.bin, cv2.MORPH_CLOSE, self.morphKernel, dst=self.bin, iterations=self.kHoleClosingIterations)
+        
+        #cv2.imshow('morph', self.bin)
         
         # Find contours
         contours = self.findConvexContours(self.bin)
@@ -141,7 +143,7 @@ class DaisyCv(object):
                         highest = pCenterY
             
             else:
-                cv2.drawContours(img, [p], -1, self.missedColor, thickness=1)
+                cv2.drawContours(img, [p.astype(np.int32)], -1, self.missedColor, thickness=1)
             
         if square is not None:
             square, x, y, w, h = square
@@ -160,7 +162,7 @@ class DaisyCv(object):
             # send data to someone using pynetworktables
             
             # draw the square on the target and show it
-            cv2.drawContours(img, [square], -1, self.targetColor, thickness=7)
+            cv2.drawContours(img, [square.astype(np.int32)], -1, self.targetColor, thickness=7)
             
         return img
         
@@ -179,7 +181,7 @@ class DaisyCv(object):
         img = img.copy()
         
         contours, hierarchy = cv2.findContours(img, cv2.RETR_LIST, cv2.CHAIN_APPROX_TC89_KCOS)
-        return [cv2.convexHull(c, clockwise=True, returnPoints=True) for c in contours]
+        return [cv2.convexHull(c.astype(np.float32), clockwise=True, returnPoints=True) for c in contours]
     
 
 if __name__ == '__main__':
