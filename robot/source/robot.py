@@ -262,7 +262,7 @@ class MyRobot(wpilib.SimpleRobot):
             if self.stick_button_on(self.FEEDER_FEED_BUTTON):
                 self.my_feeder.feed()
             elif self.stick_button_on(self.FEEDER_BACK_BUTTON):
-                self.my_feeder.feed_back()
+                self.my_feeder.reverse_feed()
             
             # calls update function on all components
             self.update()
