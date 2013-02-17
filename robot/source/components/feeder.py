@@ -30,27 +30,20 @@ REVERSE_FEED_SPEED = -1
 FEED_SPEED = 1
 ZERO = 0
 
-#Modes
-BACKWARDS = 0
-FORWARDS = 1
-
 class Feeder():
     
     '''Contains all the functions that control the cam motor'''
 
-    def __init__(self, feed_motor, frisbee_sensor, feed_sensor, frisbee_sensor_switch):
+    def __init__(self, feed_motor, frisbee_sensor, feed_sensor):
         
         '''saves all the variables, sets the state, and sets the motor speed to zero'''
         self.feed_motor = feed_motor
         self.frisbee_sensor = frisbee_sensor
         self.feed_sensor = feed_sensor
-        self.frisbee_sensor_switch = frisbee_sensor_switch
-        self.FEEDING_motor.Set(ZERO)
-        self.state = None
+        self.feed_motor.Set(ZERO)
         self.state = STOP_FEEDING
         self.distance = self.frisbee_sensor.GetDistance()
-        self.fed = 1
-        
+        self.using_frisbee_sensors = True
         
         
         
@@ -73,17 +66,14 @@ class Feeder():
         
         self.state = REVERSE
         
-    def is_sensor_working(self):
-        if self.frisbee_sensor_switch == True:
-            return True
+    def use_frisbee_sensor(self, using_frisbee_sensor):
+        self.using_frisbee_sensor = using_frisbee_sensor
         
-        elif self.frisbee_sensor_switch == False:
-            return False
         
     def get_frisbee_count(self):
         
-        if self.is_sensor_working(self) == False:
-            self.frisbee_count = 1
+        if self.using_frisbee_sensor == False:
+            self.frisbee_count = None
             
         else:
             '''Gets the distance away an object is from the sensor based on the voltage of the sensor'''
@@ -107,18 +97,24 @@ class Feeder():
             
         
         return self.frisbee_count
+    
+    
+    def has_frisbees(self):
+        if self.frisbee_count != 0:
+            return True
+            
+        
+         
     def update(self):
         '''sets all the Jaguars'''
             
         if self.state == REVERSE:
             
-            self.mode = BACKWARDS
-            self.state= FEEDING
+            self.state = FEEDING
             
         if self.state == MANUAL:
             
             self.state = FEEDING
-            self.mode = FORWARDS
             
         if self.state == AUTO:
             '''if the cam is not on the sensor, move the cam. 
@@ -129,7 +125,6 @@ class Feeder():
             if self.feed_sensor.GetDistance() > FEEDER_READY_DISTANCE:
             
                 self.state = FEEDING
-                self.mode = FORWARDS
             
             #there is a cam above the sensor and it was feeding
             elif self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE and \
@@ -141,22 +136,15 @@ class Feeder():
             elif self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE and \
                 self.state == STOP_FEEDING:
                 
-                self.state = FEEDING
-                self.mode = FORWARDS
-                
-        if self.state == FEEDING:
-            self.state = START_FEEDING        
+                self.state = START_FEEDING
                 
         if self.state == START_FEEDING:
-            
-            if self.mode == FORWARDS:
-            
+            self.state = FEEDING        
+                
+        if self.state == FEEDING:
+
                 self.feed_motor.Set(FEED_SPEED)
-                
-                
-            elif self.mode == BACKWARDS:
-                
-                self.feed_motor.Set(REVERSE_FEED_SPEED)
+
                 
         if self.state == STOP_FEEDING:
             self.state = STOP
