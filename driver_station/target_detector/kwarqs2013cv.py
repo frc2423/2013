@@ -21,11 +21,13 @@ class TargetDetector(object):
     kHoleClosingIterations = 9
 
     kShooterOffsetDeg = 0.0
-    kHorizontalFOVDeg = 47.0        # AXIS M1011 field of view
+    #kHorizontalFOVDeg = 47.0        # AXIS M1011 field of view
+    kHorizontalFOVDeg = 43.5         # AXIS M1011 field of view from WPILib
+    kVerticalFOVDeg = 36.13         # from http://photo.stackexchange.com/questions/21536/how-can-i-calculate-vertical-field-of-view-from-horizontal-field-of-view
     AXIS_CAMERA_VIEW_ANGLE = math.pi * 38.33 / 180.0
     
     kCameraHeightIn = 33.0      # 18 to 26 inches
-    kCameraPitchDeg = 0
+    kCameraPitchDeg = 11.5
     
     # target data in inches
     kTapeWidth = 4.0
@@ -72,8 +74,7 @@ class TargetDetector(object):
             self.sat = np.empty((h, w, 1), dtype=np.uint8)
             self.val = np.empty((h, w, 1), dtype=np.uint8)
             
-            horizontalOffsetPixels =  int(self.kShooterOffsetDeg*(w/self.kHorizontalFOVDeg))
-            self.kVerticalFOVDeg = (float(h)/w) * self.kHorizontalFOVDeg
+            #self.kVerticalFOVDeg = (float(h)/w) * self.kHorizontalFOVDeg
         
         # convert to HSV
         cv2.cvtColor(img, cv2.cv.CV_BGR2HSV, self.hsv)
@@ -185,24 +186,38 @@ class TargetDetector(object):
             
             bCenterX = x + w/2.0
             
-            angle_susan = (iw / 2.0 - bCenterX) * self.AXIS_CAMERA_VIEW_ANGLE / iw
-            distance = (iw * 22.0) / (2.0 * x * math.tan(self.AXIS_CAMERA_VIEW_ANGLE/2.0))
+            # youssef's calcs: angle is correct
+            angle = (iw / 2.0 - bCenterX) * self.kHorizontalFOVDeg / iw
+            distance = (54.0 * iw) / (2.0 * x * math.tan(math.radians(self.kHorizontalFOVDeg)/2.0))
             
-            print 'angle', angle_susan, 'distance', distance
+            #print self.kVerticalFOVDeg
+            #distance = (12.0 * ih) / (2.0 * h * math.tan(self.kVerticalFOVDeg/2.0))
             
-            print 'x', x
+            # from WPILib... this actually isn't that terrible.. 
+            #distance = (iw * 12.0 / (h * 12.0 * 2.0 * math.tan(math.radians(self.kHorizontalFOVDeg)))) 
+            
+            # sugg
+            #distanceToTarget = (targetHeight-cameraHeight)/tan(cameraAngle+relativeTargetAngle)
+            #double range = (kTopTargetHeightIn-kCameraHeightIn)/Math.tan((y*kVerticalFOVDeg/2.0 + kCameraPitchDeg)*Math.PI/180.0);
+            #distance = = (self.kTopTgtHCenter - self.kCameraHeightIn)/(math.tan(y*self.kVerticalFOVDeg/2.0 + 11.5))
+            
+            # 
+            #distance = ()
+            
+            print 'angle', angle, 'distance', distance
+            
+            
+            # daisy calcs
             x = x + w/2.0
             x = 2.0 * (x/w)-1
-            
-            print 'x', x
             
             y = y + (h/2.0)
             y = -((2.0 * (y/h)) - 1)
             
-            azimuth = (x*self.kHorizontalFOVDeg/2.0 + heading - self.kShooterOffsetDeg) % 360.0
-            range = (tgt_center - self.kCameraHeightIn)/math.tan((y*self.kVerticalFOVDeg/2.0 + self.kCameraPitchDeg) * math.pi/180.0)
-            
-            print 'off, range, a', range, azimuth
+            #azimuth = (x*self.kHorizontalFOVDeg/2.0 + 90 - self.kShooterOffsetDeg) % 360.0
+            range = (tgt_center - self.kCameraHeightIn)/math.tan(math.radians(y*self.kVerticalFOVDeg/2.0 + self.kCameraPitchDeg))
+            print 'range', range, tgt_center
+            #print 'off, range, a', range, azimuth
             # get rpms from this data
             
             # send data to someone using pynetworktables
