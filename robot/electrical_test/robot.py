@@ -77,6 +77,16 @@ ANGLE_MOTOR_I = 0.0
 ANGLE_MOTOR_D = 0.0
 
 
+# enable PID based speed control of the motor.. 
+shooter_motor.ChangeControlMode( wpilib.CANJaguar.kSpeed )
+shooter_motor.SetPID( SHOOTER_MOTOR_P, SHOOTER_MOTOR_I, SHOOTER_MOTOR_D )
+shooter_motor.EnableControl()
+
+angle_motor.ChangeControlMode( wpilib.CANJaguar.kSpeed )
+angle_motor.SetPID( ANGLE_MOTOR_P, ANGLE_MOTOR_I, ANGLE_MOTOR_D )
+angle_motor.EnableControl()
+
+
 # compressor for pneumatics 
 compressor = wpilib.Compressor(compressor_switch, compressor_relay)
 compressor.Start()
