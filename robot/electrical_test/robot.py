@@ -72,7 +72,7 @@ SHOOTER_MOTOR_P = 100.0
 SHOOTER_MOTOR_I = 0.0
 SHOOTER_MOTOR_D = 0.0
 
-ANGLE_MOTOR_P = 100.0
+ANGLE_MOTOR_P = 1500.0
 ANGLE_MOTOR_I = 0.0
 ANGLE_MOTOR_D = 0.0
 
@@ -112,6 +112,8 @@ drive = wpilib.RobotDrive(l_motor, r_motor)
 # TODO: Fix this. 
 drive.SetSafetyEnabled(False)
 
+wpilib.SmartDashboard.init()
+
 
 
 class MyRobot(wpilib.SimpleRobot):
@@ -121,10 +123,14 @@ class MyRobot(wpilib.SimpleRobot):
         
         wpilib.SimpleRobot.__init__(self)
         
-    def _translate_z(self, z, ZMax, ZMin):
+        wpilib.SmartDashboard.PutNumber('A_P', ANGLE_MOTOR_P )
+        wpilib.SmartDashboard.PutNumber('A_I', ANGLE_MOTOR_I )
+        wpilib.SmartDashboard.PutNumber('A_D', ANGLE_MOTOR_D )
+        
+    def _translate_z(self, z, zmin, zmax):
     
         # Xmax - (Ymax - Y)( (Xmax - Xmin) / (Ymax - Ymin) )
-        return ZMax - ((1 - z)*( (ZMax - ZMin) / 2 ) )
+        return zmax - ((1 - z)*( (zmax - zmin) / 2 ) )
     
     def RobotInit(self):
         pass
@@ -153,6 +159,10 @@ class MyRobot(wpilib.SimpleRobot):
         dog = self.GetWatchdog()
         dog.SetEnabled(True)
         dog.SetExpiration(0.25)
+        
+        p = wpilib.SmartDashboard.GetNumber('A_P')
+        i = wpilib.SmartDashboard.GetNumber('A_I')
+        d = wpilib.SmartDashboard.GetNumber('A_D')
     
         while self.IsOperatorControl() and self.IsEnabled():
             
@@ -172,9 +182,21 @@ class MyRobot(wpilib.SimpleRobot):
                 shooter_motor.Set(stick2.GetZ())
             else:
                 shooter_motor.Set(0)
+                
+            lp = wpilib.SmartDashboard.GetNumber('A_P')
+            li = wpilib.SmartDashboard.GetNumber('A_I')
+            ld = wpilib.SmartDashboard.GetNumber('A_D')
+            
+            if lp != p or li != i or ld != d:
+                angle_motor.DisableControl()
+                angle_motor.SetPID(p, i, d)
+                angle_motor.EnableControl()
             
             # Angle motor
-            angle_motor.Set(self._translate_z(stick1.GetZ(), .59, .505))
+            #z = self._translate_z(stick1.GetZ(), .505, .59)
+            z = stick2.GetZ()
+            wpilib.SmartDashboard.PutNumber('z', z)
+            angle_motor.Set(z)
             
             # Solenoids
             valve1.Set(stick2.GetRawButton(6)) # Makes it go down

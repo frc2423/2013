@@ -20,6 +20,10 @@ files = [
 ]
 
 dirs = [
+    'autonomous',
+    'common',
+    'components',
+    'systems',
 ]
 
 
