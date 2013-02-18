@@ -79,7 +79,7 @@ feeder_motor.ConfigNeutralMode(wpilib.CANJaguar.kNeutralMode_Brake)
 
 # compressor for pneumatics 
 compressor = wpilib.Compressor(compressor_switch, compressor_relay)
-compressor.Start()
+
 
 # solenoids for climber
 # -> TODO: should we use the DoubleSolenoid class instead?
@@ -224,6 +224,8 @@ class MyRobot(wpilib.SimpleRobot):
         dog.SetEnabled(True)
         dog.SetExpiration(0.25)
         
+        compressor.Start()
+        
         while self.IsOperatorControl():
             
 
@@ -269,7 +271,8 @@ class MyRobot(wpilib.SimpleRobot):
             
             wpilib.Wait(control_loop_wait_time)
             dog.Feed()
-    
+            
+        compressor.Stop()
     
     #
     #    Joystick utility functions (yay overhead!)
