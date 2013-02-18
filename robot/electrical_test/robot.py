@@ -32,6 +32,7 @@ shooter_sensor_channel = 5
 # Digital channels
 compressor_switch = 1
 
+
 # Solenoids
 valve1_channel = 1
 valve2_channel = 2
@@ -100,6 +101,7 @@ valve2 = wpilib.Solenoid(valve2_channel)
 frisbee_sensor = wpilib.AnalogChannel(frisbee_sensor_channel)
 feeder_sensor = wpilib.AnalogChannel(feeder_sensor_channel)
 shooter_sensor = wpilib.AnalogChannel(shooter_sensor_channel)
+
 
 # relay
 camera_led = wpilib.Relay(camera_led_relay)
@@ -171,8 +173,8 @@ class MyRobot(wpilib.SimpleRobot):
             angle_motor.Set(stick2.GetY())
             
             # Solenoids
-            valve1.Set(stick2.GetRawButton(6))
-            valve2.Set(stick2.GetRawButton(7))
+            valve1.Set(stick2.GetRawButton(6)) # Makes it go down
+            valve2.Set(stick2.GetRawButton(7)) # Makes it go up
                 
             # sensor status
             wpilib.SmartDashboard.PutNumber('Frisbee Sensor', frisbee_sensor.GetVoltage())
@@ -201,3 +203,4 @@ def run():
     robot.StartCompetition()
     
     return robot
+
