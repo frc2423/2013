@@ -38,7 +38,7 @@ class Climber(object):
     
     def lower(self):
         '''Call this to lower the robot down to the ground'''
-        self.direction = self.LOWER
+        self.next_state = self.LOWER
     
     def update(self):
         '''Actually perform the action'''

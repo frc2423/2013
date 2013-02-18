@@ -1,3 +1,9 @@
+try:
+    import wpilib
+except:
+    import fake_wpilib as wpilib
+
+
 #
 #Motor Speeds
 #
@@ -85,7 +91,7 @@ class FeederPro():
         return self.frisbee_count
     
     def has_frisbee(self):
-        return self.get_frisbee_count() != 0
+        return get_frisbee_count() != 0
         
     def use_frisbee_sensor(self, using_frisbee_sensor):
         self.using_frisbee_sensor = using_frisbee_sensor
@@ -133,7 +139,7 @@ class FeederPro():
         #
         #Feeder in auto feeding, and sensor isn't covered, keep feeding
         #
-        elif self.feeder_state == STATE_FEEDING_AUTO and not self.sensor_covered():
+        elif self.feeder_state == STATE_FEEDING_AUTO and not sensor_covered():
             self.feed_motor.Set(FEED_SPEED)
         
         #
@@ -153,7 +159,7 @@ class FeederPro():
         #
         #if sensor is covered, stop feeding
         #
-        elif self.feeder_state == STATE_FEEDING_AUTO and self.sensor_covered():
+        elif self.feeder_state == STATE_FEEDING_AUTO and sensor_covered():
             
             self.feed_motor.Set(STOP_SPEED)
             self.feeder_state = STATE_STOPPED    
