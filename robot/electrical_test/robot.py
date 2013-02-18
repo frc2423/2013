@@ -66,6 +66,17 @@ angle_motor.ConfigNeutralMode(wpilib.CANJaguar.kNeutralMode_Brake)
 feeder_motor = wpilib.CANJaguar(feeder_motor_can)
 feeder_motor.ConfigNeutralMode(wpilib.CANJaguar.kNeutralMode_Brake)
 
+# shooter wheel stuff
+        
+SHOOTER_MOTOR_P = 100.0
+SHOOTER_MOTOR_I = 0.0
+SHOOTER_MOTOR_D = 0.0
+
+ANGLE_MOTOR_P = 100.0
+ANGLE_MOTOR_I = 0.0
+ANGLE_MOTOR_D = 0.0
+
+
 # compressor for pneumatics 
 compressor = wpilib.Compressor(compressor_switch, compressor_relay)
 compressor.Start()
