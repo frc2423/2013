@@ -55,7 +55,7 @@ r_motor = wpilib.Jaguar(r_motor_pwm)
 # shooter: -1 is full on
 shooter_motor = wpilib.CANJaguar(shooter_motor_can)
 shooter_motor.SetSpeedReference(wpilib.CANJaguar.kSpeedRef_QuadEncoder)
-shooter_motor.ConfigEncoderCodesPerRev(360)
+shooter_motor.ConfigEncoderCodesPerRev(1000)
 shooter_motor.ConfigNeutralMode(wpilib.CANJaguar.kNeutralMode_Brake)
 
 angle_motor = wpilib.CANJaguar(angle_motor_can)
@@ -90,6 +90,10 @@ valve2 = wpilib.Solenoid(valve2_channel)
 frisbee_sensor = wpilib.AnalogChannel(frisbee_sensor_channel)
 feeder_sensor = wpilib.AnalogChannel(feeder_sensor_channel)
 shooter_sensor = wpilib.AnalogChannel(shooter_sensor_channel)
+
+# relay
+camera_led = wpilib.Relay(camera_led_relay)
+camera_led.Set(wpilib.Relay.kForward)
 
 # drive object
 drive = wpilib.RobotDrive(l_motor, r_motor)

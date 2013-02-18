@@ -44,7 +44,7 @@ class DaisyCv(object):
     def processImage(self, img):
         
         # Get the current heading of the robot first
-        heading = 0
+        heading = 0.0
         
         if self.size is None or self.size[0] != img.shape[0] or self.size[1] != img.shape[1]:
             h, w = img.shape[:2]
@@ -54,17 +54,13 @@ class DaisyCv(object):
             self.hue = np.empty((h, w, 1), dtype=np.uint8)
             self.sat = np.empty((h, w, 1), dtype=np.uint8)
             self.val = np.empty((h, w, 1), dtype=np.uint8)
-            
-            horizontalOffsetPixels =  int(self.kShooterOffsetDeg*(w/self.kHorizontalFOVDeg))
-            self.linePt1 = (w/2 + horizontalOffsetPixels, h-1)
-            self.linePt2 = (w/2 + horizontalOffsetPixels,0)
         
         # convert to HSV
         cv2.cvtColor(img, cv2.cv.CV_BGR2HSV, self.hsv)
         cv2.split(self.hsv, [self.hue, self.sat, self.val])
         
         # uncommment this to draw on zeroed image
-        #img = np.zeros(img.shape, dtype=np.uint8)
+        img = np.zeros(img.shape, dtype=np.uint8)
         
         # Threshold each component separately
         # Hue
@@ -90,6 +86,8 @@ class DaisyCv(object):
 
         # Fill in any gaps using binary morphology
         cv2.morphologyEx(self.bin, cv2.MORPH_CLOSE, self.morphKernel, dst=self.bin, iterations=self.kHoleClosingIterations)
+        
+        #cv2.imshow('morph', self.bin)
         
         # Find contours
         contours = self.findConvexContours(self.bin)
@@ -121,7 +119,7 @@ class DaisyCv(object):
                     slope = sys.float_info.max
                     
                     if dx != 0:
-                        slope = abs(dy/dx)
+                        slope = abs(float(dy)/dx)
                 
                     if slope < self.kNearlyHorizontalSlope:
                         numNearlyHorizontal += 1
@@ -141,26 +139,26 @@ class DaisyCv(object):
                         highest = pCenterY
             
             else:
-                cv2.drawContours(img, [p], -1, self.missedColor, thickness=1)
+                cv2.drawContours(img, [p.astype(np.int32)], -1, self.missedColor, thickness=1)
             
         if square is not None:
             square, x, y, w, h = square
+            x = x + w/2.0
+            x = 2.0 * (x/w)-1.0 
             
-            x = x + w/2
-            x = 2 * (x/w)-1
+            y = y + (h/2.0)
+            y = -((2.0 * (y/h)) - 1.0)
             
-            y = y + (h/2)
-            y = -((2 * (y/h)) - 1)
-            
-            azimuth = self.boundAngle0to360Degrees(x*self.kHorizontalFOVDeg/2.0 + heading - self.kShooterOffsetDeg)
+            azimuth = (x*self.kHorizontalFOVDeg/2.0 + heading - self.kShooterOffsetDeg) % 360.0
             range = (self.kTopTargetHeightIn - self.kCameraHeightIn)/math.tan((y*self.kVerticalFOVDeg/2.0 + self.kCameraPitchDeg) * math.pi/180.0)
             
             # get rpms from this data
-            
+            # -> TODO: These values don't seem particularly right
+            print azimuth, range
             # send data to someone using pynetworktables
             
             # draw the square on the target and show it
-            cv2.drawContours(img, [square], -1, self.targetColor, thickness=7)
+            cv2.drawContours(img, [square.astype(np.int32)], -1, self.targetColor, thickness=7)
             
         return img
         
@@ -179,7 +177,7 @@ class DaisyCv(object):
         img = img.copy()
         
         contours, hierarchy = cv2.findContours(img, cv2.RETR_LIST, cv2.CHAIN_APPROX_TC89_KCOS)
-        return [cv2.convexHull(c, clockwise=True, returnPoints=True) for c in contours]
+        return [cv2.convexHull(c.astype(np.float32), clockwise=True, returnPoints=True) for c in contours]
     
 
 if __name__ == '__main__':
