@@ -1,4 +1,3 @@
-
 print( "Loading: Kwarqs2013 electrical testing program" )
 
 try:    
@@ -25,9 +24,9 @@ camera_led_relay = 2
 compressor_relay = 1
 
 # Analog channels
-frisbee_sensor_channel = 3
+frisbee_sensor_channel = 5
 feeder_sensor_channel = 4
-shooter_sensor_channel = 5
+shooter_sensor_channel = 3
 
 # Digital channels
 compressor_switch = 1
@@ -83,7 +82,7 @@ shooter_motor.ChangeControlMode( wpilib.CANJaguar.kSpeed )
 shooter_motor.SetPID( SHOOTER_MOTOR_P, SHOOTER_MOTOR_I, SHOOTER_MOTOR_D )
 shooter_motor.EnableControl()
 
-angle_motor.ChangeControlMode( wpilib.CANJaguar.kSpeed )
+angle_motor.ChangeControlMode( wpilib.CANJaguar.kPosition )
 angle_motor.SetPID( ANGLE_MOTOR_P, ANGLE_MOTOR_I, ANGLE_MOTOR_D )
 angle_motor.EnableControl()
 
@@ -121,7 +120,12 @@ class MyRobot(wpilib.SimpleRobot):
         '''Constructor'''
         
         wpilib.SimpleRobot.__init__(self)
-
+        
+    def _translate_z(self, z, ZMax, ZMin):
+    
+        # Xmax - (Ymax - Y)( (Xmax - Xmin) / (Ymax - Ymin) )
+        return ZMax - ((1 - z)*( (ZMax - ZMin) / 2 ) )
+    
     def RobotInit(self):
         pass
 
@@ -159,7 +163,7 @@ class MyRobot(wpilib.SimpleRobot):
             
             # loader cam motor
             if stick1.GetTrigger():
-                feeder_motor.Set(stick1.GetZ())
+                feeder_motor.Set(.7)
             else:
                 feeder_motor.Set(0)
                 
@@ -170,7 +174,7 @@ class MyRobot(wpilib.SimpleRobot):
                 shooter_motor.Set(0)
             
             # Angle motor
-            angle_motor.Set(stick2.GetY())
+            angle_motor.Set(self._translate_z(stick1.GetZ(), .59, .505))
             
             # Solenoids
             valve1.Set(stick2.GetRawButton(6)) # Makes it go down

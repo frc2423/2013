@@ -13,11 +13,11 @@ REVERSE_SPEED = -1
 #
 #Frisbee Distances
 #
-ONE_FRISBEE = 9
-TWO_FRISBEE = 7
-THREE_FRISBEE = 5
-FOUR_FRISBEE = 2
-FEEDER_READY_DISTANCE = 2
+ONE_FRISBEE = .85
+TWO_FRISBEE = 1.0
+THREE_FRISBEE = 1.20
+FOUR_FRISBEE = 1.7
+FEEDER_READY_DISTANCE = 2.15
 
 #
 #SmartDashboard String
@@ -73,19 +73,19 @@ class FeederPro():
             
             self.distance = self.frisbee_sensor.GetDistance()
             
-            if self.distance <= ONE_FRISBEE and self.distance >= TWO_FRISBEE:
+            if self.distance >= ONE_FRISBEE and self.distance <= TWO_FRISBEE:
                 self.frisbee_count = 1
             
-            elif self.distance <= TWO_FRISBEE and self.distance >= THREE_FRISBEE:
+            elif self.distance >= TWO_FRISBEE and self.distance <= THREE_FRISBEE:
                 self.frisbee_count = 2
             
-            elif self.distance <= THREE_FRISBEE and self.distance >= FOUR_FRISBEE:
+            elif self.distance >= THREE_FRISBEE and self.distance <= FOUR_FRISBEE:
                 self.frisbee_count = 3
     
-            elif self.distance <= FOUR_FRISBEE and self.distance > 1:
+            elif self.distance >= FOUR_FRISBEE and self.distance > 2:
                 self.frisbee_count = 4
            
-            elif self.distance > ONE_FRISBEE:
+            elif self.distance < ONE_FRISBEE:
                 self.frisbee_count = 0
             
         return self.frisbee_count

@@ -56,11 +56,11 @@ class Climber(object):
         else:
         
             if self.current_state == self.CLIMB:
-                self.valve1.Set(True)
-                self.valve2.Set(False)
-            else:
                 self.valve1.Set(False)
                 self.valve2.Set(True)
+            else:
+                self.valve1.Set(True)
+                self.valve2.Set(False)
             
             # do the action for a minimum period, then idle
             if self.action_timer.HasPeriodPassed(self.ACTION_PERIOD):

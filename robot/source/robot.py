@@ -39,9 +39,9 @@ camera_led_relay = 2
 compressor_relay = 1
 
 # Analog channels
-frisbee_sensor_channel = 3
+frisbee_sensor_channel = 5
 feeder_sensor_channel = 4
-shooter_sensor_channel = 5
+shooter_sensor_channel = 3
 
 # Digital channels
 compressor_switch = 1

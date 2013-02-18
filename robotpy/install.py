@@ -33,7 +33,7 @@ def reboot_crio():
     out.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     out.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     out.bind( ('',UDP_OUT_PORT) ) # bind is necessary for escoteric reasons stated on interwebs
-    out.sendto(b'\nreboot\n', ('255.255.255.255', UDP_OUT_PORT))
+    out.sendto(b'\nreboot\n', ('10.24.23.2', UDP_OUT_PORT))
 
 
 class RobotCodeInstaller(object):
