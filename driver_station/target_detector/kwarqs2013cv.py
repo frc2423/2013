@@ -10,6 +10,7 @@ class TargetDetector(object):
     
     targetColor = (0, 255, 0)
     missedColor = (255,255,0)
+    maybeColor =  (0, 0, 255)
     
     # constants that need to be tuned
     kNearlyHorizontalSlope = math.tan(math.radians(20))
@@ -19,22 +20,43 @@ class TargetDetector(object):
     kRangeOffset = 0.0
     kHoleClosingIterations = 9
 
-    kShooterOffsetDeg = -1.55
-    kHorizontalFOVDeg = 47.0
-
-    kVerticalFOVDeg = 480.0/640.0*kHorizontalFOVDeg
-    kCameraHeightIn = 54.0
-    kCameraPitchDeg = 21.0
-    kTopTargetHeightIn = 98.0 + 2.0 + 9.0 # 98 to rim, +2 to bottom of target, +9 to center of target
+    kShooterOffsetDeg = 0.0
+    kHorizontalFOVDeg = 47.0        # AXIS M1011 field of view
+    AXIS_CAMERA_VIEW_ANGLE = math.pi * 38.33 / 180.0
     
-    kRatioLow = 32.0/37.0
-    kRatioMid = 29.0/62.0
-    kRatioHigh = 20.0/62.0
+    kCameraHeightIn = 33.0      # 18 to 26 inches
+    kCameraPitchDeg = 0
+    
+    # target data in inches
+    kTapeWidth = 4.0
+    
+    kTopHeight      = 12.0          # inner height
+    kTopWidth       = 54.0          # inner width
+    kTopEdgeHeight  = 104.125       # height from ground to bottom edge (not including tape)
+    kTopTgtHCenter  = kTopEdgeHeight + kTopHeight/2.0   # height from ground to center of target
+    
+    kTopInnerRatio  = kTopHeight/kTopWidth
+    kTopOuterRatio  = (kTopHeight + kTapeWidth*2)/(kTopWidth + kTapeWidth*2)
+    
+    kMidHeight      = 21.0
+    kMidWidth       = 54.0
+    kMidEdgeHeight  = 88.625
+    kMidTgtHCenter  = kMidEdgeHeight + kMidHeight/2.0
+    
+    kMidInnerRatio  = kMidHeight/kMidWidth
+    kMidOuterRatio  = (kMidHeight + kTapeWidth*2)/(kMidWidth + kTapeWidth*2)
+    
+    kLowHeight      = 24.0
+    kLowWidth       = 29.0
+    kLowEdgeHeight  = 19.0
+    kLowTgtHCenter  = kLowEdgeHeight + kLowHeight/2.0
+    
+    kLowInnerRatio  = kLowHeight/kLowWidth
+    kLowOuterRatio  = (kLowHeight + kTapeWidth*2)/(kLowWidth + kTapeWidth*2)
     
     def __init__(self):
         self.morphKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3), anchor=(1,1))
         self.size = None
-        print self.kRatioLow, self.kRatioMid, self.kRatioHigh
     
     def processImage(self, img):
         
@@ -51,9 +73,6 @@ class TargetDetector(object):
             self.val = np.empty((h, w, 1), dtype=np.uint8)
             
             horizontalOffsetPixels =  int(self.kShooterOffsetDeg*(w/self.kHorizontalFOVDeg))
-            self.linePt1 = (w/2 + horizontalOffsetPixels, h-1)
-            self.linePt2 = (w/2 + horizontalOffsetPixels,0)
-            
             self.kVerticalFOVDeg = (float(h)/w) * self.kHorizontalFOVDeg
         
         # convert to HSV
@@ -102,26 +121,27 @@ class TargetDetector(object):
             # if w > self.kMinWidth
             #    continue
             
-            print 'ratio', ratio, abs(ratio - self.kRatioHigh), abs(ratio - self.kRatioMid), abs(ratio - self.kRatioLow)
+            # uncomment to see all original contours
+            #cv2.drawContours(img, [c.astype(np.int32)], -1, (0,0,255))
             
-            if abs(ratio - self.kRatioHigh) < 0.25:
+            if abs(ratio - self.kTopOuterRatio) < 0.25:
                 p = cv2.approxPolyDP(c, 20, False)
-                polygons.append((p, x, y, w, h, 'hi'))
+                polygons.append((p, x, y, w, h, self.kTopTgtHCenter))
                 
-            elif abs(ratio - self.kRatioMid) < 0.25:
+            elif abs(ratio - self.kMidOuterRatio) < 0.25:
                 p = cv2.approxPolyDP(c, 20, False)
-                polygons.append((p, x, y, w, h, 'mid'))
+                polygons.append((p, x, y, w, h, self.kMidTgtHCenter))
                 
-            elif abs(ratio - self.kRatioLow) < 0.25:
+            elif abs(ratio - self.kLowOuterRatio) < 0.25:
                 p = cv2.approxPolyDP(c, 20, False)
-                polygons.append((p, x, y, w, h, 'lo'))
+                polygons.append((p, x, y, w, h, self.kLowTgtHCenter))
                 
                 
         square = None
         highest = sys.maxint 
         
-        for p, x, y, w, h, spot in polygons:
-            if cv2.isContourConvex(p) and len(p) == 4:
+        for p, x, y, w, h, tgt_center in polygons:
+            if cv2.isContourConvex(p) and (len(p) == 4 or len(p) == 5):
                 
                 # We passed the first test...we fit a rectangle to the polygon
                 # Now do some more tests
@@ -136,7 +156,7 @@ class TargetDetector(object):
                     slope = sys.float_info.max
                     
                     if dx != 0:
-                        slope = abs(dy/dx)
+                        slope = abs(float(dy)/dx)
                 
                     if slope < self.kNearlyHorizontalSlope:
                         numNearlyHorizontal += 1
@@ -152,28 +172,37 @@ class TargetDetector(object):
                     cv2.circle(img, (pCenterX, pCenterY), 5, self.targetColor) 
                     
                     if pCenterY < highest:  # because coord system is funny
-                        square = (p, x, y, w, h, spot)
+                        square = (p, x, y, w, h, tgt_center)
                         highest = pCenterY
             
+                cv2.drawContours(img, [p.astype(np.int32)], -1, self.maybeColor, thickness=1)
             else:
                 cv2.drawContours(img, [p.astype(np.int32)], -1, self.missedColor, thickness=1)
             
         if square is not None:
-            square, x, y, w, h, spot = square
+            square, x, y, w, h, tgt_center = square
+            ih, iw = self.size
             
-            print 'Decided on %s' % spot
+            bCenterX = x + w/2.0
             
-            x = x + w/2
-            x = 2 * (x/w)-1
+            angle_susan = (iw / 2.0 - bCenterX) * self.AXIS_CAMERA_VIEW_ANGLE / iw
+            distance = (iw * 22.0) / (2.0 * x * math.tan(self.AXIS_CAMERA_VIEW_ANGLE/2.0))
             
-            y = y + (h/2)
-            y = -((2 * (y/h)) - 1)
+            print 'angle', angle_susan, 'distance', distance
+            
+            print 'x', x
+            x = x + w/2.0
+            x = 2.0 * (x/w)-1
+            
+            print 'x', x
+            
+            y = y + (h/2.0)
+            y = -((2.0 * (y/h)) - 1)
             
             azimuth = (x*self.kHorizontalFOVDeg/2.0 + heading - self.kShooterOffsetDeg) % 360.0
-            range = (self.kTopTargetHeightIn - self.kCameraHeightIn)/math.tan((y*self.kVerticalFOVDeg/2.0 + self.kCameraPitchDeg) * math.pi/180.0)
+            range = (tgt_center - self.kCameraHeightIn)/math.tan((y*self.kVerticalFOVDeg/2.0 + self.kCameraPitchDeg) * math.pi/180.0)
             
-            
-            print 'range, a', range, azimuth
+            print 'off, range, a', range, azimuth
             # get rpms from this data
             
             # send data to someone using pynetworktables
