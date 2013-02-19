@@ -121,6 +121,10 @@ frisbee_sensor = GenericDistanceSensor(frisbee_sensor_channel, GP2D120)
 feeder_sensor = GenericDistanceSensor(feeder_sensor_channel, GP2D120)
 shooter_sensor = GenericDistanceSensor(shooter_sensor_channel, GP2D120)
 
+# relay
+camera_led = wpilib.Relay(camera_led_relay)
+camera_led.Set(wpilib.Relay.kForward)
+
 # thresholds
 
 speed_threshold = 100
