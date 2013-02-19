@@ -32,6 +32,8 @@ class EzCANJaguar(CANJaguar):
         
         if self.control_mode != controlMode:
             
+            print('Change controlmode (old: %s, new: %s)' % (self.control_mode, controlMode))
+            
             CANJaguar.ChangeControlMode( self, controlMode )
             self.control_mode = controlMode
             
@@ -42,13 +44,15 @@ class EzCANJaguar(CANJaguar):
                 raise RuntimeError( "Not implemented" )
             
             elif controlMode == CANJaguar.kSpeed:
-                CANJaguar.SetSpeedReference( self.speed_reference )
-                CANJaguar.SetPID( self.pid[0]. self.pid[1], self.pid[2] )
+                CANJaguar.SetSpeedReference( self, self.speed_reference )
+                CANJaguar.SetPID( self, self.pid[0]. self.pid[1], self.pid[2] )
                 CANJaguar.EnableControl( self )
+                
+                print('-> Speed PID: %s' % self.pid)
                 
             elif controlMode == CANJaguar.kPosition:
             
-                CANJaguar.SetPositionReference( self.position_reference )
+                CANJaguar.SetPositionReference( self, self.position_reference )
             
                 if self.position_reference == CANJaguar.kPosRef_QuadEncoder:
                     CANJaguar.ConfigEncoderCodesPerRev(self, self.encoder_codes )
@@ -58,8 +62,14 @@ class EzCANJaguar(CANJaguar):
                 if hasattr(self, 'soft_position'):
                     CANJaguar.ConfigSoftPositionLimits( self, self.soft_position[0], self.soft_position[1] )
                 
-                CANJaguar.SetPID( self.pid[0]. self.pid[1], self.pid[2] )
-                CANJaguar.EnableControl( self, CANJaguar.GetPosition(self) )
+                CANJaguar.SetPID( self, self.pid[0], self.pid[1], self.pid[2] )
+                
+                if self.position_reference == CANJaguar.kPosRef_QuadEncoder:
+                    CANJaguar.EnableControl( self, CANJaguar.GetPosition(self) )
+                else:
+                    CANJaguar.EnableControl( self )
+                    
+                print('-> Position PID: %s' % self.pid)
                 
             elif controlMode == CANJaguar.kVoltage :
                 raise RuntimeError( "Not implemented" )
@@ -71,7 +81,7 @@ class EzCANJaguar(CANJaguar):
         
     def ConfigPotentiometerTurns(self, turns):
         CANJaguar.ConfigPotentiometerTurns( self, turns )
-        self.turns = turns
+        self.potentiometer_turns = turns
         
     def ConfigSoftPositionLimits(self, min, max):
         CANJaguar.ConfigSoftPositionLimits( self, min, max )
@@ -93,7 +103,8 @@ class EzCANJaguar(CANJaguar):
         CANJaguar.Set(self, value, syncGroup)
         
     def SetPID(self, p, i, d):
-        CANJaguar.SetPID( self, p, i, d )
+        if self.control_mode != CANJaguar.kPercentVbus:
+            CANJaguar.SetPID( self, p, i, d )
         self.pid = (p, i, d)
         
     def SetPositionReference(self, reference):
