@@ -61,7 +61,7 @@ class FeederPro():
         self.frisbee_sensor = frisbee_sensor
         self.feed_sensor = feed_sensor
         self.feed_motor.Set(STOP_SPEED)
-        self.updated = None
+        
         self.feeder_state = STATE_STOPPED
         self.action_state = ACT_STATE_STOP
         self.distance = self.frisbee_sensor.GetDistance()
@@ -114,7 +114,6 @@ class FeederPro():
         #Kicker is not feeding automatically feed!
         #        
         self.action_state = ACT_STATE_FEED_AUTO
-        self.feeder_state = STATE_FEEDING_AUTO
           
     def feed_manual(self):
         ''' feeds while called '''
@@ -140,6 +139,11 @@ class FeederPro():
             self.feed_motor.Set(FEED_SPEED)
             self.feeder_state = STATE_FEEDING
             #if feed is not called in next loop then stop the motor!
+            self.action_state = ACT_STATE_STOP
+            
+        elif self.action_state == ACT_STATE_FEED_AUTO:
+            self.feed_motor.Set(FEED_SPEED)
+            self.feeder_state = STATE_FEEDING_AUTO
             self.action_state = ACT_STATE_STOP
             
         #
