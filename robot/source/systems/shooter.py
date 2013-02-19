@@ -26,6 +26,4 @@ class Shooter():
             self.feeder.has_frisbee():
             feeder.feed_auto()
         
-    def update(self):
-        ''' nothing to update so we should just pass '''
-        pass
+    # no update function required

@@ -7,7 +7,7 @@ except ImportError:
 
 from autonomous import AutonomousModeManager
 
-from common.auto_jaguar import PositionJaguar, SpeedJaguar
+from common.auto_jaguar import AnglePositionJaguar, SpeedJaguar
 #from common.bang_bang_jaguar import BangBangJaguar
 from common.ez_can_jaguar import EzCANJaguar
 from common.generic_distance_sensor import GenericDistanceSensor, GP2D120
@@ -20,6 +20,8 @@ from components.target_detector import TargetDetector
 
 from systems.shooter import Shooter
 from systems.climber import ClimberSystem
+from systems.auto_targeting import AutoTargeting
+from systems.robot_turner import RobotTurner
 
 
 #
@@ -83,6 +85,11 @@ ANGLE_P = -3000.0
 ANGLE_I = -0.1 
 ANGLE_D = -14.0
 
+ANGLE_MIN_POSITION = 0.585
+ANGLE_MAX_POSITION = 0.51
+ANGLE_MIN_ANGLE    = 0.5
+ANGLE_MAX_ANGLE    = 20.0 # TODO
+
 angle_motor = EzCANJaguar(angle_motor_can)
 angle_motor.SetPositionReference(wpilib.CANJaguar.kPosRef_Potentiometer)
 angle_motor.ConfigPotentiometerTurns(1)
@@ -127,6 +134,10 @@ class MyRobot(wpilib.SimpleRobot):
     
     # available toggle switch ports on enhanced EIO
     # -> 2, 4, 8, 12, 16
+    
+    # import into this namespace
+    ANGLE_MIN_ANGLE = ANGLE_MIN_ANGLE
+    ANGLE_MAX_ANGLE = ANGLE_MAX_ANGLE
     
     EIO_CHANNELS = [2,4,8,12,16]
     
@@ -194,7 +205,9 @@ class MyRobot(wpilib.SimpleRobot):
                                    frisbee_sensor, 
                                    feeder_sensor)
         
-        auto_angle = PositionJaguar(angle_motor, angle_motor_threshold)
+        auto_angle = AnglePositionJaguar(angle_motor, angle_motor_threshold,
+                                         ANGLE_MIN_POSITION, ANGLE_MAX_POSITION,
+                                         ANGLE_MIN_ANGLE, ANGLE_MAX_ANGLE)
         auto_shooter = SpeedJaguar(shooter_motor, shooter_motor_threshold)
         
         # Bang-bang doesn't work on a Jaguar.. 
@@ -207,21 +220,29 @@ class MyRobot(wpilib.SimpleRobot):
         self.my_target_detector = TargetDetector()
         
         # create the system instances
-        self.my_shooter = None # TODO
-        
+        self.my_robot_turner = RobotTurner(self.my_drive)
+        self.my_auto_targeting = AutoTargeting(self.my_robot_turner, self.my_shooter_platform, self.my_target_detector)
         self.my_climber = ClimberSystem(climber, self.my_shooter_platform)
+        
+        self.my_shooter = None # TODO
         
         # autonomous mode needs a dict of components
         components = {
-            'climber': self.my_climber,
+            # components 
             'drive': self.my_drive,
             'feeder': self.my_feeder,
-            #'shooter': self.my_shooter,
             'shooter_platform': self.my_shooter_platform,
             'target_detector': self.my_target_detector, 
+            
+            # systems
+            'auto_targeting': self.my_auto_targeting,
+            'climber': self.my_climber,
+            'robot_turner': self.my_robot_turner,
+            #'shooter': self.my_shooter,
         }
 
-        self.components = [v for v in components.values()]
+        self.components = []
+        self.components = [v for v in components.values() if hasattr(v, 'update')]
         self.components.append(climber)
         # self.autonomous_mode = AutonomousModeManager(components)
         
@@ -265,7 +286,7 @@ class MyRobot(wpilib.SimpleRobot):
         wpilib.SmartDashboard.PutNumber('Shooter I', SHOOTER_I)
         wpilib.SmartDashboard.PutNumber('Shooter D', SHOOTER_D)
         
-        while self.IsOperatorControl():
+        while self.IsOperatorControl() and self.IsEnabled():
             
             # measure loop time
             start = wpilib.Timer.GetPPCTimestamp()
@@ -300,7 +321,7 @@ class MyRobot(wpilib.SimpleRobot):
             #        
              
             if not self.is_toggle_on(self.MANUAL_ANGLE_ON):
-                angle_z = self.translate_axis(self.ANGLE_POINT_AXIS, 0.5, 0.6)
+                angle_z = self.translate_axis(self.ANGLE_POINT_AXIS, self.ANGLE_MIN_ANGLE, self.ANGLE_MAX_ANGLE)
                 self.my_shooter_platform.set_angle_auto(angle_z)
             else:
                 self.my_shooter_platform.set_angle_manual(-self.stick_axis(self.PLATFORM_ANGLE_AXIS))

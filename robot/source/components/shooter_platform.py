@@ -65,7 +65,7 @@ class ShooterPlatform(object):
             param : d_angle - The desired angle
         '''
         if self.climber.position() == self.climber.LOWER:
-            self.angle_jag.set_position(d_angle)
+            self.angle_jag.set_angle(d_angle)
             self.d_angle = d_angle
 
     

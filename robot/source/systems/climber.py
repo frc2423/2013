@@ -20,7 +20,6 @@ class ClimberSystem(object):
         '''This returns the current climber position'''
         return self.climber.position()
     
-    def update(self):
-        pass
+    # no update function required
 
         
