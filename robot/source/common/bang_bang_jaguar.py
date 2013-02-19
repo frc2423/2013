@@ -1,4 +1,11 @@
-from .auto_jaguar import _AutoJaguar
+
+try:
+    import wpilib
+except ImportError:
+    import fake_wpilib as wpilib
+
+
+from .auto_jaguar import SpeedJaguar
 from threading import Condition
 from threading import Thread
     
@@ -20,7 +27,7 @@ class BangBangJaguar(SpeedJaguar):
             :param threshold: Amount position may vary to be considered correct
             
         '''
-        super.__init__(self, motor, threshold)
+        super().__init__(motor, threshold)
         self.condition = Condition()
         self.set_value = 0
         self.bang_bang_thread = None
@@ -37,7 +44,7 @@ class BangBangJaguar(SpeedJaguar):
             Note that in manual mode, this always returns True
         '''
         
-        if self.active_mode == self.MANUAL:
+        if self.mode == self.MANUAL:
             return True
         
         value = self.get_value()
@@ -55,21 +62,22 @@ class BangBangJaguar(SpeedJaguar):
             if self.bang_bang_thread != None:
                 self.run_bang_bang = False
                 
-            self.motor.Set(self.value)       
-            self.value = 0.0
+            self.motor.Set(self.value)
         
         else:
             self.set_value = self.value
             if self.bang_bang_thread == None:
                 # if thread hasn't started yet, create it and start it
                 self.bang_bang_thread = Thread(target = self._threaded_bang_bang)
+                self.bang_bang_thread.setDaemon(True)
                 self.bang_bang_thread.start()
-                self.bang_bang_thread.join()
            
-            #wait for thread to hit the running loop    
-            while not self.run_bang_bang:
-                with self.condition:
-                    self.condition.notify()
+            with self.condition:
+                self.run_bang_bang = True
+                self.condition.notify()
+                    
+        self.value = 0.0   
+                     
         
     #
     # Thread on which to run
@@ -81,13 +89,17 @@ class BangBangJaguar(SpeedJaguar):
         '''
         self.keep_alive = True
         while self.keep_alive:
+            
             with self.condition: 
-                self.condition.wait()
-                self.run_bang_bang = True
-                while self.run_bang_bang:
-                    
-                    if self.get_speed() >= self.set_value:
-                        self.motor.Set(0)
-        
-                    else:
-                        self.motor.Set(1)
+                if not self.run_bang_bang:
+                    self.condition.wait()
+            
+            speed = self.get_speed()
+            sv = self.set_value
+            if speed >= sv:
+                self.motor.Set(-0.5)
+            else:
+                self.motor.Set(-1)
+                
+            wpilib.SmartDashboard.PutNumber('Speed', speed)
+            wpilib.SmartDashboard.PutNumber('SetSpeed', sv)
