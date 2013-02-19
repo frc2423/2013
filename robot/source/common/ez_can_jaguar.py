@@ -20,6 +20,10 @@ class EzCANJaguar(CANJaguar):
         - When you call ChangeControlMode, it remembers your 
         last parameters, sets them, and changes the mode appropriately
         
+        Hints for PID stuff:
+        - If it's not working for you, try negative values for your
+        P, I, D
+        
     '''
 
     def __init__(self, deviceNumber, controlMode=CANJaguar.kPercentVbus, cacheSetOps=True):
@@ -48,7 +52,7 @@ class EzCANJaguar(CANJaguar):
                 CANJaguar.SetPID( self, self.pid[0]. self.pid[1], self.pid[2] )
                 CANJaguar.EnableControl( self )
                 
-                print('-> Speed PID: %s' % self.pid)
+                print('-> Speed PID: %s %s %s' % self.pid)
                 
             elif controlMode == CANJaguar.kPosition:
             
@@ -69,7 +73,7 @@ class EzCANJaguar(CANJaguar):
                 else:
                     CANJaguar.EnableControl( self )
                     
-                print('-> Position PID: %s' % self.pid)
+                print('-> Position PID: %s %s %s' % self.pid)
                 
             elif controlMode == CANJaguar.kVoltage :
                 raise RuntimeError( "Not implemented" )
