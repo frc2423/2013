@@ -62,7 +62,8 @@ class ShooterPlatform(object):
             
             param : d_angle - The desired angle
         '''
-        if self.climber.position() == self.climber.LOWER:
+        #if self.climber.position() == self.climber.LOWER:
+        if True:
             self.angle_jag.set_position(d_angle)
             self.d_angle = d_angle
 
@@ -86,7 +87,8 @@ class ShooterPlatform(object):
             
             param : d_angle - The desired angle
         '''
-        if self.climber.position() == self.climber.LOWER:
+        #if d_angle > 0 or self.climber.position() == self.climber.LOWER:
+        if True:
             self.angle_jag.set_manual_motor_value(d_angle)
             self.d_angle = 0
 
@@ -124,10 +126,14 @@ class ShooterPlatform(object):
         #
         #Displays angle info
         #
-        if self.pre_angle != self.current_angle():
-            wpilib.SmartDashboard.PutNumber('current_angle', self.current_angle())
-        if self.pre_d_angle != self.d_angle:
-            wpilib.SmartDashboard.PutNumber('desired_angle', self.d_angle)
+        #if self.pre_angle != self.current_angle():
+        
+        ca = self.current_angle()
+        wpilib.SmartDashboard.PutNumber('current_angle', ca)
+        #if self.pre_d_angle != self.d_angle:
+        wpilib.SmartDashboard.PutNumber('desired_angle', self.d_angle)
+        wpilib.SmartDashboard.PutNumber('dt', self.d_angle - ca)
+        
         if self.pre_is_ready_angle != self.is_ready_angle():
             wpilib.SmartDashboard.PutBoolean('is_ready_angle', self.is_ready_angle())
 

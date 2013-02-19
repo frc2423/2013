@@ -8,7 +8,7 @@ except:
 #Motor Speeds
 #
 STOP_SPEED = 0
-FEED_SPEED = 1
+FEED_SPEED = 0.7
 REVERSE_SPEED = -1
 #
 #Frisbee Distances
@@ -96,7 +96,7 @@ class FeederPro():
         return self.frisbee_count
     
     def has_frisbee(self):
-        return get_frisbee_count() != 0
+        return self.get_frisbee_count() != 0
         
     def use_frisbee_sensor(self, using_frisbee_sensor):
         self.using_frisbee_sensor = using_frisbee_sensor
@@ -183,12 +183,14 @@ class FeederPro():
             self.feed_motor.Set(STOP_SPEED)
             self.feeder_state = STATE_STOPPED
         
-        wpilib.SmartDashboard.PutNumber('Feeder State', self.feeder_state)
-        wpilib.SmartDashboard.PutNumber('Action State', self.action_state)
+        #wpilib.SmartDashboard.PutNumber('Feeder State', self.feeder_state)
+        #wpilib.SmartDashboard.PutNumber('Action State', self.action_state)
+        #wpilib.SmartDashboard.PutNumber('Feeder dist', self.feed_sensor.GetDistance())
     
-        fs = self.get_frisbee_count()
-        if self.frisbee_count is None:
-            fs = -1
+        #fs = self.get_frisbee_count()
+        #if self.frisbee_count is None:
+        #    fs = -1
             
-        wpilib.SmartDashboard.PutNumber('Frisbees', fs)
-        wpilib.SmartDashboard.PutNumber('Frisbee Distance', self.distance)
+        #wpilib.SmartDashboard.PutNumber('Frisbees', fs)
+        #wpilib.SmartDashboard.PutNumber('Frisbee Distance', self.distance)
+        

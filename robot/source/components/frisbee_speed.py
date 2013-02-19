@@ -100,10 +100,10 @@ class FrisbeeSpeed(object):
                 
                 while self.run:
                     
-                    process_speed()
+                    self.process_speed()
                     wpilib.Wait(WAIT_TIME)
             
-                self.state == NO_FRISBEE
+                self.state = NO_FRISBEE
         
     def start(self):
         '''
@@ -116,3 +116,4 @@ class FrisbeeSpeed(object):
             terminates the Frisbee Speed getter thingy
         '''
         self.run = False
+        

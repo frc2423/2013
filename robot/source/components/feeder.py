@@ -143,7 +143,7 @@ class Feeder():
                 
         if self.state == FEEDING:
 
-                self.feed_motor.Set(FEED_SPEED)
+            self.feed_motor.Set(FEED_SPEED)
 
                 
         if self.state == STOP_FEEDING:
