@@ -177,12 +177,15 @@ class MyRobot(wpilib.SimpleRobot):
     FEEDER_FEED_BUTTON      = (2, TRIGGER)
     FEEDER_BACK_BUTTON      = (2, TOP)
     
+    AUTO_TARGET_BUTTON      = (1, TRIGGER)
+    
     # toggle switch definitions
     # -> call is_toggle_on() with this value to get True/False
     
     SHOOTER_ON              = EIO_CHANNELS[0]
     MANUAL_SHOOTER_ON       = EIO_CHANNELS[1]
     MANUAL_ANGLE_ON         = EIO_CHANNELS[2]
+    AUTO_TARGETING_ON       = EIO_CHANNELS[3]
     
     
     def __init__(self):
@@ -338,6 +341,18 @@ class MyRobot(wpilib.SimpleRobot):
                 self.my_feeder.feed_auto()
             elif self.stick_button_on(self.FEEDER_BACK_BUTTON):
                 self.my_feeder.reverse_feed()
+                
+            #
+            #     Auto targeting
+            #
+            
+            # TODO: figure out how to activate this properly?
+            # -> perhaps enable the mode, have the driver enable steering?
+            if self.is_toggle_on(self.AUTO_TARGETING_ON):
+                self.my_auto_targeting.perform_targeting()
+                
+                if self.stick_button_on(self.AUTO_TARGET_BUTTON):
+                    self.my_robot_turner.auto_turn()
                 
             #
             #    Climber

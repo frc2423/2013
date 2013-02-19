@@ -30,6 +30,5 @@ class AutoTargeting(object):
             self.last_hangle = current_hangle + hangle
         
         self.shooter_platform.set_angle_auto(self.last_hangle)
-        self.robot_turner.auto_turn()
         
     # no update function required

@@ -38,7 +38,7 @@ class RobotTurner(object):
                 rotate = tr
                 break
         
-        self.driving.drive(0, math.copysign(rotate, self.angle))
+        self.driving.drive(0.0, math.copysign(rotate, self.angle))
         
         
     def update(self):
@@ -47,13 +47,13 @@ class RobotTurner(object):
         # -> Really, this should be on a thread. But we've had problems with
         #    threads on the cRio, so do this for now
         if self.angle != 0:
-            if self.angle < 0:
+            if self.angle < 0.0:
                 self.angle += self.DECAY
-                if self.angle > 0:
+                if self.angle > 0.0:
                     self.angle = 0   # done turning 
             else:
                 self.angle -= self.DECAY
-                if self.angle < 0:
+                if self.angle < 0.0:
                     self.angle = 0   # done turning
         
         
