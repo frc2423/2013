@@ -78,13 +78,13 @@ ANGLE_MOTOR_D = 0.0
 
 
 # enable PID based speed control of the motor.. 
-shooter_motor.ChangeControlMode( wpilib.CANJaguar.kSpeed )
-shooter_motor.SetPID( SHOOTER_MOTOR_P, SHOOTER_MOTOR_I, SHOOTER_MOTOR_D )
-shooter_motor.EnableControl()
+#shooter_motor.ChangeControlMode( wpilib.CANJaguar.kSpeed )
+#shooter_motor.SetPID( SHOOTER_MOTOR_P, SHOOTER_MOTOR_I, SHOOTER_MOTOR_D )
+#shooter_motor.EnableControl()
 
-angle_motor.ChangeControlMode( wpilib.CANJaguar.kPosition )
-angle_motor.SetPID( ANGLE_MOTOR_P, ANGLE_MOTOR_I, ANGLE_MOTOR_D )
-angle_motor.EnableControl()
+#angle_motor.ChangeControlMode( wpilib.CANJaguar.kPosition )
+#angle_motor.SetPID( ANGLE_MOTOR_P, ANGLE_MOTOR_I, ANGLE_MOTOR_D )
+#angle_motor.EnableControl()
 
 
 # compressor for pneumatics 
@@ -123,9 +123,9 @@ class MyRobot(wpilib.SimpleRobot):
         
         wpilib.SimpleRobot.__init__(self)
         
-        wpilib.SmartDashboard.PutNumber('A_P', ANGLE_MOTOR_P )
-        wpilib.SmartDashboard.PutNumber('A_I', ANGLE_MOTOR_I )
-        wpilib.SmartDashboard.PutNumber('A_D', ANGLE_MOTOR_D )
+        #wpilib.SmartDashboard.PutNumber('A_P', ANGLE_MOTOR_P )
+        #wpilib.SmartDashboard.PutNumber('A_I', ANGLE_MOTOR_I )
+        #wpilib.SmartDashboard.PutNumber('A_D', ANGLE_MOTOR_D )
         
     def _translate_z(self, z, zmin, zmax):
     
@@ -160,9 +160,9 @@ class MyRobot(wpilib.SimpleRobot):
         dog.SetEnabled(True)
         dog.SetExpiration(0.25)
         
-        p = wpilib.SmartDashboard.GetNumber('A_P')
-        i = wpilib.SmartDashboard.GetNumber('A_I')
-        d = wpilib.SmartDashboard.GetNumber('A_D')
+        #p = wpilib.SmartDashboard.GetNumber('A_P')
+        #i = wpilib.SmartDashboard.GetNumber('A_I')
+        #d = wpilib.SmartDashboard.GetNumber('A_D')
     
         while self.IsOperatorControl() and self.IsEnabled():
             
@@ -183,14 +183,14 @@ class MyRobot(wpilib.SimpleRobot):
             else:
                 shooter_motor.Set(0)
                 
-            lp = wpilib.SmartDashboard.GetNumber('A_P')
-            li = wpilib.SmartDashboard.GetNumber('A_I')
-            ld = wpilib.SmartDashboard.GetNumber('A_D')
+            #lp = wpilib.SmartDashboard.GetNumber('A_P')
+            #li = wpilib.SmartDashboard.GetNumber('A_I')
+            #ld = wpilib.SmartDashboard.GetNumber('A_D')
             
-            if lp != p or li != i or ld != d:
-                angle_motor.DisableControl()
-                angle_motor.SetPID(p, i, d)
-                angle_motor.EnableControl()
+            #if lp != p or li != i or ld != d:
+            #    angle_motor.DisableControl()
+            #    angle_motor.SetPID(p, i, d)
+            #    angle_motor.EnableControl()
             
             # Angle motor
             #z = self._translate_z(stick1.GetZ(), .505, .59)
