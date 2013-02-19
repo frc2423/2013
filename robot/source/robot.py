@@ -198,7 +198,7 @@ class MyRobot(wpilib.SimpleRobot):
         }
 
         self.components = [v for v in components.values()]
-        self.autonomous_mode = AutonomousModeManager(components)
+        # self.autonomous_mode = AutonomousModeManager(components)
         
         
     def RobotInit(self):
@@ -214,7 +214,7 @@ class MyRobot(wpilib.SimpleRobot):
         print("MyRobot::Autonomous()")
         
         # this does all the autonomous mode work for us
-        self.autonomous_mode.run(self, control_loop_wait_time)
+        # self.autonomous_mode.run(self, control_loop_wait_time)
         
     def OperatorControl(self):
         
@@ -251,18 +251,18 @@ class MyRobot(wpilib.SimpleRobot):
             #
             
             if self.is_toggle_on(self.MANUAL_SHOOTER_ON):
-                self.my_shooter_platform.set_manual_speed(self.stick_axis(self.SHOOTER_WHEEL_AXIS))
+                self.my_shooter_platform.set_speed_manual(self.stick_axis(self.SHOOTER_WHEEL_AXIS))
             
             # TODO: automated platform angle stuff 
             if self.is_toggle_on(self.MANUAL_ANGLE_ON):
-                self.my_shooter_platform.set_angle(self.stick_axis(self.PLATFORM_ANGLE_AXIS))
+                self.my_shooter_platform.set_angle_manual(-self.stick_axis(self.PLATFORM_ANGLE_AXIS))
             
             #
             #    Feeder
             #
             
             if self.stick_button_on(self.FEEDER_FEED_BUTTON):
-                self.my_feeder.feed()
+                self.my_feeder.feed_auto()
             elif self.stick_button_on(self.FEEDER_BACK_BUTTON):
                 self.my_feeder.reverse_feed()
             

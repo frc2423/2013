@@ -39,7 +39,7 @@ def get_file_name():
 class GenericDistanceSensor(wpilib.AnalogChannel):
 
     #sensor_dict hold the map of sensor type to distance equations
-    sensor_dict = {0, lambda v: math.pow((v/11.036), -1/.947)}
+    sensor_dict = {0: lambda v: math.pow((v/11.036), -1/.947)}
     
     def __init__(self, channel, sensor_type, system = ENGLISH): 
         '''

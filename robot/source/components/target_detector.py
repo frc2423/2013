@@ -8,7 +8,8 @@ import threading
 
 
     
-class TargetDetector(ITableListener):
+class TargetDetector(object):
+#class TargetDetector(ITableListener):
     '''
         Client that runs on the cRio to receive targeting information from the
         image processing software on the driver station
@@ -19,7 +20,7 @@ class TargetDetector(ITableListener):
     '''
     
     def __init__(self, table_name='SmartDashboard'):
-        ITableListener.__init__(self)
+        # ITableListener.__init__(self)
         
         self.lock = threading.Lock()
         
@@ -28,7 +29,7 @@ class TargetDetector(ITableListener):
         self.distance = None
         
         table = NetworkTable.GetTable(table_name)
-        table.AddTableListener('targeting', self, False)
+        # table.AddTableListener('targeting', self, False)
         
     def get_data(self):
         '''Returns a tuple of horizontal angle, vertical angle, distance. Check to see

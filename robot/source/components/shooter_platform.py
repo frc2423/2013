@@ -67,7 +67,7 @@ class ShooterPlatform(object):
         self.shooter_jag.set_speed(d_speed)
         self.d_speed = d_speed
         
-    def set_angle_man(self, d_angle):
+    def set_angle_manual(self, d_angle):
         '''
             Presets the angle manually using %Vbus to the desired angle.
             Must call Update() to actually set
@@ -78,7 +78,7 @@ class ShooterPlatform(object):
         self.angle_jag.set_manual_motor_value(d_angle)
         self.d_angle = 0
 
-    def set_speed_man(self, d_speed):
+    def set_speed_manual(self, d_speed):
         '''
             Presets the angle manually using %Vbus to the desired speed.
             Must call Update() to actually set

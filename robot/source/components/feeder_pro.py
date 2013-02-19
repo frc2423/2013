@@ -13,10 +13,12 @@ REVERSE_SPEED = -1
 #
 #Frisbee Distances
 #
-ONE_FRISBEE = .85
-TWO_FRISBEE = 1.0
-THREE_FRISBEE = 1.20
-FOUR_FRISBEE = 1.7
+ONE_FRISBEE = 5.8
+TWO_FRISBEE = 4.7
+THREE_FRISBEE = 3.9
+FOUR_FRISBEE = 3.2
+FIVE_FRISBEE = 2.7
+SIX_FRISBEE = 2.0
 FEEDER_READY_DISTANCE = 2.15
 
 #
@@ -61,7 +63,7 @@ class FeederPro():
         self.feed_motor.Set(STOP_SPEED)
         self.updated = None
         self.feeder_state = STATE_STOPPED
-        self.action_state = None
+        self.action_state = ACT_STATE_STOP
         self.distance = self.frisbee_sensor.GetDistance()
         self.using_frisbee_sensor = True
         
@@ -73,19 +75,22 @@ class FeederPro():
             
             self.distance = self.frisbee_sensor.GetDistance()
             
-            if self.distance >= ONE_FRISBEE and self.distance <= TWO_FRISBEE:
+            if self.distance <= ONE_FRISBEE and self.distance >= TWO_FRISBEE:
                 self.frisbee_count = 1
             
-            elif self.distance >= TWO_FRISBEE and self.distance <= THREE_FRISBEE:
+            elif self.distance <= TWO_FRISBEE and self.distance >= THREE_FRISBEE:
                 self.frisbee_count = 2
             
-            elif self.distance >= THREE_FRISBEE and self.distance <= FOUR_FRISBEE:
+            elif self.distance <= THREE_FRISBEE and self.distance >= FOUR_FRISBEE:
                 self.frisbee_count = 3
     
-            elif self.distance >= FOUR_FRISBEE and self.distance > 2:
+            elif self.distance <= FOUR_FRISBEE and self.distance >= FIVE_FRISBEE:
                 self.frisbee_count = 4
+                
+            elif self.distance <= FIVE_FRISBEE and self.distance >= SIX_FRISBEE:
+                self.frisbee_count = 5
            
-            elif self.distance < ONE_FRISBEE:
+            elif self.distance > ONE_FRISBEE:
                 self.frisbee_count = 0
             
         return self.frisbee_count
@@ -100,7 +105,7 @@ class FeederPro():
         '''
             checks if the kicker is covering the sensor
         '''
-        return self.feed_sensor.GetDistance < FEEDER_READY_DISTANCE
+        return self.feed_sensor.GetDistance() < FEEDER_READY_DISTANCE
     
     def feed_auto(self):
         ''' automatic feed function this will stop at the sensor location'''
@@ -109,12 +114,13 @@ class FeederPro():
         #Kicker is not feeding automatically feed!
         #        
         self.action_state = ACT_STATE_FEED_AUTO
+        self.feeder_state = STATE_FEEDING_AUTO
           
-    def feed_man(self):
+    def feed_manual(self):
         ''' feeds while called '''
         self.action_state = ACT_STATE_FEED
         
-    def reverse(self):
+    def reverse_feed(self):
         ''' reverses the feeder manually'''
         self.action_state = ACT_STATE_REVERSE
         
@@ -139,7 +145,7 @@ class FeederPro():
         #
         #Feeder in auto feeding, and sensor isn't covered, keep feeding
         #
-        elif self.feeder_state == STATE_FEEDING_AUTO and not sensor_covered():
+        elif self.feeder_state == STATE_FEEDING_AUTO and not self.sensor_covered():
             self.feed_motor.Set(FEED_SPEED)
         
         #
@@ -159,7 +165,8 @@ class FeederPro():
         #
         #if sensor is covered, stop feeding
         #
-        elif self.feeder_state == STATE_FEEDING_AUTO and sensor_covered():
+        elif self.feeder_state == STATE_FEEDING_AUTO and self.sensor_covered():
+
             
             self.feed_motor.Set(STOP_SPEED)
             self.feeder_state = STATE_STOPPED    
@@ -171,5 +178,13 @@ class FeederPro():
             
             self.feed_motor.Set(STOP_SPEED)
             self.feeder_state = STATE_STOPPED
-            
+        
+        wpilib.SmartDashboard.PutNumber('Feeder State', self.feeder_state)
+        wpilib.SmartDashboard.PutNumber('Action State', self.action_state)
     
+        fs = self.get_frisbee_count()
+        if self.frisbee_count is None:
+            fs = -1
+            
+        wpilib.SmartDashboard.PutNumber('Frisbees', fs)
+        wpilib.SmartDashboard.PutNumber('Frisbee Distance', self.distance)
