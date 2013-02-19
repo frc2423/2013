@@ -28,7 +28,12 @@ class TargetDetector(object):
         self.vangle = None
         self.distance = None
         
-        table = NetworkTable.GetTable(table_name)
+        self.table = NetworkTable.GetTable(table_name)
+        
+        self.table.PutNumber('Target HAngle', 0)
+        self.table.PutNumber('Target VAngle', 0)
+        self.table.PutNumber('Target Distance', 0)
+        
         # table.AddTableListener('targeting', self, False)
         
     def get_data(self):
@@ -39,8 +44,12 @@ class TargetDetector(object):
            off of invalid data. 
         '''
         
-        with self.lock:
-            return self.hangle, self.vangle, self.distance
+        return (self.table.GetNumber('Target HAngle'),
+               self.table.GetNumber('Target VAngle'),
+               self.table.GetNumber('Target Distance'))
+        
+        #with self.lock:
+        #    return self.hangle, self.vangle, self.distance
         
     def ValueChanged(self, table, key, value, isNew):
         '''NetworkTables interface that notifies us that a value changed'''
