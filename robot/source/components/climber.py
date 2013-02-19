@@ -29,6 +29,7 @@ class Climber(object):
         self.action_timer = wpilib.Timer()
         self.action_timer.Start()
         
+        self._position = self.CLIMB
         self.next_state = None
         self.current_state = None
     
@@ -39,6 +40,10 @@ class Climber(object):
     def lower(self):
         '''Call this to lower the robot down to the ground'''
         self.next_state = self.LOWER
+    
+    def position(self):
+        '''This returns the current climber position'''
+        return self._position
     
     def update(self):
         '''Actually perform the action'''
@@ -61,6 +66,9 @@ class Climber(object):
             else:
                 self.valve1.Set(True)
                 self.valve2.Set(False)
+                
+            # record the last state 
+            self._position = self.current_state
             
             # do the action for a minimum period, then idle
             if self.action_timer.HasPeriodPassed(self.ACTION_PERIOD):

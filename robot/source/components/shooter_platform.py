@@ -7,7 +7,9 @@ except ImportError:
 class ShooterPlatform(object):
     ''' Handles shooter and angle components together'''
     
-    def __init__(self, angle_jag, shooter_jag):
+    LOWER_ANGLE_SPEED = 1.0
+    
+    def __init__(self, angle_jag, shooter_jag, climber):
         ''' 
             Initializes ShooterPlatform object
             
@@ -20,6 +22,8 @@ class ShooterPlatform(object):
         #jaguars
         self.angle_jag = angle_jag
         self.shooter_jag = shooter_jag
+        
+        self.climber = climber
         
         #desired states
         self.d_angle = 0
@@ -43,6 +47,12 @@ class ShooterPlatform(object):
     def current_speed(self):
         ''' Gets the real speed'''
         return self.shooter_jag.get_speed()
+    
+    def at_zero(self):
+        '''Returns True if the platform is in the forward position'''
+        
+        # use the limit switch in case the pot breaks
+        return not self.angle_jag.motor.GetForwardLimitOK()
      
     def set_angle_auto(self, d_angle):
         '''
@@ -52,8 +62,9 @@ class ShooterPlatform(object):
             
             param : d_angle - The desired angle
         '''
-        self.angle_jag.set_position(d_angle)
-        self.d_angle = d_angle
+        if self.climber.position() == self.climber.LOWER:
+            self.angle_jag.set_position(d_angle)
+            self.d_angle = d_angle
 
     
     def set_speed_auto(self, d_speed):
@@ -75,8 +86,9 @@ class ShooterPlatform(object):
             
             param : d_angle - The desired angle
         '''
-        self.angle_jag.set_manual_motor_value(d_angle)
-        self.d_angle = 0
+        if self.climber.position() == self.climber.LOWER:
+            self.angle_jag.set_manual_motor_value(d_angle)
+            self.d_angle = 0
 
     def set_speed_manual(self, d_speed):
         '''
@@ -102,9 +114,8 @@ class ShooterPlatform(object):
     def is_ready(self):
         ''' checks if the shooter_platform is ready to shoot'''
         #returns true if shooter_platform is ready to shoot
-        return self.wheel_jag.is_ready() and self.angle_jag.is_ready() 
-
-
+        return self.wheel_jag.is_ready() and self.angle_jag.is_ready()
+            
     def _update_smart_dashboard(self):
         ''' 
             Displays values on SmartDashboard if changed

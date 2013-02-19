@@ -18,6 +18,7 @@ from components.shooter_platform import ShooterPlatform
 from components.target_detector import TargetDetector
 
 from systems.shooter import Shooter
+from systems.climber import ClimberSystem
 
 
 #
@@ -168,24 +169,27 @@ class MyRobot(wpilib.SimpleRobot):
             self.eio.SetDigitalConfig(channel, wpilib.DriverStationEnhancedIO.kInputFloating)
         
         # create the component instances
-        self.my_climber = Climber(valve1, valve2)
+        climber = Climber(valve1, valve2)
         
         self.my_drive = Driving(drive)
         
         self.my_feeder = FeederPro(feeder_motor, 
-                                frisbee_sensor, 
-                                feeder_sensor)
+                                   frisbee_sensor, 
+                                   feeder_sensor)
         
         auto_angle = PositionJaguar(angle_motor, angle_motor_threshold)
         auto_shooter = SpeedJaguar(shooter_motor, shooter_motor_threshold) 
         
         self.my_shooter_platform = ShooterPlatform(auto_angle,
-                                                   auto_shooter)
+                                                   auto_shooter,
+                                                   climber)
         
         self.my_target_detector = TargetDetector()
         
         # create the system instances
         self.my_shooter = None # TODO
+        
+        self.my_climber = ClimberSystem(climber, self.my_shooter_platform)
         
         # autonomous mode needs a dict of components
         components = {
@@ -213,6 +217,9 @@ class MyRobot(wpilib.SimpleRobot):
     def Autonomous(self):        
         print("MyRobot::Autonomous()")
         
+        # put this in a consistent state when starting the robot
+        self.my_climber.lower()
+        
         # this does all the autonomous mode work for us
         # self.autonomous_mode.run(self, control_loop_wait_time)
         
@@ -224,6 +231,8 @@ class MyRobot(wpilib.SimpleRobot):
         dog.SetEnabled(True)
         dog.SetExpiration(0.25)
         
+        # put this in a consistent state when starting the robot
+        self.my_climber.lower()
         compressor.Start()
         
         while self.IsOperatorControl():
