@@ -267,9 +267,6 @@ class MyRobot(wpilib.SimpleRobot):
         
         while self.IsOperatorControl():
             
-            shooter_motor.ConfigNeutralMode(wpilib.CANJaguar.kNeutralMode_Coast)
-            shooter_motor.SetVoltageRampRate(0.0)
-            
             # measure loop time
             start = wpilib.Timer.GetPPCTimestamp()
             
@@ -281,20 +278,6 @@ class MyRobot(wpilib.SimpleRobot):
             self.my_drive.drive(self.stick_axis(self.DRIVE_SPEED_AXIS),
                                 self.stick_axis(self.DRIVE_ROTATE_AXIS),
                                 self.stick_button_on(self.DRIVE_FASTER_BUTTON))
-            
-            #
-            #    Climber
-            #
-            
-            if self.stick_button_on(self.CLIMB_DOWN_BUTTON):
-                self.my_climber.lower()
-            elif self.stick_button_on(self.CLIMB_UP_BUTTON):
-                self.my_climber.climb() 
-            
-            if self.stick_button_on(self.CLIMB_TWIST_L_BUTTON):
-                self.my_drive.drive(0.0, 0.3)
-            elif self.stick_button_on(self.CLIMB_TWIST_R_BUTTON):
-                self.my_drive.drive(0.0, -0.3)
             
             #
             #    Shooter
@@ -311,8 +294,6 @@ class MyRobot(wpilib.SimpleRobot):
                 shooter_motor.SetPID( wpilib.SmartDashboard.GetNumber('Shooter P'),
                                       wpilib.SmartDashboard.GetNumber('Shooter I'),
                                       wpilib.SmartDashboard.GetNumber('Shooter D'))
-            
-                
             
             #
             #    Angle
@@ -337,11 +318,26 @@ class MyRobot(wpilib.SimpleRobot):
             elif self.stick_button_on(self.FEEDER_BACK_BUTTON):
                 self.my_feeder.reverse_feed()
                 
-            #wpilib.SmartDashboard.PutNumber('2Y', self.stick_axis(self.PLATFORM_ANGLE_AXIS))
-            #wpilib.SmartDashboard.PutNumber('2Z', self.stick_axis(self.SHOOTER_WHEEL_AXIS))
-            #wpilib.SmartDashboard.PutBoolean('Angle Toggle', self.is_toggle_on(self.MANUAL_ANGLE_ON))
+            #
+            #    Climber
+            #        - Must come after anything that sets angle, otherwise
+            #        the climbing safety features won't kick in
+            #
             
-            # calls update function on all components
+            if self.stick_button_on(self.CLIMB_DOWN_BUTTON):
+                self.my_climber.lower()
+            elif self.stick_button_on(self.CLIMB_UP_BUTTON):
+                self.my_climber.climb() 
+            
+            if self.stick_button_on(self.CLIMB_TWIST_L_BUTTON):
+                self.my_drive.drive(0.0, -0.7)
+            elif self.stick_button_on(self.CLIMB_TWIST_R_BUTTON):
+                self.my_drive.drive(0.0, 0.7)         
+            
+            #
+            # Update phase, actually sets motors and stuff
+            #
+            
             self.update()
             
             # how long does it take us to run the loop?

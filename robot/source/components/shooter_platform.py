@@ -64,8 +64,7 @@ class ShooterPlatform(object):
             
             param : d_angle - The desired angle
         '''
-        #if self.climber.position() == self.climber.LOWER:
-        if True:
+        if self.climber.position() == self.climber.LOWER:
             self.angle_jag.set_position(d_angle)
             self.d_angle = d_angle
 
@@ -89,8 +88,7 @@ class ShooterPlatform(object):
             
             param : d_angle - The desired angle
         '''
-        #if d_angle > 0 or self.climber.position() == self.climber.LOWER:
-        if True:
+        if d_angle > 0 or self.climber.position() == self.climber.LOWER:
             self.angle_jag.set_manual_motor_value(d_angle)
             self.d_angle = 0
 
