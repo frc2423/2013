@@ -8,6 +8,7 @@ except ImportError:
 from autonomous import AutonomousModeManager
 
 from common.auto_jaguar import PositionJaguar, SpeedJaguar
+#from common.bang_bang_jaguar import BangBangJaguar
 from common.ez_can_jaguar import EzCANJaguar
 from common.generic_distance_sensor import GenericDistanceSensor, GP2D120
 
@@ -48,8 +49,8 @@ shooter_sensor_channel = 3
 compressor_switch = 1
 
 # Solenoids
-valve1_channel = 1
-valve2_channel = 2
+valve1_channel = 2
+valve2_channel = 1
 
 
 #
@@ -65,14 +66,18 @@ r_motor = wpilib.Jaguar(r_motor_pwm)
 # shooter: -1 is full on
 shooter_motor = EzCANJaguar(shooter_motor_can)
 shooter_motor.SetSpeedReference(wpilib.CANJaguar.kSpeedRef_QuadEncoder)
-shooter_motor.ConfigEncoderCodesPerRev(360)
-shooter_motor.ConfigNeutralMode(wpilib.CANJaguar.kNeutralMode_Brake)
+shooter_motor.ConfigEncoderCodesPerRev(1000)
+
+# these parameters are necessary for bang-bang mode
+shooter_motor.ConfigNeutralMode(wpilib.CANJaguar.kNeutralMode_Coast)
+shooter_motor.SetVoltageRampRate(0.0)
 shooter_motor_threshold = 100
 
 angle_motor = EzCANJaguar(angle_motor_can)
 angle_motor.SetPositionReference(wpilib.CANJaguar.kPosRef_Potentiometer)
 angle_motor.ConfigPotentiometerTurns(1)
-angle_motor.ConfigNeutralMode(wpilib.CANJaguar.kNeutralMode_Brake)
+angle_motor.ConfigNeutralMode(wpilib.CANJaguar.kNeutralMode_Coast)
+angle_motor.SetPID(-3000.0, -0.1, -14.0)
 angle_motor_threshold = 0.1
 
 feeder_motor = EzCANJaguar(feeder_motor_can)
@@ -144,8 +149,8 @@ class MyRobot(wpilib.SimpleRobot):
     CLIMB_TWIST_L_BUTTON    = (1, 8)
     CLIMB_TWIST_L_BUTTON    = (1, 9)
     
-    CLIMB_UP_BUTTON         = (1, 6)
-    CLIMB_DOWN_BUTTON       = (1, 7)
+    CLIMB_UP_BUTTON         = (1, 10)
+    CLIMB_DOWN_BUTTON       = (1, 11)
     
     FEEDER_FEED_BUTTON      = (2, TRIGGER)
     FEEDER_BACK_BUTTON      = (2, TOP)
@@ -154,7 +159,8 @@ class MyRobot(wpilib.SimpleRobot):
     # -> call is_toggle_on() with this value to get True/False
     
     MANUAL_SHOOTER_ON       = EIO_CHANNELS[0]
-    MANUAL_ANGLE_ON         = EIO_CHANNELS[1]
+    AUTO_SHOOTER_ON         = EIO_CHANNELS[1]
+    MANUAL_ANGLE_ON         = EIO_CHANNELS[2]
     
     
     def __init__(self):
@@ -178,7 +184,10 @@ class MyRobot(wpilib.SimpleRobot):
                                    feeder_sensor)
         
         auto_angle = PositionJaguar(angle_motor, angle_motor_threshold)
-        auto_shooter = SpeedJaguar(shooter_motor, shooter_motor_threshold) 
+        auto_shooter = SpeedJaguar(shooter_motor, shooter_motor_threshold)
+        
+        # Bang-bang doesn't work on a Jaguar.. 
+        #auto_shooter = BangBangJaguar(shooter_motor, shooter_motor_threshold)
         
         self.my_shooter_platform = ShooterPlatform(auto_angle,
                                                    auto_shooter,
@@ -202,8 +211,13 @@ class MyRobot(wpilib.SimpleRobot):
         }
 
         self.components = [v for v in components.values()]
+        self.components.append(climber)
         # self.autonomous_mode = AutonomousModeManager(components)
         
+    def _translate_z(self, z, zmin, zmax):
+    
+        # Xmax - (Ymax - Y)( (Xmax - Xmin) / (Ymax - Ymin) )
+        return zmax - ((1 - z)*( (zmax - zmin) / 2 ) )
         
     def RobotInit(self):
         pass
@@ -233,9 +247,19 @@ class MyRobot(wpilib.SimpleRobot):
         
         # put this in a consistent state when starting the robot
         self.my_climber.lower()
-        compressor.Start()
+        #compressor.Start()
+        
+        wpilib.SmartDashboard.PutNumber('P', -4000)
+        wpilib.SmartDashboard.PutNumber('I', 0)
+        wpilib.SmartDashboard.PutNumber('D', 0)
         
         while self.IsOperatorControl():
+            
+            shooter_motor.ConfigNeutralMode(wpilib.CANJaguar.kNeutralMode_Coast)
+            shooter_motor.SetVoltageRampRate(0.0)
+            
+            # measure loop time
+            start = wpilib.Timer.GetPPCTimestamp()
             
 
             # 
@@ -259,12 +283,35 @@ class MyRobot(wpilib.SimpleRobot):
             #    Shooter
             #
             
-            if self.is_toggle_on(self.MANUAL_SHOOTER_ON):
+            z = self._translate_z(self.stick_axis(self.SHOOTER_WHEEL_AXIS), 0, 1000)
+            
+            if self.is_toggle_on(self.AUTO_SHOOTER_ON):
+                self.my_shooter_platform.set_speed_auto(z)
+            
+            elif self.is_toggle_on(self.MANUAL_SHOOTER_ON):
                 self.my_shooter_platform.set_speed_manual(self.stick_axis(self.SHOOTER_WHEEL_AXIS))
             
+            #
+            #    Angle
+            #
+            
+            angle_z = self._translate_z(self.stick_axis((1, self.Z)), 0.5, 0.6)
+            wpilib.SmartDashboard.PutNumber('Angle Z', angle_z)
+            
+            on = self.is_toggle_on(self.MANUAL_ANGLE_ON)
+            wpilib.SmartDashboard.PutNumber('Auto Angle On', 1 if on == True else 0)
+            
             # TODO: automated platform angle stuff 
-            if self.is_toggle_on(self.MANUAL_ANGLE_ON):
+            if on:
+                self.my_shooter_platform.set_angle_auto(angle_z)
+            else:
                 self.my_shooter_platform.set_angle_manual(-self.stick_axis(self.PLATFORM_ANGLE_AXIS))
+                
+                angle_motor.SetPID(
+                wpilib.SmartDashboard.GetNumber('P'),
+                wpilib.SmartDashboard.GetNumber('I'),
+                wpilib.SmartDashboard.GetNumber('D')
+                )
             
             #
             #    Feeder
@@ -274,14 +321,22 @@ class MyRobot(wpilib.SimpleRobot):
                 self.my_feeder.feed_auto()
             elif self.stick_button_on(self.FEEDER_BACK_BUTTON):
                 self.my_feeder.reverse_feed()
+                
+            #wpilib.SmartDashboard.PutNumber('2Y', self.stick_axis(self.PLATFORM_ANGLE_AXIS))
+            #wpilib.SmartDashboard.PutNumber('2Z', self.stick_axis(self.SHOOTER_WHEEL_AXIS))
+            #wpilib.SmartDashboard.PutBoolean('Angle Toggle', self.is_toggle_on(self.MANUAL_ANGLE_ON))
             
             # calls update function on all components
             self.update()
             
+            # how long does it take us to run the loop?
+            # -> we're using a lot of globals, what happens when we change it?
+            wpilib.SmartDashboard.PutNumber('Loop time', wpilib.Timer.GetPPCTimestamp() - start)
+            
             wpilib.Wait(control_loop_wait_time)
             dog.Feed()
             
-        compressor.Stop()
+        #compressor.Stop()
     
     #
     #    Joystick utility functions (yay overhead!)
