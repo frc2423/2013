@@ -49,7 +49,7 @@ class EzCANJaguar(CANJaguar):
             
             elif controlMode == CANJaguar.kSpeed:
                 CANJaguar.SetSpeedReference( self, self.speed_reference )
-                CANJaguar.SetPID( self, self.pid[0]. self.pid[1], self.pid[2] )
+                CANJaguar.SetPID( self, self.pid[0], self.pid[1], self.pid[2] )
                 CANJaguar.EnableControl( self )
                 
                 print('-> Speed PID: %s %s %s' % self.pid)

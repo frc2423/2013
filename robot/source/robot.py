@@ -63,21 +63,31 @@ r_motor = wpilib.Jaguar(r_motor_pwm)
 
 #CAN Motors
 
-# shooter: -1 is full on
+# tuned using information from http://www.chiefdelphi.com/forums/showpost.php?p=1112886&postcount=37
+SHOOTER_P = -0.05
+SHOOTER_I = -0.0028
+SHOOTER_D = 0
+
 shooter_motor = EzCANJaguar(shooter_motor_can)
 shooter_motor.SetSpeedReference(wpilib.CANJaguar.kSpeedRef_QuadEncoder)
 shooter_motor.ConfigEncoderCodesPerRev(1000)
+shooter_motor.SetPID(SHOOTER_P, SHOOTER_I, SHOOTER_D)
+
 
 # these parameters are necessary for bang-bang mode
 shooter_motor.ConfigNeutralMode(wpilib.CANJaguar.kNeutralMode_Coast)
 shooter_motor.SetVoltageRampRate(0.0)
 shooter_motor_threshold = 100
 
+ANGLE_P = -3000.0 
+ANGLE_I = -0.1 
+ANGLE_D = -14.0
+
 angle_motor = EzCANJaguar(angle_motor_can)
 angle_motor.SetPositionReference(wpilib.CANJaguar.kPosRef_Potentiometer)
 angle_motor.ConfigPotentiometerTurns(1)
 angle_motor.ConfigNeutralMode(wpilib.CANJaguar.kNeutralMode_Coast)
-angle_motor.SetPID(-3000.0, -0.1, -14.0)
+angle_motor.SetPID(ANGLE_P, ANGLE_I, ANGLE_D)
 angle_motor_threshold = 0.1
 
 feeder_motor = EzCANJaguar(feeder_motor_can)
@@ -137,6 +147,7 @@ class MyRobot(wpilib.SimpleRobot):
     # -> call stick_axis() with this value to get the axis
     DRIVE_SPEED_AXIS    = (1, Y)
     DRIVE_ROTATE_AXIS   = (1, X)
+    ANGLE_POINT_AXIS    = (1, Z)
     
     SHOOTER_WHEEL_AXIS  = (2, Z)
     PLATFORM_ANGLE_AXIS = (2, Y)
@@ -147,10 +158,10 @@ class MyRobot(wpilib.SimpleRobot):
     DRIVE_FASTER_BUTTON     = (1, TOP)
     
     CLIMB_TWIST_L_BUTTON    = (1, 8)
-    CLIMB_TWIST_L_BUTTON    = (1, 9)
+    CLIMB_TWIST_R_BUTTON    = (1, 9)
     
-    CLIMB_UP_BUTTON         = (1, 10)
-    CLIMB_DOWN_BUTTON       = (1, 11)
+    CLIMB_UP_BUTTON         = (2, 10)
+    CLIMB_DOWN_BUTTON       = (2, 11)
     
     FEEDER_FEED_BUTTON      = (2, TRIGGER)
     FEEDER_BACK_BUTTON      = (2, TOP)
@@ -158,8 +169,8 @@ class MyRobot(wpilib.SimpleRobot):
     # toggle switch definitions
     # -> call is_toggle_on() with this value to get True/False
     
-    MANUAL_SHOOTER_ON       = EIO_CHANNELS[0]
-    AUTO_SHOOTER_ON         = EIO_CHANNELS[1]
+    SHOOTER_ON              = EIO_CHANNELS[0]
+    MANUAL_SHOOTER_ON       = EIO_CHANNELS[1]
     MANUAL_ANGLE_ON         = EIO_CHANNELS[2]
     
     
@@ -214,10 +225,7 @@ class MyRobot(wpilib.SimpleRobot):
         self.components.append(climber)
         # self.autonomous_mode = AutonomousModeManager(components)
         
-    def _translate_z(self, z, zmin, zmax):
     
-        # Xmax - (Ymax - Y)( (Xmax - Xmin) / (Ymax - Ymin) )
-        return zmax - ((1 - z)*( (zmax - zmin) / 2 ) )
         
     def RobotInit(self):
         pass
@@ -247,11 +255,15 @@ class MyRobot(wpilib.SimpleRobot):
         
         # put this in a consistent state when starting the robot
         self.my_climber.lower()
-        #compressor.Start()
+        compressor.Start()
         
-        wpilib.SmartDashboard.PutNumber('P', -4000)
-        wpilib.SmartDashboard.PutNumber('I', 0)
-        wpilib.SmartDashboard.PutNumber('D', 0)
+        wpilib.SmartDashboard.PutNumber('Angle P', ANGLE_P)
+        wpilib.SmartDashboard.PutNumber('Angle I', ANGLE_I)
+        wpilib.SmartDashboard.PutNumber('Angle D', ANGLE_D)
+        
+        wpilib.SmartDashboard.PutNumber('Shooter P', SHOOTER_P)
+        wpilib.SmartDashboard.PutNumber('Shooter I', SHOOTER_I)
+        wpilib.SmartDashboard.PutNumber('Shooter D', SHOOTER_D)
         
         while self.IsOperatorControl():
             
@@ -279,39 +291,42 @@ class MyRobot(wpilib.SimpleRobot):
             elif self.stick_button_on(self.CLIMB_UP_BUTTON):
                 self.my_climber.climb() 
             
+            if self.stick_button_on(self.CLIMB_TWIST_L_BUTTON):
+                self.my_drive.drive(0.0, 0.3)
+            elif self.stick_button_on(self.CLIMB_TWIST_R_BUTTON):
+                self.my_drive.drive(0.0, -0.3)
+            
             #
             #    Shooter
             #
             
-            z = self._translate_z(self.stick_axis(self.SHOOTER_WHEEL_AXIS), 0, 1000)
+            if self.is_toggle_on(self.SHOOTER_ON):
+                if self.is_toggle_on(self.MANUAL_SHOOTER_ON):
+                    self.my_shooter_platform.set_speed_manual(self.translate_axis(self.SHOOTER_WHEEL_AXIS, -1.0, 0.0))
+                else:
+                    z = self.translate_axis(self.SHOOTER_WHEEL_AXIS, 1000.0, 0)
+                    self.my_shooter_platform.set_speed_auto(z)
+            else:
+                self.my_shooter_platform.set_speed_manual(0.0)
+                shooter_motor.SetPID( wpilib.SmartDashboard.GetNumber('Shooter P'),
+                                      wpilib.SmartDashboard.GetNumber('Shooter I'),
+                                      wpilib.SmartDashboard.GetNumber('Shooter D'))
             
-            if self.is_toggle_on(self.AUTO_SHOOTER_ON):
-                self.my_shooter_platform.set_speed_auto(z)
-            
-            elif self.is_toggle_on(self.MANUAL_SHOOTER_ON):
-                self.my_shooter_platform.set_speed_manual(self.stick_axis(self.SHOOTER_WHEEL_AXIS))
+                
             
             #
             #    Angle
-            #
-            
-            angle_z = self._translate_z(self.stick_axis((1, self.Z)), 0.5, 0.6)
-            wpilib.SmartDashboard.PutNumber('Angle Z', angle_z)
-            
-            on = self.is_toggle_on(self.MANUAL_ANGLE_ON)
-            wpilib.SmartDashboard.PutNumber('Auto Angle On', 1 if on == True else 0)
-            
-            # TODO: automated platform angle stuff 
-            if on:
+            #        
+             
+            if not self.is_toggle_on(self.MANUAL_ANGLE_ON):
+                angle_z = self.translate_axis(self.ANGLE_POINT_AXIS, 0.5, 0.6)
                 self.my_shooter_platform.set_angle_auto(angle_z)
             else:
                 self.my_shooter_platform.set_angle_manual(-self.stick_axis(self.PLATFORM_ANGLE_AXIS))
                 
-                angle_motor.SetPID(
-                wpilib.SmartDashboard.GetNumber('P'),
-                wpilib.SmartDashboard.GetNumber('I'),
-                wpilib.SmartDashboard.GetNumber('D')
-                )
+                angle_motor.SetPID( wpilib.SmartDashboard.GetNumber('Angle P'),
+                                    wpilib.SmartDashboard.GetNumber('Angle I'),
+                                    wpilib.SmartDashboard.GetNumber('Angle D'))
             
             #
             #    Feeder
@@ -336,17 +351,24 @@ class MyRobot(wpilib.SimpleRobot):
             wpilib.Wait(control_loop_wait_time)
             dog.Feed()
             
-        #compressor.Stop()
+        compressor.Stop()
     
     #
     #    Joystick utility functions (yay overhead!)
     #
     
     def is_toggle_on(self, channel):
-        return self.eio.GetDigital(channel)
+        return not self.eio.GetDigital(channel)
     
     def stick_axis(self, cfg):
         return self.ds.GetStickAxis(*cfg)
+    
+    def translate_axis(self, cfg, amin, amax):
+        '''Returns an axis value between a min and a max'''
+        a = self.ds.GetStickAxis(*cfg)
+        
+        # Xmax - (Ymax - Y)( (Xmax - Xmin) / (Ymax - Ymin) )
+        return amax - ((1 - a)*( (amax - amin) / 2.0 ) )
         
     def stick_button_on(self, cfg):
         return self.ds.GetStickButtons( cfg[0] ) & (1 << (cfg[1]-1))

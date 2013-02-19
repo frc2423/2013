@@ -28,16 +28,18 @@ class ShooterPlatform(object):
         #desired states
         self.d_angle = 0
         self.d_speed = 0
-        self.pre_d_angle = 0
-        self.pre_d_speed = 0
+        self.pre_d_angle = None
+        self.pre_d_speed = None
+        self.pre_adt = None 
+        self.pre_sdt = None
         
         #current states
-        self.pre_angle = self.current_angle()
-        self.pre_speed = self.current_speed()
+        self.pre_angle = None
+        self.pre_speed = None
 
         #is ready
-        self.pre_is_ready_angle = self.is_ready_angle()
-        self.pre_is_ready_speed = self.is_ready_speed()
+        self.pre_is_ready_angle = None
+        self.pre_is_ready_speed = None
         
        
     def current_angle(self):
@@ -124,28 +126,44 @@ class ShooterPlatform(object):
         ''' 
         
         #
-        #Displays angle info
+        # Displays angle info
         #
-        #if self.pre_angle != self.current_angle():
         
         ca = self.current_angle()
-        wpilib.SmartDashboard.PutNumber('current_angle', ca)
-        #if self.pre_d_angle != self.d_angle:
-        wpilib.SmartDashboard.PutNumber('desired_angle', self.d_angle)
-        wpilib.SmartDashboard.PutNumber('dt', self.d_angle - ca)
+        if self.pre_angle != self.current_angle():
+            wpilib.SmartDashboard.PutNumber('Angle', ca)
+        
+        if self.pre_d_angle != self.d_angle:
+            wpilib.SmartDashboard.PutNumber('Angle Desired', self.d_angle)
+            
+        # tuning: difference between speed and desired speed
+        adt = self.d_angle - ca
+        if self.pre_adt != adt:
+            wpilib.SmartDashboard.PutNumber('Angle DT', self.d_angle - ca)
+            self.pre_adt = adt
         
         if self.pre_is_ready_angle != self.is_ready_angle():
-            wpilib.SmartDashboard.PutBoolean('is_ready_angle', self.is_ready_angle())
+            wpilib.SmartDashboard.PutBoolean('Angle Ready', self.is_ready_angle())
 
         #
-        #Displays speed info
+        # Displays speed info
         #
+        
+        cs = self.current_speed()
         if self.pre_speed != self.current_speed():
-            wpilib.SmartDashboard.PutNumber('current_speed', self.current_speed())
+            wpilib.SmartDashboard.PutNumber('WSpeed', cs)
+            
         if self.pre_d_speed != self.d_speed:
-            wpilib.SmartDashboard.PutNumber('desired_speed', self.d_speed)
+            wpilib.SmartDashboard.PutNumber('WSpeed Desired', self.d_speed)
+            
+        # tuning: difference between speed and desired speed
+        sdt = self.d_speed - cs
+        if self.pre_sdt != sdt:
+            wpilib.SmartDashboard.PutNumber('WSpeed DT', sdt)
+            self.pre_sdt = sdt
+            
         if self.pre_is_ready_speed != self.is_ready_speed():
-            wpilib.SmartDashboard.PutBoolean('is_ready_speed', self.is_ready_speed())
+            wpilib.SmartDashboard.PutBoolean('WSpeed Ready', self.is_ready_speed())
              
 
     def update(self):
