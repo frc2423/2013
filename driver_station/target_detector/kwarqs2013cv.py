@@ -56,9 +56,12 @@ class TargetDetector(object):
     kLowInnerRatio  = kLowHeight/kLowWidth
     kLowOuterRatio  = (kLowHeight + kTapeWidth*2)/(kLowWidth + kTapeWidth*2)
     
-    def __init__(self):
+    kOptimumVerticalPosition = 0.4
+    
+    def __init__(self, table):
         self.morphKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3), anchor=(1,1))
         self.size = None
+        self.table = table
     
     def processImage(self, img):
         
@@ -91,7 +94,8 @@ class TargetDetector(object):
         cv2.threshold(self.hue, 60+15, 255, type=cv2.THRESH_BINARY_INV, dst=self.hue)
         
         # Saturation
-        cv2.threshold(self.sat, 200, 255, type=cv2.THRESH_BINARY, dst=self.sat)
+        #cv2.threshold(self.sat, 200, 255, type=cv2.THRESH_BINARY, dst=self.sat)
+        cv2.threshold(self.sat, 100, 255, type=cv2.THRESH_BINARY, dst=self.sat)
         
         # Value
         cv2.threshold(self.val, 55, 255, type=cv2.THRESH_BINARY, dst=self.val)
@@ -185,9 +189,13 @@ class TargetDetector(object):
             ih, iw = self.size
             
             bCenterX = x + w/2.0
+            bCenterY = y + h/2.0
             
             # youssef's calcs: angle is correct
-            angle = (iw / 2.0 - bCenterX) * self.kHorizontalFOVDeg / iw
+            hangle = (iw / 2.0 - bCenterX) * self.kHorizontalFOVDeg / iw
+            
+            vangle = -((ih * self.kOptimumVerticalPosition) - h) / (ih / self.kVerticalFOVDeg)
+            
             distance = (54.0 * iw) / (2.0 * x * math.tan(math.radians(self.kHorizontalFOVDeg)/2.0))
             
             #print self.kVerticalFOVDeg
@@ -204,7 +212,7 @@ class TargetDetector(object):
             # 
             #distance = ()
             
-            print 'angle', angle, 'distance', distance
+            print 'hAngle', hangle, 'distance', distance
             
             
             # daisy calcs
@@ -216,14 +224,27 @@ class TargetDetector(object):
             
             #azimuth = (x*self.kHorizontalFOVDeg/2.0 + 90 - self.kShooterOffsetDeg) % 360.0
             range = (tgt_center - self.kCameraHeightIn)/math.tan(math.radians(y*self.kVerticalFOVDeg/2.0 + self.kCameraPitchDeg))
-            print 'range', range, tgt_center
+            #print 'range', range, tgt_center
             #print 'off, range, a', range, azimuth
             # get rpms from this data
             
             # send data to someone using pynetworktables
             
+            
+            
+            
+            # TODO: needs to be atomic
+            if self.table is not None:
+                self.table.PutNumber(u'Target HAngle', hangle)
+                self.table.PutNumber(u'Target VAngle', vangle)
+                self.table.PutNumber(u'Target Distance', distance)
+                self.table.PutBoolean(u'Target Found', True)
+            
             # draw the square on the target and show it
             cv2.drawContours(img, [square.astype(np.int32)], -1, self.targetColor, thickness=7)
+            
+        elif self.table is not None:
+            self.table.PutBoolean(u'Target Found', False)
             
         return img
         

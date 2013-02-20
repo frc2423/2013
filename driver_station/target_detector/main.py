@@ -118,6 +118,9 @@ if __name__ == '__main__':
     parser.add_option('--ip', dest='ip_address', default='10.24.23.11',
                       help='Specify the IP address of the camera')
     
+    parser.add_option('--robot-ip', dest='robot_ip', default=None,
+                      help='Specified the IP address of the robot')
+    
     parser.add_option('--daisy', dest='daisy', default=False, action='store_true',
                       help='Run the Miss Daisy image processing code')
     
@@ -128,6 +131,18 @@ if __name__ == '__main__':
     
     # switch between processing functions
     process_fn = None
+    
+    table = None
+    
+    if options.robot_ip is not None:
+        
+        from pynetworktables import NetworkTable
+        
+        NetworkTable.SetIPAddress(options.robot_ip)
+        NetworkTable.SetClientMode()
+        NetworkTable.Initialize()
+        
+        table = NetworkTable.GetTable(u'SmartDashboard')
     
     if options.daisy:
         
@@ -154,7 +169,7 @@ if __name__ == '__main__':
     else:
         import kwarqs2013cv
         
-        detector = kwarqs2013cv.TargetDetector()
+        detector = kwarqs2013cv.TargetDetector(table)
         
         def _process_kwarqs2013(img):
             cv2.imshow('result', detector.processImage(img))
