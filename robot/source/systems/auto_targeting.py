@@ -1,5 +1,8 @@
 
-import sys
+try:
+    import wpilib
+except ImportError: 
+    import fake_wpilib as wpilib
 
 class AutoTargeting(object):
     
@@ -17,18 +20,21 @@ class AutoTargeting(object):
         # get angle
         hangle, vangle, distance = self.target_detector.get_data()
         
+        wpilib.SmartDashboard.PutBoolean('Auto on', True if hangle is not None else False)
+        
         if hangle is None:
             return
         
         # if an angle has changed, set it
-        if abs(vangle - self.last_vangle) > 0.1:
-            self.robot_turner.set_angle(vangle)
-            self.last_vangle = vangle
-            
         if abs(hangle - self.last_hangle) > 0.1:
-            current_hangle = self.shooter_platform.current_angle()
-            self.last_hangle = current_hangle + hangle
+            print('got hangle', hangle)
+            self.robot_turner.set_angle(hangle)
+            self.last_hangle = hangle
+            
+        if abs(vangle - self.last_vangle) > 0.1:
+            current_vangle = self.shooter_platform.current_angle()
+            self.last_vangle = current_vangle + vangle
         
-        self.shooter_platform.set_angle_auto(self.last_hangle)
+        self.shooter_platform.set_angle_auto(self.last_vangle)
         
     # no update function required

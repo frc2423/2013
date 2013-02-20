@@ -56,7 +56,7 @@ class TargetDetector(object):
     kLowInnerRatio  = kLowHeight/kLowWidth
     kLowOuterRatio  = (kLowHeight + kTapeWidth*2)/(kLowWidth + kTapeWidth*2)
     
-    kOptimumVerticalPosition = 0.4
+    kOptimumVerticalPosition = 0.7
     
     def __init__(self, table):
         self.morphKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3), anchor=(1,1))
@@ -93,12 +93,16 @@ class TargetDetector(object):
         cv2.threshold(self.hue, 60-15, 255, type=cv2.THRESH_BINARY, dst=self.bin)
         cv2.threshold(self.hue, 60+15, 255, type=cv2.THRESH_BINARY_INV, dst=self.hue)
         
+        cv2.imshow('hue', self.hue)
+        
         # Saturation
         #cv2.threshold(self.sat, 200, 255, type=cv2.THRESH_BINARY, dst=self.sat)
-        cv2.threshold(self.sat, 100, 255, type=cv2.THRESH_BINARY, dst=self.sat)
+        cv2.threshold(self.sat, 200, 255, type=cv2.THRESH_BINARY, dst=self.sat)
+        cv2.imshow('sat', self.sat)
         
         # Value
         cv2.threshold(self.val, 55, 255, type=cv2.THRESH_BINARY, dst=self.val)
+        cv2.imshow('val', self.val)
         
         # Combine the results to obtain our binary image which should for the most
         # part only contain pixels that we care about
@@ -107,7 +111,7 @@ class TargetDetector(object):
         cv2.bitwise_and(self.bin, self.val, self.bin)
         
         # Uncommment this to show the thresholded image
-        #cv2.imshow('bin', self.bin)
+        cv2.imshow('bin', self.bin)
 
         # Fill in any gaps using binary morphology
         cv2.morphologyEx(self.bin, cv2.MORPH_CLOSE, self.morphKernel, dst=self.bin, iterations=self.kHoleClosingIterations)
@@ -194,7 +198,7 @@ class TargetDetector(object):
             # youssef's calcs: angle is correct
             hangle = (iw / 2.0 - bCenterX) * self.kHorizontalFOVDeg / iw
             
-            vangle = -((ih * self.kOptimumVerticalPosition) - h) / (ih / self.kVerticalFOVDeg)
+            vangle = ((ih * self.kOptimumVerticalPosition) - bCenterY) / (ih / self.kVerticalFOVDeg)
             
             distance = (54.0 * iw) / (2.0 * x * math.tan(math.radians(self.kHorizontalFOVDeg)/2.0))
             
@@ -212,7 +216,8 @@ class TargetDetector(object):
             # 
             #distance = ()
             
-            print 'hAngle', hangle, 'distance', distance
+            print (ih * self.kOptimumVerticalPosition) - h
+            print 'hAngle', hangle, 'vangle', vangle, 'distance', distance
             
             
             # daisy calcs

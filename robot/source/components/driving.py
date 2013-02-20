@@ -14,7 +14,7 @@ class Driving(object):
     def drive(self, speed, rotate, faster=False):
         '''Set driving parameters'''
         self.speed = speed
-        self.rotate = rotate
+        self.rotate = rotate * 0.7
         self.faster = faster
        
     def update(self):

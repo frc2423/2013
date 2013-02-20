@@ -30,6 +30,7 @@ class TargetDetector(object):
         
         self.table = NetworkTable.GetTable(table_name)
         
+        self.table.PutBoolean('Target Found', False)
         self.table.PutNumber('Target HAngle', 0)
         self.table.PutNumber('Target VAngle', 0)
         self.table.PutNumber('Target Distance', 0)
@@ -43,6 +44,10 @@ class TargetDetector(object):
            TODO: I don't like this. What if the remote end crashes? Then we're working
            off of invalid data. 
         '''
+        
+        # TODO: needs to be atomic
+        if self.table.GetBoolean('Target Found') != True:
+            return None, None, None
         
         return (self.table.GetNumber('Target HAngle'),
                self.table.GetNumber('Target VAngle'),
@@ -61,6 +66,5 @@ class TargetDetector(object):
             self.hangle = v[0]
             self.vangle = v[1]
             self.distance = v[2]
-            
-    def update(self):
-        pass
+
+    # No update function required

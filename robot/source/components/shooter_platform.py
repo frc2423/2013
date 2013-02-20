@@ -126,7 +126,7 @@ class ShooterPlatform(object):
         #
         # Displays angle info
         #
-        
+        wpilib.SmartDashboard.PutNumber('Angle Raw', self.angle_jag.motor.GetPosition())
         ca = self.current_angle()
         if self.pre_angle != self.current_angle():
             wpilib.SmartDashboard.PutNumber('Angle', ca)

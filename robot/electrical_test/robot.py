@@ -88,8 +88,8 @@ ANGLE_MOTOR_D = 0.0
 
 
 # compressor for pneumatics 
-compressor = wpilib.Compressor(compressor_switch, compressor_relay)
-compressor.Start()
+#compressor = wpilib.Compressor(compressor_switch, compressor_relay)
+#compressor.Start()
 
 # solenoids for climber
 # -> TODO: should we use the DoubleSolenoid class instead?
@@ -195,7 +195,6 @@ class MyRobot(wpilib.SimpleRobot):
             # Angle motor
             #z = self._translate_z(stick1.GetZ(), .505, .59)
             z = stick2.GetZ()
-            wpilib.SmartDashboard.PutNumber('z', z)
             angle_motor.Set(z)
             
             # Solenoids
@@ -203,15 +202,15 @@ class MyRobot(wpilib.SimpleRobot):
             valve2.Set(stick2.GetRawButton(7)) # Makes it go up
                 
             # sensor status
-            wpilib.SmartDashboard.PutNumber('Frisbee Sensor', frisbee_sensor.GetVoltage())
-            wpilib.SmartDashboard.PutNumber('Feeder', feeder_sensor.GetVoltage())
-            wpilib.SmartDashboard.PutNumber('Shooter detect', shooter_sensor.GetVoltage())
+            #wpilib.SmartDashboard.PutNumber('Frisbee Sensor', frisbee_sensor.GetVoltage())
+            #wpilib.SmartDashboard.PutNumber('Feeder', feeder_sensor.GetVoltage())
+            #wpilib.SmartDashboard.PutNumber('Shooter detect', shooter_sensor.GetVoltage())
             
             # motor status
-            wpilib.SmartDashboard.PutNumber('Angle', angle_motor.GetPosition())
-            wpilib.SmartDashboard.PutBoolean('Angle Limit Forward', angle_motor.GetForwardLimitOK())
-            wpilib.SmartDashboard.PutBoolean('Angle Limit Reverse', angle_motor.GetReverseLimitOK())
-            wpilib.SmartDashboard.PutNumber('Shooter wheel speed', shooter_motor.GetSpeed())
+            #wpilib.SmartDashboard.PutNumber('Angle', angle_motor.GetPosition())
+            #wpilib.SmartDashboard.PutBoolean('Angle Limit Forward', angle_motor.GetForwardLimitOK())
+            #wpilib.SmartDashboard.PutBoolean('Angle Limit Reverse', angle_motor.GetReverseLimitOK())
+            #wpilib.SmartDashboard.PutNumber('Shooter wheel speed', shooter_motor.GetSpeed())
             
             dog.Feed()
             

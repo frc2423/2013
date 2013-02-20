@@ -3,6 +3,7 @@
 import math
 import os.path
 import sys
+import time
 
 from optparse import OptionParser
 import cv2
@@ -127,6 +128,8 @@ if __name__ == '__main__':
     parser.add_option('--k2012', dest='kwarqs2012', default=False, action='store_true',
                       help='Run the Kwarqs 2012 image processing code')
     
+    parser.add_option('--save', dest='save', default=None)
+    
     options, args = parser.parse_args()
     
     # switch between processing functions
@@ -211,6 +214,8 @@ if __name__ == '__main__':
         print 'Starting processing. Press ESC to exit, or SPACE to save the current image'
     
         save = False
+        
+        tm = time.time()
     
         while True:
             retval, img = vc.read()
