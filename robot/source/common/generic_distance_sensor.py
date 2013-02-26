@@ -1,7 +1,7 @@
 '''
-    Author: Sam Rosenblum
-    Date:   2/11/2013
-    Updated: 2/5/2013
+    Author:  Sam Rosenblum
+    Date:    2/11/2013
+    Updated: 2/25/2013
     
     This file holds the class GenericDistanceSensor which holds with in it
     equations that holds a map that represent best fit equations for different 
@@ -9,10 +9,6 @@
 '''
 
 import math
-import sys
-
-
-from inspect import currentframe, getframeinfo
 from common.conversions import *
 
 try:
@@ -28,79 +24,61 @@ METRIC = 0
 ENGLISH = 1
 
 
-def lineno():
-    #returns current line
-    return currentframe().f_back.f_lineno
-
-def get_file_name():
-    #returns current file
-    return getframeinfo(currentframe()).filename
-
 class GenericDistanceSensor(wpilib.AnalogChannel):
 
-    #sensor_dict hold the map of sensor type to distance equations
-    sensor_dict = {0: lambda v: math.pow((v/11.036), -1/.947)}
+    # For each sensor type, define a function that translates the voltage 
+    # to a distance (in metric units)
+    SENSOR_EQUATIONS = {
+        GP2D120: lambda v: math.pow((v/11.036), -1/.947),
+    }
     
-    def __init__(self, channel, sensor_type, system = ENGLISH): 
+    def __init__(self, channel, sensor_type, system=ENGLISH): 
         '''
             constructor takes a channel and a sensor_type to figure out the
             real distance
+            
+            :param channel: The channel number for the associated analog sensor
         '''
         
         super().__init__(channel)
-        self.sensor_type = sensor_type
+        
+        self.distance_fn = self.SENSOR_EQUATIONS[sensor_type]
         self.system = system
+    
         
     def GetDistance(self):
         '''gets distance based on the voltage''' 
+        
         v = self.GetVoltage()
         
-        if v != 0:
-            
-            if self.sensor_type in self.sensor_dict:
-                
-                distance = self.sensor_dict[self.sensor_type](v)
-                
-                # convert from metric
-                if self.system == ENGLISH:
-                    
-                    distance /= INCH_TO_CM
-                    
-                return distance
-            
-            else:
-                
-                raise KeyError("The sensor type not found")
-        else:
-            '''can't divide by zero but prevent crash, the sensor may have malfunctioned'''
-            # TODO: What to do with this?
-            #sys.stderr.write( "ERROR: Cannot divide by Zero File: %s line number: %s"\
-            #                  % (get_file_name(), lineno()) )
+        # if the value is zero, return zero
+        if v == 0:
             return 0
+    
+        # convert the voltage to a distance
+        distance = self.distance_fn(v)
+        
+        # convert to appropriate units
+        if self.system == ENGLISH:
+            distance /= INCH_TO_CM
+        
+        return distance
+      
         
     def GetAverageDistance(self):
-        '''gets average distance based on average voltage'''
+        '''Gets average distance based on average voltage'''
         
         v = self.GetAverageVoltage()
-        
-        if v != 0:
-            if self.sensor_type in self.sensor_dict:
-            
-                distance = self.sensor_dict[self.sensor_type](v)
-
-                # convert from metric                
-                if self.system == ENGLISH:
-                    
-                    distance /= INCH_TO_CM
                 
-                return distance
-            
-            else:
-                
-                raise KeyError("The sensor type not found")
-        else:
-            # can't divide by zero but prevent crash, the sensor may have malfunctioned
-            # TODO: What to do with this?
-            #sys.stderr.write( "ERROR: Cannot divide by Zero File: %s line number: %s"\
-            #                  % (get_file_name(), lineno()) )
+        # if the value is zero, return zero
+        if v == 0:
             return 0
+    
+        # convert the voltage to a distance
+        distance = self.distance_fn(v)
+        
+        # convert to appropriate units
+        if self.system == ENGLISH:
+            distance /= INCH_TO_CM
+        
+        return distance
