@@ -48,16 +48,13 @@ class Climber(object):
     def update(self):
         '''Actually perform the action'''
         
-        #wpilib.SmartDashboard.PutString('Climb Next', str(self.next_state))
-        #wpilib.SmartDashboard.PutString('Climb current', str(self.current_state))
-        
-        # only transition when 
+        # only transition when needed 
         if self.next_state is not None and self.next_state != self.current_state:
             self.current_state = self.next_state
             self.next_state = None
             self.action_timer.Reset()
         
-        # idle state
+        # idle state: don't engage either solenoid
         if self.current_state is None:
             self.valve1.Set(False)
             self.valve2.Set(False)
