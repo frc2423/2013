@@ -1,5 +1,12 @@
 
+
 class ClimberSystem(object):
+    '''
+        The climber system is very simple -- it controls climbing operations
+        so that climbing may only occur when the shooter platform is at a 
+        safe position. If it is not in a safe position, then the shooter
+        is lowered until it is in a safe position. 
+    '''
     
     def __init__(self, climber, shooter_platform):
         self.climber = climber
