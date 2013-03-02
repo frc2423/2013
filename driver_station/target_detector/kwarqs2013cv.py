@@ -195,48 +195,34 @@ class TargetDetector(object):
             bCenterX = x + w/2.0
             bCenterY = y + h/2.0
             
-            # youssef's calcs: angle is correct
-            hangle = (iw / 2.0 - bCenterX) * self.kHorizontalFOVDeg / iw
-            
+            # horizontal angle and vertical angle calculations from Youssef's code from 2012
+            hangle = (iw / 2.0 - bCenterX) * self.kHorizontalFOVDeg / iw            
             vangle = ((ih * self.kOptimumVerticalPosition) - bCenterY) / (ih / self.kVerticalFOVDeg)
+
+            # Distance calculations from Stephen
+
+            # Distance to the goal is a function of the height of the goal      
+            # (kTopTgtHCenter) and the angle between the camera and the goal    
+            # (theta). The formula is just d = height / tan(theta)              
+
+            # First, want to find out angle between camera and center of goal   
+            # If the center of the goal is in the middle of the image, then     
+            # theta will be 0 degrees. If the center of the goal is at          
+            # the top of the image, then theta will be kVerticalFOVDeg/2        
+            # Similairly, if the center of the goal is at the bototm of the     
+            # image, then theta will be -kVerticalFOVDeg/2
+            # We also have to take into account the angle the camera is mounted
+            # We can apply linear interpolation to figure all points in between
+
+            # TODO: fix the angle and such up with real values
+            cameraMountAngle = 11.5   # degrees
+            cameraMountHeight = 12.0  # inches
             
-            distance = (54.0 * iw) / (2.0 * x * math.tan(math.radians(self.kHorizontalFOVDeg)/2.0))
+            centerOfImageY = ih/2.0
+            theta = (centerOfImageY - bCenterY)/centerOfImageY * self.kVerticalFOVDeg/2.0 + cameraMountAngle
+            distance = (tgt_center - cameraMountHeight) / math.tan(math.radians(theta))            
             
-            #print self.kVerticalFOVDeg
-            #distance = (12.0 * ih) / (2.0 * h * math.tan(self.kVerticalFOVDeg/2.0))
-            
-            # from WPILib... this actually isn't that terrible.. 
-            #distance = (iw * 12.0 / (h * 12.0 * 2.0 * math.tan(math.radians(self.kHorizontalFOVDeg)))) 
-            
-            # sugg
-            #distanceToTarget = (targetHeight-cameraHeight)/tan(cameraAngle+relativeTargetAngle)
-            #double range = (kTopTargetHeightIn-kCameraHeightIn)/Math.tan((y*kVerticalFOVDeg/2.0 + kCameraPitchDeg)*Math.PI/180.0);
-            #distance = = (self.kTopTgtHCenter - self.kCameraHeightIn)/(math.tan(y*self.kVerticalFOVDeg/2.0 + 11.5))
-            
-            # 
-            #distance = ()
-            
-            print (ih * self.kOptimumVerticalPosition) - h
             print 'hAngle', hangle, 'vangle', vangle, 'distance', distance
-            
-            
-            # daisy calcs
-            x = x + w/2.0
-            x = 2.0 * (x/w)-1
-            
-            y = y + (h/2.0)
-            y = -((2.0 * (y/h)) - 1)
-            
-            #azimuth = (x*self.kHorizontalFOVDeg/2.0 + 90 - self.kShooterOffsetDeg) % 360.0
-            range = (tgt_center - self.kCameraHeightIn)/math.tan(math.radians(y*self.kVerticalFOVDeg/2.0 + self.kCameraPitchDeg))
-            #print 'range', range, tgt_center
-            #print 'off, range, a', range, azimuth
-            # get rpms from this data
-            
-            # send data to someone using pynetworktables
-            
-            
-            
             
             # TODO: needs to be atomic
             if self.table is not None:
