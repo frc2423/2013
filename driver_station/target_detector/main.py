@@ -209,7 +209,8 @@ if __name__ == '__main__':
         #       image that represents the possible vector where it'll be
         
         print "Beginning capture"  
-        vc = cv2.VideoCapture('rtsp://%s/axis-media/media.amp' % options.ip_address)
+        #vc = cv2.VideoCapture('rtsp://%s/axis-media/media.amp' % options.ip_address)
+        vc = cv2.VideoCapture('http://%s/mjpg/video.mjpg' % options.ip_address)
         
         print 'Starting processing. Press ESC to exit, or SPACE to save the current image'
     
