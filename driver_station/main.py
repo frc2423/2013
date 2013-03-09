@@ -28,7 +28,8 @@ if __name__ == '__main__':
     logger.info('-> OpenCV %s' % cv2.__version__)
 
     # initialize UI
-    import ui
+    import ui.dashboard
+    dashboard = ui.dashboard.Dashboard()
 
     # get options
 
@@ -36,6 +37,8 @@ if __name__ == '__main__':
     
     
     # gtk main
+    gtk.main()
+    
     
     logger.info('Shutting down Kwarqs Dashboard')
     
