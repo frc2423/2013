@@ -18,7 +18,6 @@ class TargetDetector(object):
     kMinWidth = 20
     kMaxWidth = 200
     kRangeOffset = 0.0
-    kHoleClosingIterations = 9
 
     kShooterOffsetDeg = 0.0
     #kHorizontalFOVDeg = 47.0        # AXIS M1011 field of view
@@ -59,7 +58,6 @@ class TargetDetector(object):
     kOptimumVerticalPosition = 0.7
     
     def __init__(self, table):
-        self.morphKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3), anchor=(1,1))
         self.size = None
         self.table = table
     
@@ -77,7 +75,25 @@ class TargetDetector(object):
             self.sat = np.empty((h, w, 1), dtype=np.uint8)
             self.val = np.empty((h, w, 1), dtype=np.uint8)
             
-            #self.kVerticalFOVDeg = (float(h)/w) * self.kHorizontalFOVDeg
+            # these settings should be adjusted according to the image size
+            # and noise characteristics
+            
+            # TODO: What's the optimal setting for this? For smaller images, we
+            # cannot morph as much, or the features blend into each other. 
+            
+            self.kHoleClosingIterations = 1 # originally 9
+            k = 3
+            
+            #if w <= 320:
+            #    k = 1
+            #elif w <= 460:
+            #    k = 2
+            #else:
+            #    k = 3
+                
+            self.morphKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (k,k))
+            
+            print "New image size: %sx%s, morph size set to %s" % (w,h,k)
         
         # convert to HSV
         cv2.cvtColor(img, cv2.cv.CV_BGR2HSV, self.hsv)
@@ -93,16 +109,16 @@ class TargetDetector(object):
         cv2.threshold(self.hue, 60-15, 255, type=cv2.THRESH_BINARY, dst=self.bin)
         cv2.threshold(self.hue, 60+15, 255, type=cv2.THRESH_BINARY_INV, dst=self.hue)
         
-        cv2.imshow('hue', self.hue)
+        #cv2.imshow('hue', self.hue)
         
         # Saturation
         #cv2.threshold(self.sat, 200, 255, type=cv2.THRESH_BINARY, dst=self.sat)
         cv2.threshold(self.sat, 200, 255, type=cv2.THRESH_BINARY, dst=self.sat)
-        cv2.imshow('sat', self.sat)
+        #cv2.imshow('sat', self.sat)
         
         # Value
         cv2.threshold(self.val, 55, 255, type=cv2.THRESH_BINARY, dst=self.val)
-        cv2.imshow('val', self.val)
+        #cv2.imshow('val', self.val)
         
         # Combine the results to obtain our binary image which should for the most
         # part only contain pixels that we care about
@@ -116,7 +132,7 @@ class TargetDetector(object):
         # Fill in any gaps using binary morphology
         cv2.morphologyEx(self.bin, cv2.MORPH_CLOSE, self.morphKernel, dst=self.bin, iterations=self.kHoleClosingIterations)
         
-        #cv2.imshow('morph', self.bin)
+        cv2.imshow('morph', self.bin)
         
         # Find contours
         contours = self.findConvexContours(self.bin)
@@ -222,7 +238,7 @@ class TargetDetector(object):
             theta = (centerOfImageY - bCenterY)/centerOfImageY * self.kVerticalFOVDeg/2.0 + cameraMountAngle
             distance = (tgt_center - cameraMountHeight) / math.tan(math.radians(theta))            
             
-            print 'hAngle', hangle, 'vangle', vangle, 'distance', distance
+            #print 'hAngle', hangle, 'vangle', vangle, 'distance', distance
             
             # TODO: needs to be atomic
             if self.table is not None:
