@@ -19,7 +19,7 @@ class Dashboard(object):
     ui_widgets = [
         'window',
         
-        'camera_image',
+        'camera_widget',
     ]
     ui_signals = [
         'on_window_destroy'
@@ -28,7 +28,7 @@ class Dashboard(object):
     def __init__(self):
         util.initialize_from_builder(self)
         
-        self.camera_image = util.replace_widget(self.camera_image, cv_widget.CvWidget((640,480)))
+        self.camera_widget = util.replace_widget(self.camera_widget, cv_widget.CvWidget((640,480)))
         
         # how does this work then?
         # -> create widgets
@@ -53,8 +53,9 @@ class Dashboard(object):
         # can we even get useful information from sd?
         # -> probably not, need better wrapper functions in SIP
         
-        self.window.show_all()
         
+    def show_all(self):
+        self.window.show_all()
         
     def on_window_destroy(self, widget):
         gtk.main_quit()

@@ -1,9 +1,12 @@
 
 import cairo
+import glib
 import gtk
 
 import cv2
 import numpy as np
+
+import threading
 
 
 class CvWidget(gtk.DrawingArea):
@@ -73,5 +76,6 @@ class CvWidget(gtk.DrawingArea):
         
         # .. and invalidate?
         self.queue_draw()
+        #glib.idle_add(self.queue_draw)
         
     

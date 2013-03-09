@@ -109,30 +109,21 @@ class TargetDetector(object):
         cv2.threshold(self.hue, 60-15, 255, type=cv2.THRESH_BINARY, dst=self.bin)
         cv2.threshold(self.hue, 60+15, 255, type=cv2.THRESH_BINARY_INV, dst=self.hue)
         
-        #cv2.imshow('hue', self.hue)
-        
         # Saturation
         #cv2.threshold(self.sat, 200, 255, type=cv2.THRESH_BINARY, dst=self.sat)
         cv2.threshold(self.sat, 200, 255, type=cv2.THRESH_BINARY, dst=self.sat)
-        #cv2.imshow('sat', self.sat)
         
         # Value
         cv2.threshold(self.val, 55, 255, type=cv2.THRESH_BINARY, dst=self.val)
-        #cv2.imshow('val', self.val)
         
         # Combine the results to obtain our binary image which should for the most
         # part only contain pixels that we care about
         cv2.bitwise_and(self.hue, self.bin, self.bin)
         cv2.bitwise_and(self.bin, self.sat, self.bin)
         cv2.bitwise_and(self.bin, self.val, self.bin)
-        
-        # Uncommment this to show the thresholded image
-        cv2.imshow('bin', self.bin)
 
         # Fill in any gaps using binary morphology
         cv2.morphologyEx(self.bin, cv2.MORPH_CLOSE, self.morphKernel, dst=self.bin, iterations=self.kHoleClosingIterations)
-        
-        cv2.imshow('morph', self.bin)
         
         # Find contours
         contours = self.findConvexContours(self.bin)

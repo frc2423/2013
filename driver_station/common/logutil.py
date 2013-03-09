@@ -1,5 +1,4 @@
 
-import datetime
 import logging
 import logging.handlers
 import os
@@ -12,19 +11,8 @@ log_datefmt = "%H:%M:%S"
 log_format = "%(asctime)s:%(msecs)03d %(levelname)-8s: %(name)-20s: %(message)s"
 log_level = logging.DEBUG
 
-def _get_logdir_path():
-    ''' Each time the application starts, we store logs in a different 
-        directory that has a timestamp in its name
-    
-        do not call this function, use log_dir instead
-    '''
-    now = datetime.datetime.now().strftime('%Y-%m-%d %H%M-%S')
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'logs', now))
 
-log_dir = _get_logdir_path()
-
-
-def configure_logging():
+def configure_logging(log_dir):
     '''
         Configures the logger for the program. All logging will go over to
         a separate thread, which will then write the log to disk. This way 
