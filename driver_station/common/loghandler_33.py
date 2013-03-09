@@ -5,6 +5,8 @@
 import logging
 import threading
 
+import Queue
+
 class QueueHandler(logging.Handler):
     """
     This handler sends events to a queue. Typically, it would be used together
@@ -149,7 +151,7 @@ if threading:
                     self.handle(record)
                     if has_task_done:
                         q.task_done()
-                except queue.Empty:
+                except Queue.Empty:
                     pass
             # There might still be records in the queue.
             while True:
@@ -160,7 +162,7 @@ if threading:
                     self.handle(record)
                     if has_task_done:
                         q.task_done()
-                except queue.Empty:
+                except Queue.Empty:
                     break
 
         def enqueue_sentinel(self):
