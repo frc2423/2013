@@ -28,7 +28,7 @@ class Dashboard(object):
     def __init__(self):
         util.initialize_from_builder(self)
         
-        self.camera_image = util.replace_widget(self.camera_image, cv_widget.CvWidget())
+        self.camera_image = util.replace_widget(self.camera_image, cv_widget.CvWidget((640,480)))
         
         # how does this work then?
         # -> create widgets

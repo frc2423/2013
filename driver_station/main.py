@@ -1,4 +1,6 @@
 
+import optparse
+
 # import this first
 from common import logutil, settings
 
@@ -6,6 +8,8 @@ from common import logutil, settings
 import pygtk
 pygtk.require('2.0')
 import gtk
+
+import cairo
 
 import cv2
 import numpy as np
@@ -24,6 +28,7 @@ if __name__ == '__main__':
 
     # show versions
     logger.info('-> GTK %s.%s.%s' % gtk.gtk_version)
+    logger.info('-> Cairo %s' % cairo.version)
     logger.info('-> NumPy %s' % np.__version__)
     logger.info('-> OpenCV %s' % cv2.__version__)
 
@@ -32,6 +37,9 @@ if __name__ == '__main__':
     dashboard = ui.dashboard.Dashboard()
 
     # get options
+    parser = optparse.OptionParser()
+    
+    options, args = parser.parse_args()
 
     # determine what we're actually doing here
     
