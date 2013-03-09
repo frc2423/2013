@@ -1,2 +1,4 @@
 *.pyc
 *__pycache__
+driver_station/settings.ini
+driver_station/logs

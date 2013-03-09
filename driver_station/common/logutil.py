@@ -3,7 +3,7 @@ import datetime
 import logging
 import logging.handlers
 import os
-import queue
+import Queue
 
 from loghandler_33 import QueueHandler, QueueListener
 
@@ -18,13 +18,12 @@ def _get_logdir_path():
     
         do not call this function, use log_dir instead
     '''
-    now = datetime.now().strftime('%Y-%m-%d %H%M-%S')
+    now = datetime.datetime.now().strftime('%Y-%m-%d %H%M-%S')
     return os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'logs', now))
 
 log_dir = _get_logdir_path()
 
 
-# initialize 
 def configure_logging():
     '''
         Configures the logger for the program. All logging will go over to
@@ -33,6 +32,9 @@ def configure_logging():
     
         Do not import anything that requires the logger until we have setup 
         the logger.
+        
+        This returns a queue listener object. You should call stop() on it
+        before exiting the program, or queued messages may be lost. 
     '''
         
     # get the root logger
@@ -46,25 +48,27 @@ def configure_logging():
     
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
+        
+    log_exists = os.path.exists(log_file)
     
     file_logger = logging.handlers.RotatingFileHandler(log_file, mode='a', backupCount=10)
-    file_logger.doRollover()
+    
+    if log_exists:
+        file_logger.doRollover()
+        
     file_logger.setFormatter(logging.Formatter(log_format, log_datefmt))
-    root.addHandler(file_logger)
     
     # initialize the queues
     # -> the QueueListener starts a new thread
-    q = queue.Queue(-1)    
+    q = Queue.Queue(-1)    
     ql = QueueListener(q, file_logger)
     
     qh = QueueHandler(q)
     root.addHandler(qh)
     
-    # hmm.. need to keep the ql instance around so we can call stop() on it
+    ql.start()
     
-
-
-# -> each time the application starts, create a new directory for logfiles
-
+    return ql
+    
 # function to store an image
 #   - makes a copy of the image, stores it using another thread
