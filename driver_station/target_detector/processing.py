@@ -153,26 +153,42 @@ class ImageProcessor(object):
         # TODO: Given the current shooter angle, put something on the
         #       image that represents the possible vector where it'll be
         
+        logger.info("Live processing thread starting")
+        vc = cv2.VideoCapture()
+        
+        vc.set(cv2.cv.CV_CAP_PROP_FPS, 5)
+        
         logger.info('Connecting to %s' % self.camera_ip)
-        vc = cv2.VideoCapture('http://%s/mjpg/video.mjpg' % self.camera_ip)
+        vc.open('http://%s/mjpg/video.mjpg' % self.camera_ip)
+    
+        logger.info('Connected!')
     
         save = False
         
         tm = time.time()
     
         while True:
+        
+            with self.lock:
+                if self.do_stop:
+                    break
+            
             retval, img = vc.read()
             if retval:
+                img = self.detector.processImage(img)
                 
-                if save:
-                    user_save_image(img)
-                    save = False
+                # note that you cannot typically interact with the UI
+                # from another thread -- but this function is special
+                self.camera_widget.set_from_np(img)
+            #else:
+                #self.camera_widget.set_no_stream()
                 
-                self.detector.processImage(img)
             else:
                 # TODO: Fix this 
                 print "No image acquired, exiting!"
                 break
+            
+        logger.info("Static processing thread exiting")
 
 
 def user_save_image(img):

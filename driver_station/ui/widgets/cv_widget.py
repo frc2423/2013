@@ -32,6 +32,7 @@ class CvWidget(gtk.DrawingArea):
         
         self.surface = cairo.ImageSurface(cairo.FORMAT_RGB24, w, h)
         self.buffer = np.frombuffer(self.surface, dtype=np.uint8)
+        self.resize_buffer = np.empty(shape=(h,w,3), dtype=np.uint8)
         
         self.buffer.shape = (h, w, 4) # numpy w/h are switched
         self.buffer.fill(0x00)
@@ -70,9 +71,15 @@ class CvWidget(gtk.DrawingArea):
         # TODO: how does locking work out here?
         
         # if resize needed, then do it
+        h, w, c = img.shape
+        if w != self._fixed_size[0] or h != self._fixed_size[1]:
+            cv2.resize(img, self._fixed_size, self.resize_buffer)
+            src = self.resize_buffer
+        else:
+            src = img
         
-        # now copy it and convert to the right format
-        cv2.cvtColor(img, cv2.COLOR_BGR2BGRA, self.buffer)
+        # now copy it to the buffer and convert to the right format
+        cv2.cvtColor(src, cv2.COLOR_BGR2BGRA, self.buffer)
         
         # .. and invalidate?
         self.queue_draw()
