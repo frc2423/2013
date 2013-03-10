@@ -15,6 +15,8 @@ import cairo
 import cv2
 import numpy as np
 
+# do this first, just in case
+gobject.threads_init()
 
 def initialize_pynetworktables(ip):
     
@@ -72,7 +74,6 @@ if __name__ == '__main__':
     # gtk main
     dashboard.show_all()
     
-    gobject.threads_init()
     #gtk.threads_init()
         
     #gtk.threads_enter()
