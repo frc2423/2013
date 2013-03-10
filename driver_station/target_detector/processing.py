@@ -127,6 +127,18 @@ class ImageProcessor(object):
                 self.camera_widget.set_from_np(img)
             
         logger.info("Static processing thread exiting")
+
+        
+    def _initialize_live(self):
+        self.vc = cv2.VideoCapture()
+        
+        self.vc.set(cv2.cv.CV_CAP_PROP_FPS, 1)
+        
+        logger.info('Connecting to %s' % self.camera_ip)
+        self.vc.open('http://%s/mjpg/video.mjpg' % self.camera_ip)
+    
+        logger.info('Connected!')
+
             
     def _live_processing(self):
         
@@ -154,16 +166,8 @@ class ImageProcessor(object):
         #       image that represents the possible vector where it'll be
         
         logger.info("Live processing thread starting")
-        vc = cv2.VideoCapture()
         
-        vc.set(cv2.cv.CV_CAP_PROP_FPS, 5)
-        
-        logger.info('Connecting to %s' % self.camera_ip)
-        vc.open('http://%s/mjpg/video.mjpg' % self.camera_ip)
-    
-        logger.info('Connected!')
-    
-        save = False
+        self._initialize_live()
         
         tm = time.time()
     
@@ -173,7 +177,7 @@ class ImageProcessor(object):
                 if self.do_stop:
                     break
             
-            retval, img = vc.read()
+            retval, img = self.vc.read()
             if retval:
                 img = self.detector.processImage(img)
                 
