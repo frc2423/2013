@@ -73,11 +73,11 @@ if __name__ == '__main__':
     dashboard.show_all()
     
     gobject.threads_init()
-    gtk.threads_init()
+    #gtk.threads_init()
         
-    gtk.threads_enter()
+    #gtk.threads_enter()
     gtk.main()
-    gtk.threads_leave()
+    #gtk.threads_leave()
     
     
     logger.info('Shutting down Kwarqs Dashboard')
