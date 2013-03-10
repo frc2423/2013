@@ -8,6 +8,7 @@ from options import configure_options
 import pygtk
 pygtk.require('2.0')
 import gtk
+import gobject
 
 import cairo
 
@@ -71,8 +72,12 @@ if __name__ == '__main__':
     # gtk main
     dashboard.show_all()
     
+    gobject.threads_init()
     gtk.threads_init()
+        
+    gtk.threads_enter()
     gtk.main()
+    gtk.threads_leave()
     
     
     logger.info('Shutting down Kwarqs Dashboard')
