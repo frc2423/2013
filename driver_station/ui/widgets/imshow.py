@@ -85,6 +85,11 @@ class ImshowWindow(gtk.Window):
         self.widget.show()
         
         self.connect('destroy', self.on_destroy)
+        self.connect('key-press-event', self.on_key_press)
+    
+    def on_key_press(self, widget, event):
+        if event.keyval == gtk.keysyms.Escape:
+            self.destroy()
         
     def on_destroy(self, widget):
         del ImshowWindow.windows[self.window_name]
