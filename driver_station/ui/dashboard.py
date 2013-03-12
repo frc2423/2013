@@ -2,7 +2,7 @@
 import gtk
 
 import util
-from widgets import cv_widget
+from widgets import targeter
 
 import logging
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class Dashboard(object):
     def __init__(self):
         util.initialize_from_builder(self)
         
-        self.camera_widget = util.replace_widget(self.camera_widget, cv_widget.CvWidget((640,480)))
+        self.camera_widget = util.replace_widget(self.camera_widget, targeter.Targeter((640,480)))
         
         # how does this work then?
         # -> create widgets

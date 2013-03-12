@@ -15,6 +15,14 @@ logger = logging.getLogger(__name__)
 
 
 class ImageProcessor(object):
+    '''
+        This class manages the image processing stuff. It determines what
+        actions to take, and then performs them on another thread.
+        
+        The actual image processing takes place in a different class. That 
+        class processes the image, and then returns a dictionary that has
+        targeting information in it.
+    '''
     
     def __init__(self, options, camera_widget):
         
@@ -22,11 +30,11 @@ class ImageProcessor(object):
         self.condition = threading.Condition(self.lock)
         self.do_stop = False
         
-        self.detector = kwarqs2013cv.TargetDetector(None)
+        self.detector = kwarqs2013cv.TargetDetector()
         self.camera_ip = options.camera_ip
         self.camera_widget = camera_widget
         
-        # detect live or static procesing
+        # detect live or static processing
         if options.static_images is not None:
             self._initialize_static(options)
             thread_fn = self._static_processing
@@ -119,12 +127,12 @@ class ImageProcessor(object):
                     self.idx += 1
                     continue
                 
-                img = self.detector.processImage(cvimg.img)
+                target_data = self.detector.processImage(cvimg.img)
                 logger.info('Finished processing')
                 
                 # note that you cannot typically interact with the UI
                 # from another thread -- but this function is special
-                self.camera_widget.set_from_np(img)
+                self.camera_widget.set_target_data(target_data)
             
         logger.info("Static processing thread exiting")
 
@@ -179,11 +187,11 @@ class ImageProcessor(object):
             
             retval, img = self.vc.read()
             if retval:
-                img = self.detector.processImage(img)
+                target_data = self.detector.processImage(img)
                 
                 # note that you cannot typically interact with the UI
                 # from another thread -- but this function is special
-                self.camera_widget.set_from_np(img)
+                self.camera_widget.set_target_data(target_data)
             #else:
                 #self.camera_widget.set_no_stream()
                 
