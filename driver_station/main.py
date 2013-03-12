@@ -58,6 +58,9 @@ if __name__ == '__main__':
     # initialize UI
     import ui.dashboard
     dashboard = ui.dashboard.Dashboard()
+    
+    # initialize cv2.imshow replacement
+    import ui.widgets.imshow
 
     import target_detector.processing
 

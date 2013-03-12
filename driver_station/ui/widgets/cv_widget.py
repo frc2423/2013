@@ -23,22 +23,24 @@ class CvWidget(gtk.DrawingArea):
     '''
     
     
-    def __init__(self, fixed_size):
-        
+    def __init__(self, fixed_size=None):
         gtk.DrawingArea.__init__(self)
         
         self._fixed_size = fixed_size
-        w, h = fixed_size
         
-        self.surface = cairo.ImageSurface(cairo.FORMAT_RGB24, w, h)
-        self.buffer = np.frombuffer(self.surface, dtype=np.uint8)
-        self.resize_buffer = np.empty(shape=(h,w,3), dtype=np.uint8)
+        if fixed_size is not None:
+            w, h = fixed_size
+            
+            self.surface = cairo.ImageSurface(cairo.FORMAT_RGB24, w, h)
+            self.buffer = np.frombuffer(self.surface, dtype=np.uint8)
+            self.resize_buffer = np.empty(shape=(h,w,3), dtype=np.uint8)
+            
+            self.buffer.shape = (h, w, -1) # numpy w/h are switched
+            self.buffer.fill(0x00)
         
-        self.buffer.shape = (h, w, 4) # numpy w/h are switched
-        self.buffer.fill(0x00)
-        
-        self.set_size_request(w, h)
-        self.connect_after('expose-event', self.on_expose)
+            self.set_size_request(w, h)
+            
+        self.connect('expose-event', self.on_expose)
         
         # TODO: should we turn off double buffering?
         
@@ -47,11 +49,13 @@ class CvWidget(gtk.DrawingArea):
             This draws the contents of the surface onto the widget.
         '''
         
+        if self.surface is None:
+            return
+        
         cr = event.window.cairo_create()
         cr.set_source_surface(self.surface)
         
         # TODO: only draw damaged sections, instead of the whole image
-        
         w, h = self._fixed_size
         
         # tell cairo to draw the image onto the context
@@ -79,10 +83,9 @@ class CvWidget(gtk.DrawingArea):
             src = img
         
         # now copy it to the buffer and convert to the right format
-        cv2.cvtColor(src, cv2.COLOR_BGR2BGRA, self.buffer)
+        cv2.cvtColor(src, cv2.COLOR_BGR2RGBA, self.buffer)
         
         # .. and invalidate?
         self.queue_draw()
-        #glib.idle_add(self.queue_draw)
         
     
