@@ -6,11 +6,13 @@ except ImportError:
     
 
 from autonomous import AutonomousModeManager
+from operator_control import OperatorControlManager
 
 from common.auto_jaguar import AnglePositionJaguar, SpeedJaguar
 #from common.bang_bang_jaguar import BangBangJaguar
 from common.ez_can_jaguar import EzCANJaguar
 from common.generic_distance_sensor import GenericDistanceSensor, GP2D120
+from common.joystick_util import *
 
 from components.climber import Climber
 from components.driving import Driving
@@ -22,6 +24,7 @@ from systems.shooter import Shooter
 from systems.climber import ClimberSystem
 from systems.auto_targeting import AutoTargeting
 from systems.robot_turner import RobotTurner
+
 
 
 #
@@ -145,44 +148,6 @@ class MyRobot(wpilib.SimpleRobot):
     
     EIO_CHANNELS = [2,4,8,12,16]
     
-    # axis constants
-    X = wpilib.Joystick.kDefaultXAxis
-    Y = wpilib.Joystick.kDefaultYAxis
-    Z = wpilib.Joystick.kDefaultZAxis
-    
-    # button constants
-    TRIGGER = wpilib.Joystick.kDefaultTriggerButton      # 1
-    TOP = wpilib.Joystick.kDefaultTopButton              # 2
-    
-    #
-    # Controls configuration
-    #
-    
-    # axis definitions -- a tuple of (stick number, axis)
-    # -> call stick_axis() with this value to get the axis
-    DRIVE_SPEED_AXIS    = (1, Y)
-    DRIVE_ROTATE_AXIS   = (1, X)
-    ANGLE_POINT_AXIS    = (1, Z)
-    
-    SHOOTER_WHEEL_AXIS  = (2, Z)
-    PLATFORM_ANGLE_AXIS = (2, Y)
-    
-    # button definitions -- (stick number, button number)
-    # -> call stick_button_on() with this value to get True/False
-    
-    DRIVE_FASTER_BUTTON     = (1, TOP)
-    
-    CLIMB_TWIST_L_BUTTON    = (1, 8)
-    CLIMB_TWIST_R_BUTTON    = (1, 9)
-    
-    CLIMB_UP_BUTTON         = (2, 10)
-    CLIMB_DOWN_BUTTON       = (2, 11)
-    
-    FEEDER_FEED_BUTTON      = (2, TRIGGER)
-    FEEDER_BACK_BUTTON      = (2, TOP)
-    
-    AUTO_TARGET_BUTTON      = (1, TRIGGER)
-    
     # toggle switch definitions
     # -> call is_toggle_on() with this value to get True/False
     
@@ -252,7 +217,7 @@ class MyRobot(wpilib.SimpleRobot):
         self.components = [v for v in components.values() if hasattr(v, 'update')]
         self.components.append(climber)
         # self.autonomous_mode = AutonomousModeManager(components)
-        
+        self.operator_control_mode = OperatorControlManager(components)
     
         
     def RobotInit(self):
@@ -277,141 +242,10 @@ class MyRobot(wpilib.SimpleRobot):
         
         print("MyRobot::OperatorControl()")
         
-        dog = self.GetWatchdog()
-        dog.SetEnabled(True)
-        dog.SetExpiration(0.25)
-        
-        # put this in a consistent state when starting the robot
-        self.my_climber.lower()
-        compressor.Start()
-        
-        #wpilib.SmartDashboard.PutNumber('Angle P', ANGLE_P)
-        #wpilib.SmartDashboard.PutNumber('Angle I', ANGLE_I)
-        #wpilib.SmartDashboard.PutNumber('Angle D', ANGLE_D)
-        
-        #wpilib.SmartDashboard.PutNumber('Shooter P', SHOOTER_P)
-        #wpilib.SmartDashboard.PutNumber('Shooter I', SHOOTER_I)
-        #wpilib.SmartDashboard.PutNumber('Shooter D', SHOOTER_D)
-        
-        while self.IsOperatorControl() and self.IsEnabled():
-            
-            # measure loop time
-            start = wpilib.Timer.GetPPCTimestamp()
-            
+        #All operator control functions are now in OperatorControlManager   
+        self.operator_control_mode.run(self)
 
-            # 
-            #    Driving
-            #
             
-            self.my_drive.drive(self.stick_axis(self.DRIVE_SPEED_AXIS),
-                                self.stick_axis(self.DRIVE_ROTATE_AXIS),
-                                self.stick_button_on(self.DRIVE_FASTER_BUTTON))
-            
-            #
-            #    Shooter
-            #
-            
-            shootery = self.translate_axis(self.SHOOTER_WHEEL_AXIS, -1.0, 0.0)
-            wpilib.SmartDashboard.PutNumber('Shooter Raw', shootery)
-            
-            if self.is_toggle_on(self.SHOOTER_ON):
-                #if self.is_toggle_on(self.MANUAL_SHOOTER_ON):
-                
-                self.my_shooter_platform.set_speed_manual(shootery)
-                #else:
-                #    z = self.translate_axis(self.SHOOTER_WHEEL_AXIS, 1000.0, 0)
-                #    self.my_shooter_platform.set_speed_auto(z)
-            else:
-                self.my_shooter_platform.set_speed_manual(0.0)
-                #shooter_motor.SetPID( wpilib.SmartDashboard.GetNumber('Shooter P'),
-                #                      wpilib.SmartDashboard.GetNumber('Shooter I'),
-                #                      wpilib.SmartDashboard.GetNumber('Shooter D'))
-            
-            #
-            #    Angle
-            #        
-             
-            if not self.is_toggle_on(self.MANUAL_ANGLE_ON):
-                angle_z = self.translate_axis(self.ANGLE_POINT_AXIS, self.ANGLE_MIN_ANGLE, self.ANGLE_MAX_ANGLE)
-                self.my_shooter_platform.set_angle_auto(angle_z)
-            else:
-                self.my_shooter_platform.set_angle_manual(-self.stick_axis(self.PLATFORM_ANGLE_AXIS))
-                
-                #angle_motor.SetPID( wpilib.SmartDashboard.GetNumber('Angle P'),
-                #                    wpilib.SmartDashboard.GetNumber('Angle I'),
-                #                    wpilib.SmartDashboard.GetNumber('Angle D'))
-            
-            #
-            #    Feeder
-            #
-            
-            if self.stick_button_on(self.FEEDER_FEED_BUTTON):
-                self.my_feeder.feed_auto()
-            elif self.stick_button_on(self.FEEDER_BACK_BUTTON):
-                self.my_feeder.reverse_feed()
-                
-            #
-            #     Auto targeting
-            #
-            
-            # TODO: figure out how to activate this properly?
-            # -> perhaps enable the mode, have the driver enable steering?
-            if self.is_toggle_on(self.AUTO_TARGETING_ON):
-                self.my_auto_targeting.perform_targeting()
-                
-                if self.stick_button_on(self.AUTO_TARGET_BUTTON):
-                    self.my_robot_turner.auto_turn()
-                
-            #
-            #    Climber
-            #        - Must come after anything that sets angle, otherwise
-            #        the climbing safety features won't kick in
-            #
-            
-            if self.stick_button_on(self.CLIMB_DOWN_BUTTON):
-                self.my_climber.lower()
-            elif self.stick_button_on(self.CLIMB_UP_BUTTON):
-                self.my_climber.climb() 
-            
-            if self.stick_button_on(self.CLIMB_TWIST_L_BUTTON):
-                self.my_drive.drive(0.0, -0.9)
-            elif self.stick_button_on(self.CLIMB_TWIST_R_BUTTON):
-                self.my_drive.drive(0.0, 0.9)         
-            
-            #
-            # Update phase, actually sets motors and stuff
-            #
-            
-            self.update()
-            
-            # how long does it take us to run the loop?
-            # -> we're using a lot of globals, what happens when we change it?
-            wpilib.SmartDashboard.PutNumber('Loop time', wpilib.Timer.GetPPCTimestamp() - start)
-            
-            wpilib.Wait(control_loop_wait_time)
-            dog.Feed()
-            
-        compressor.Stop()
-    
-    #
-    #    Joystick utility functions (yay overhead!)
-    #
-    
-    def is_toggle_on(self, channel):
-        return not self.eio.GetDigital(channel)
-    
-    def stick_axis(self, cfg):
-        return self.ds.GetStickAxis(*cfg)
-    
-    def translate_axis(self, cfg, amin, amax):
-        '''Returns an axis value between a min and a max'''
-        a = self.ds.GetStickAxis(*cfg)
-        
-        # Xmax - (Ymax - Y)( (Xmax - Xmin) / (Ymax - Ymin) )
-        return amax - ((1 - a)*( (amax - amin) / 2.0 ) )
-        
-    def stick_button_on(self, cfg):
-        return self.ds.GetStickButtons( cfg[0] ) & (1 << (cfg[1]-1))
     
     #
     #    Other
