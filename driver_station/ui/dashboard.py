@@ -2,7 +2,7 @@
 import gtk
 
 import util
-from widgets import targeter
+from widgets import targeter, camera_settings
 
 import logging
 logger = logging.getLogger(__name__)
@@ -13,6 +13,10 @@ class Dashboard(object):
         This holds the main UI for the Kwarqs dashboard
     
         TODO: This is ugly, add pretty skins and stuff
+        
+        TODO: More modular, but using a UI file this way doesn't
+        lend itself to that.. well, maybe if we pass the builder
+        in to the module? Hm. 
     '''
     
     ui_filename = 'dashboard.ui'
@@ -20,15 +24,23 @@ class Dashboard(object):
         'window',
         
         'camera_widget',
+        
+        
     ]
     ui_signals = [
         'on_window_destroy'
     ]
     
-    def __init__(self):
-        util.initialize_from_builder(self)
+    def __init__(self, processor):
+        
+        self.camera_settings = camera_settings.CameraSettings(processor)
+        
+        util.initialize_from_xml(self, [self.camera_settings])
         
         self.camera_widget = util.replace_widget(self.camera_widget, targeter.Targeter((640,480)))
+
+        self.camera_settings.initialize()
+        
         
         # how does this work then?
         # -> create widgets
@@ -59,3 +71,8 @@ class Dashboard(object):
         
     def on_window_destroy(self, widget):
         gtk.main_quit()
+        
+    #
+    # Camera debug settings
+    #
+    
