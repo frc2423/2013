@@ -7,14 +7,17 @@ import numpy as np
 
 import target_data
 
+from common import settings
+
 import logging
 logger = logging.getLogger(__name__)
 
 
 class TargetDetector(object):
     
-    missedColor = (255,255,0)
-    maybeColor =  (0, 0, 255)
+    contourColor = (255, 0, 0)
+    missedColor  = (255,255,0)
+    maybeColor   = (0, 0, 255)
     
     # constants that need to be tuned
     kNearlyHorizontalSlope = math.tan(math.radians(20))
@@ -24,7 +27,9 @@ class TargetDetector(object):
     kRangeOffset = 0.0
     
     # accuracy of polygon approximation
-    kPolyAccuracy = 20.0
+    # -> TODO: determine what this actually means, seems like
+    #          it should be lower at lower resolutions
+    kPolyAccuracy = 10.0
 
     kShooterOffsetDeg = 0.0
     #kHorizontalFOVDeg = 47.0        # AXIS M1011 field of view
@@ -51,6 +56,21 @@ class TargetDetector(object):
         # TODO: Update these on the fly from network tables
         self.cameraMountAngle = 11.5   # degrees
         self.cameraMountHeight = 12.0  # inches
+        
+        # debug settings        
+        self.show_hue = False
+        self.show_sat = False
+        self.show_val = False
+        self.show_bin = False
+        self.show_contours = False
+        self.show_missed = False
+        self.show_targets = True
+        
+        # thresholds
+        self.thresh_hue_p = settings.get('camera/thresh_hue_p', 60-15)
+        self.thresh_hue_n = settings.get('camera/thresh_hue_n', 60+15)
+        self.thresh_sat = settings.get('camera/thresh_sat', 200)
+        self.thresh_val = settings.get('camera/thresh_val', 55)
     
     def processImage(self, img):
         
@@ -72,19 +92,25 @@ class TargetDetector(object):
             # TODO: What's the optimal setting for this? For smaller images, we
             # cannot morph as much, or the features blend into each other. 
             
+            # Note: if you set k to an even number, the detected
+            # contours are offset by some N pixels
+            
             if w <= 320:
                 k = 1
-                self.kHoleClosingIterations = 3 # originally 9
+                offset = (0,0)
+                self.kHoleClosingIterations = 2 # originally 9
                 
-            elif w <= 460:
+            elif w <= 480:
                 k = 2
-                self.kHoleClosingIterations = 6 # originally 9
+                offset = (1,1)
+                self.kHoleClosingIterations = 9 # originally 9
                 
             else:
-                self.kHoleClosingIterations = 9 # originally 9
                 k = 3
+                offset = (0,0)
+                self.kHoleClosingIterations = 9 # originally 9
                 
-            self.morphKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (k,k))
+            self.morphKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (k,k), anchor=offset)
             
             logging.info("New image size: %sx%s, morph size set to %s, %s iterations", w,h,k, self.kHoleClosingIterations)
         
@@ -103,34 +129,42 @@ class TargetDetector(object):
         # Hue
         # NOTE: Red is at the end of the color space, so you need to OR together
         # a thresh and inverted thresh in order to get points that are red
-        cv2.threshold(self.hue, 60-15, 255, type=cv2.THRESH_BINARY, dst=self.bin)
-        cv2.threshold(self.hue, 60+15, 255, type=cv2.THRESH_BINARY_INV, dst=self.hue)
+        cv2.threshold(self.hue, self.thresh_hue_p, 255, type=cv2.THRESH_BINARY, dst=self.bin)
+        cv2.threshold(self.hue, self.thresh_hue_n, 255, type=cv2.THRESH_BINARY_INV, dst=self.hue)
         
         # Saturation
-        #cv2.threshold(self.sat, 200, 255, type=cv2.THRESH_BINARY, dst=self.sat)
-        cv2.threshold(self.sat, 200, 255, type=cv2.THRESH_BINARY, dst=self.sat)
+        cv2.threshold(self.sat, self.thresh_sat, 255, type=cv2.THRESH_BINARY, dst=self.sat)
+        
+        if self.show_sat:
+            cv2.imshow('sat', self.sat)
         
         # Value
-        cv2.threshold(self.val, 55, 255, type=cv2.THRESH_BINARY, dst=self.val)
+        cv2.threshold(self.val, self.thresh_val, 255, type=cv2.THRESH_BINARY, dst=self.val)
+        
+        if self.show_val:
+            cv2.imshow('val', self.val)
         
         # Combine the results to obtain our binary image which should for the most
         # part only contain pixels that we care about
         cv2.bitwise_and(self.hue, self.bin, self.bin)
+        
+        if self.show_hue:
+            cv2.imshow('hue', self.bin)
+        
         cv2.bitwise_and(self.bin, self.sat, self.bin)
         cv2.bitwise_and(self.bin, self.val, self.bin)
 
         # Fill in any gaps using binary morphology
         cv2.morphologyEx(self.bin, cv2.MORPH_CLOSE, self.morphKernel, dst=self.bin, iterations=self.kHoleClosingIterations)
         
-        # TODO: Find all contours, but use the hierarchy to find contours that
-        #       exist inside of another contour?
-        #cv2.imshow('bin', self.bin)
-        
-        #cv2.Canny(self.bin, 50.0, 150.0, self.bin)
-        
-        #cv2.imshow('bin', self.bin)
+        if self.show_bin:
+            cv2.imshow('bin', self.bin)
         
         targets = []
+        
+        # TODO: Find all contours, but use the hierarchy to find contours that
+        #       exist inside of another contour?
+
         
         # Find contours
         contours, hierarchy = cv2.findContours(self.bin.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_TC89_KCOS)
@@ -148,8 +182,9 @@ class TargetDetector(object):
             # if w > self.kMinWidth
             #    continue
             
-            # uncomment to see all original contours
-            #cv2.drawContours(img, [c.astype(np.int32)], -1, (255,0,0))
+            if self.show_contours:
+                cv2.drawContours(img, [c.astype(np.int32)], -1, (255,0,0))
+                
             #continue
             
             if abs(ratio - self.kTopOuterRatio) < 0.25:
@@ -172,7 +207,8 @@ class TargetDetector(object):
             
             if not cv2.isContourConvex(p) or not (len(p) == 4 or len(p) == 5):
                 # discard this too
-                #cv2.drawContours(img, [p.astype(np.int32)], -1, self.missedColor, thickness=1)
+                if self.show_missed:
+                    cv2.drawContours(img, [p.astype(np.int32)], -1, self.missedColor, thickness=1)
                 continue
                 
                 
@@ -202,9 +238,8 @@ class TargetDetector(object):
             
             targets.append(target_data.Target(x, y, w, h, p, tgt))          
             
-            
-            # draw these indicators by default      
-            cv2.drawContours(img, [p.astype(np.int32)], -1, self.maybeColor, thickness=2)
+            if self.show_targets:     
+                cv2.drawContours(img, [p.astype(np.int32)], -1, self.maybeColor, thickness=2)
             
         
         # does it make more sense to do this part in the UI thread?
@@ -238,10 +273,13 @@ class TargetDetector(object):
                     
             for tgt in mids:
                 if tgt.x < top.x:
-                    tgt.level = next
+                    tgt.location = next
                     next = target_data.location.RMIDDLE 
                 else:
-                    tgt.level = target_data.location.RMIDDLE            
+                    tgt.location = target_data.location.RMIDDLE   
+                    
+        # sort the low targets
+        lows.sort(key=lambda tgt: tgt.y, reverse=True)         
             
         cat_tgts = {'top': tops,
                     'mid': mids,
