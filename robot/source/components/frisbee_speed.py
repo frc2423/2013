@@ -1,5 +1,5 @@
 
-from common.conversions import *
+from common.constants import *
 
 from threading import Condition
 
