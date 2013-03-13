@@ -27,6 +27,7 @@ class CvWidget(gtk.DrawingArea):
         gtk.DrawingArea.__init__(self)
         
         self._fixed_size = fixed_size
+        self.zoom = 1
         
         if fixed_size is not None:
             w, h = fixed_size
@@ -77,9 +78,11 @@ class CvWidget(gtk.DrawingArea):
         # if resize needed, then do it
         h, w, c = img.shape
         if w != self._fixed_size[0] or h != self._fixed_size[1]:
+            self.zoom = float(w) / self._fixed_size[0]
             cv2.resize(img, self._fixed_size, self.resize_buffer)
             src = self.resize_buffer
         else:
+            self.zoom = 1
             src = img
         
         # now copy it to the buffer and convert to the right format
