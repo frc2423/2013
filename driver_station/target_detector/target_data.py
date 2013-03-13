@@ -42,15 +42,20 @@ location = common.enum(TOP=1,
 
 class Target(object):
     
-    __slots__ = ['x', 'y', 'w', 'h', 'polygon', 'location']
+    __slots__ = ['x', 'y', 'w', 'h', 'cx', 'cy', 'polygon', 'location']
     
     def __init__(self, x, y, w, h, polygon, location):
         self.x = x
         self.y = y
         self.w = w
         self.h = h
+        self.cx = int(x + w/2.0)    # center x
+        self.cy = int(y + h/2.0)    # center y
         self.polygon = polygon
         self.location = location
+        
+    def get_center(self):
+        return int(self.x + self.w/2.0), int(self.y + self.h/2.0)
     
     def intersects(self, x, y):
         return cv2.pointPolygonTest(self.polygon, (x, y), False) >= 0
@@ -60,9 +65,6 @@ class Target(object):
         # TODO: Fix these up 
         # TODO: Do these really belong here? Just don't want to calculate
         # them all the time for every potential target.. 
-        
-        pCenterX = int(x + w/2.0)
-        pCenterY = int(y + h/2.0)
         
         # horizontal angle and vertical angle calculations from Youssef's code from 2012
         hangle = (iw / 2.0 - pCenterX) * self.kHorizontalFOVDeg / iw            

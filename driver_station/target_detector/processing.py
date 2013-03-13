@@ -24,13 +24,16 @@ class ImageProcessor(object):
         targeting information in it.
     '''
     
-    def __init__(self, options, camera_widget):
+    def __init__(self):
+        self.detector = kwarqs2013cv.TargetDetector()
+    
+    def initialize(self, options, camera_widget):
         
         self.lock = threading.RLock()
         self.condition = threading.Condition(self.lock)
         self.do_stop = False
+        self.do_refresh = False
         
-        self.detector = kwarqs2013cv.TargetDetector()
         self.camera_ip = options.camera_ip
         self.camera_widget = camera_widget
         
@@ -54,6 +57,11 @@ class ImageProcessor(object):
             self.condition.notify()
             
         self.thread.join()
+        
+    def refresh(self):
+        with self.condition:
+            self.do_refresh = True
+            self.condition.notify()
         
     def _initialize_static(self, options):
         
@@ -89,10 +97,16 @@ class ImageProcessor(object):
             # return True otherwise we might lose focus
             return True
         
+        def _on_button_pressed(widget, event):
+            widget.grab_focus()
+        
         # must be able to get focus to receive keyboard events
         self.camera_widget.set_can_focus(True)
+        self.camera_widget.add_events(gtk.gdk.BUTTON_PRESS_MASK)
+        
         self.camera_widget.grab_focus()
         self.camera_widget.connect('key-press-event', _on_key_press)
+        self.camera_widget.connect('button-press-event', _on_button_pressed)
         
 
         
@@ -105,13 +119,14 @@ class ImageProcessor(object):
             with self.condition:
                 
                 # wait until the user hits a key
-                while idx == self.idx and not self.do_stop:
+                while idx == self.idx and not self.do_stop and not self.do_refresh:
                     self.condition.wait()
                 
                 if self.do_stop:
                     break
                 
                 idx = self.idx
+                self.do_refresh = False
                     
             # if the index is valid, then process an image
             if idx < len(self.images) and idx >= 0:

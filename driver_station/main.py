@@ -8,7 +8,9 @@ from options import configure_options
 import pygtk
 pygtk.require('2.0')
 import gtk
+
 import gobject
+import glib
 
 import cairo
 
@@ -55,23 +57,25 @@ if __name__ == '__main__':
     # configure and initialize things    
     table = initialize_pynetworktables(options.robot_ip)
 
+    # setup the image processing and start it
+    import target_detector.processing
+    
+    processor = target_detector.processing.ImageProcessor()
+
     # initialize UI
     import ui.dashboard
-    dashboard = ui.dashboard.Dashboard()
+    dashboard = ui.dashboard.Dashboard(processor)
+    
+    # save the settings every N seconds
+    glib.timeout_add_seconds(30, settings.save)
     
     # initialize cv2.imshow replacement
     import ui.widgets.imshow
-
-    import target_detector.processing
-
     
-    # setup the image processing and start it
     try:
-        processor = target_detector.processing.ImageProcessor(options,
-                                                              dashboard.camera_widget)
+        processor.initialize(options, dashboard.camera_widget)
     except RuntimeError:
         exit(1)
-        
     processor.start()
     
     # gtk main
@@ -85,6 +89,7 @@ if __name__ == '__main__':
     
     
     logger.info('Shutting down Kwarqs Dashboard')
+    settings.save()
     
     # shutdown anything needed here, like the logger
     processor.stop()
