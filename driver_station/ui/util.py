@@ -4,7 +4,7 @@ import os
 import gtk
 
 
-def initialize_from_builder(this):
+def initialize_from_xml(this, other=None):
     '''
         Initializes the widgets and signals from a GtkBuilder XML file. Looks 
         for the following attributes in the instance you pass:
@@ -16,25 +16,37 @@ def initialize_from_builder(this):
         For each widget in ui_widgets, it will be retrieved from the builder
         object and 
         
+        other is a list of widgets to also initialize with the same file
+        
         Returns the builder object when done
     '''
     builder = gtk.Builder()
     builder.add_from_file(os.path.join(os.path.dirname(__file__), 'data', this.ui_filename))
     
-    if hasattr(this, 'ui_widgets') and this.ui_widgets is not None:
-        for widget_name in this.ui_widgets:
-            widget = builder.get_object(widget_name)
-            if widget is None:
-                raise RuntimeError("Widget '%s' is not present in '%s'" % (widget_name, this.ui_filename))
-            setattr(this, widget_name, widget)
+    objects = [this]
+    if other is not None:
+        objects.extend(other)
     
-    if hasattr(this, 'ui_signals') and this.ui_signals is not None:
-        signals = {}
-        for signal_name in this.ui_signals:
-            if not hasattr(this, signal_name):
-                raise RuntimeError("Function '%s' is not present in '%s'" % (signal_name, this))
-            signals[signal_name] = getattr(this, signal_name)
+    for obj in objects:
+        if hasattr(obj, 'ui_widgets') and obj.ui_widgets is not None:
+            for widget_name in obj.ui_widgets:
+                widget = builder.get_object(widget_name)
+                if widget is None:
+                    raise RuntimeError("Widget '%s' is not present in '%s'" % (widget_name, this.ui_filename))
+                setattr(obj, widget_name, widget)
+    
+    signals = None
+    
+    for obj in objects:
+        if hasattr(obj, 'ui_signals') and obj.ui_signals is not None:
+            if signals is None:
+                signals = {}
+            for signal_name in obj.ui_signals:
+                if not hasattr(obj, signal_name):
+                    raise RuntimeError("Function '%s' is not present in '%s'" % (signal_name, obj))
+                signals[signal_name] = getattr(obj, signal_name)
             
+    if signals is not None:
         missing = builder.connect_signals(signals, None)
         if missing is not None:
             err = 'The following signals were found in %s but have no assigned handler: %s' % (this.ui_filename, str(missing))
