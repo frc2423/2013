@@ -57,6 +57,4 @@ def configure_logging(log_dir):
     ql.start()
     
     return ql
-    
-# function to store an image
-#   - makes a copy of the image, stores it using another thread
+

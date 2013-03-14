@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 
+import datetime
 import os.path
 import time
 import threading
@@ -37,6 +38,8 @@ class ImageProcessor(object):
         self.camera_ip = options.camera_ip
         self.camera_widget = camera_widget
         
+        self.img_logger = ImageLogger(options.log_dir)
+        
         # detect live or static processing
         if options.static_images is not None:
             self._initialize_static(options)
@@ -49,6 +52,7 @@ class ImageProcessor(object):
         
         
     def start(self):
+        self.img_logger.start()
         self.thread.start()
         
     def stop(self):
@@ -57,6 +61,8 @@ class ImageProcessor(object):
             self.condition.notify()
             
         self.thread.join()
+        
+        self.img_logger.stop()
         
     def refresh(self):
         with self.condition:
@@ -192,7 +198,7 @@ class ImageProcessor(object):
         
         self._initialize_live()
         
-        tm = time.time()
+        last_log = 0
     
         while True:
         
@@ -202,6 +208,20 @@ class ImageProcessor(object):
             
             retval, img = self.vc.read()
             if retval:
+                
+                # log images to directory
+                if self.img_logger:
+                    tm = time.time()
+                    diff = tm - last_log
+                    if diff >= 1:
+                        self.img_logger.log_image(img)
+                        
+                        # adjust for possible drift
+                        if diff > 1.5:
+                            last_log = tm
+                        else:
+                            last_log += 1
+                
                 target_data = self.detector.processImage(img)
                 
                 # note that you cannot typically interact with the UI
@@ -216,6 +236,66 @@ class ImageProcessor(object):
                 break
             
         logger.info("Static processing thread exiting")
+
+
+class ImageLogger(object):
+
+    def __init__(self, logdir):
+        self.logdir = logdir
+        self.has_image = False
+        self.do_stop = False
+        
+        self.condition = threading.Condition()
+        self.thread = threading.Thread(target=self._log_thread)
+        
+    def log_image(self, image):
+        h, w = image.shape[:2]
+        datestr = datetime.datetime.now().strftime('%Y-%m-%d %H%M-%S-%f')
+        filename = '%s@%sx%s.png' % (datestr, w, h)
+        filename = os.path.join(self.logdir, filename)
+        
+        with self.condition:
+            self.has_image = True
+            
+            # TODO: does making a copy here matter?
+            self.img = image.copy()
+            self.img_filename = filename
+            
+            self.condition.notify()
+            
+    def start(self):
+        self.thread.start()
+        
+    def stop(self):
+        with self.condition:
+            self.do_stop = True
+            self.condition.notify()
+            
+        self.thread.join()
+        
+    def _log_thread(self):
+        
+        while True:
+            with self.condition:
+                
+                if self.do_stop:
+                    break
+                
+                while not self.has_image and not self.do_stop:
+                    self.condition.wait()
+                    
+                # if there's an image queued up, then we want to
+                # write it out before exiting
+                if not self.has_image:
+                    continue
+                
+                img = self.img
+                img_filename = self.img_filename
+                self.has_image = False
+                
+            logger.debug('Writing image to %s' % img_filename)
+            cv2.imwrite(img_filename, img)
+            
 
 
 def user_save_image(img):
