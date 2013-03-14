@@ -86,7 +86,7 @@ class CvWidget(gtk.DrawingArea):
             src = img
         
         # now copy it to the buffer and convert to the right format
-        cv2.cvtColor(src, cv2.COLOR_BGR2RGBA, self.buffer)
+        cv2.cvtColor(src, cv2.COLOR_BGR2BGRA, self.buffer)
         
         # .. and invalidate?
         self.queue_draw()
