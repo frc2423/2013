@@ -27,13 +27,13 @@ class ImageProcessor(object):
         targeting information in it.
     '''
     
-    def __init__(self):
+    def __init__(self):        
         self.detector = kwarqs2013cv.TargetDetector()
+        self.lock = threading.Lock()
+        self.condition = threading.Condition(self.lock)
     
     def initialize(self, options, camera_widget):
         
-        self.lock = threading.RLock()
-        self.condition = threading.Condition(self.lock)
         self.do_stop = False
         self.do_refresh = False
         
@@ -91,6 +91,8 @@ class ImageProcessor(object):
             self.images = []
             for path, dirs, files in os.walk(path):
                 self.images += [os.path.join(path, f) for f in files] 
+            
+            self.images.sort()
         
         # setup the key handler
         def _on_key_press(widget, event):
