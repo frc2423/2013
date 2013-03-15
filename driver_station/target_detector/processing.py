@@ -38,7 +38,10 @@ class ImageProcessor(object):
         self.camera_ip = options.camera_ip
         self.camera_widget = camera_widget
         
-        self.img_logger = ImageLogger(options.log_dir)
+        self.img_logger = None
+        
+        if options.log_images:
+            self.img_logger = ImageLogger(options.log_dir)
         
         # detect live or static processing
         if options.static_images is not None:
@@ -52,7 +55,8 @@ class ImageProcessor(object):
         
         
     def start(self):
-        self.img_logger.start()
+        if self.img_logger is not None:
+            self.img_logger.start()
         self.thread.start()
         
     def stop(self):
@@ -62,7 +66,8 @@ class ImageProcessor(object):
             
         self.thread.join()
         
-        self.img_logger.stop()
+        if self.img_logger is not None:
+            self.img_logger.stop()
         
     def refresh(self):
         with self.condition:
@@ -210,7 +215,7 @@ class ImageProcessor(object):
             if retval:
                 
                 # log images to directory
-                if self.img_logger:
+                if self.img_logger is not None:
                     tm = time.time()
                     diff = tm - last_log
                     if diff >= 1:
