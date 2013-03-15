@@ -1,4 +1,6 @@
 
+import traceback
+
 import logging
 import logging.handlers
 import os
@@ -58,3 +60,6 @@ def configure_logging(log_dir):
     
     return ql
 
+
+def log_exception(logger, msg):
+    logger.error('Exception: %s\n%s', msg, traceback.format_exc())
