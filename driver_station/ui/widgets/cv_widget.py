@@ -75,18 +75,26 @@ class CvWidget(gtk.DrawingArea):
         
         # TODO: how does locking work out here?
         
-        # if resize needed, then do it
-        h, w, c = img.shape
-        if w != self._fixed_size[0] or h != self._fixed_size[1]:
-            self.zoom = float(w) / self._fixed_size[0]
-            cv2.resize(img, self._fixed_size, self.resize_buffer)
-            src = self.resize_buffer
-        else:
-            self.zoom = 1
-            src = img
-        
-        # now copy it to the buffer and convert to the right format
-        cv2.cvtColor(src, cv2.COLOR_BGR2BGRA, self.buffer)
+        if img is None:
+            print 'filled with None'
+            w, h = self._fixed_size
+            cv2.rectangle(self.buffer, (0,0), (w, h), (0,0,0,0))
+        else:        
+            # if resize needed, then do it
+            h, w, c = img.shape
+            if w != self._fixed_size[0] or h != self._fixed_size[1]:
+                self.zoom = float(w) / self._fixed_size[0]
+                cv2.resize(img, self._fixed_size, self.resize_buffer)
+                src = self.resize_buffer
+            else:
+                self.zoom = 1
+                src = img
+            
+            # now copy it to the buffer and convert to the right format
+            if c == 1:
+                cv2.cvtColor(src, cv2.COLOR_GRAY2BGRA, self.buffer)
+            else:
+                cv2.cvtColor(src, cv2.COLOR_BGR2BGRA, self.buffer)
         
         # .. and invalidate?
         self.queue_draw()
