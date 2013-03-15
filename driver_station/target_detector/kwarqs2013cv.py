@@ -9,22 +9,26 @@ import target_data
 
 from common import settings
 
+# using python 2.7, get some python 3 builtins
+from future_builtins import zip
+
 import logging
 logger = logging.getLogger(__name__)
 
 
 class TargetDetector(object):
     
-    contourColor = (255, 0, 0)
+    contourColor = (255,128, 0)
     missedColor  = (255,255,0)
-    maybeColor   = (0, 0, 255)
+    
+    # each target type has a different color
+    kTopColor     = (  0, 0, 255)   # red
+    kMidColor     = (255, 0, 255)   # magenta
+    kLowColor     = (255, 0,   0)   # blue
     
     # constants that need to be tuned
     kNearlyHorizontalSlope = math.tan(math.radians(20))
     kNearlyVerticalSlope = math.tan(math.radians(90-20))
-    kMinWidth = 20
-    kMaxWidth = 200
-    kRangeOffset = 0.0
     
     # accuracy of polygon approximation
     # -> TODO: determine what this actually means, seems like
@@ -34,20 +38,24 @@ class TargetDetector(object):
     kShooterOffsetDeg = 0.0
     #kHorizontalFOVDeg = 47.0        # AXIS M1011 field of view
     kHorizontalFOVDeg = 43.5         # AXIS M1011 field of view from WPILib
-    kVerticalFOVDeg = 36.13         # from http://photo.stackexchange.com/questions/21536/how-can-i-calculate-vertical-field-of-view-from-horizontal-field-of-view
+    kVerticalFOVDeg = 36.13          # from http://photo.stackexchange.com/questions/21536/how-can-i-calculate-vertical-field-of-view-from-horizontal-field-of-view
     AXIS_CAMERA_VIEW_ANGLE = math.pi * 38.33 / 180.0
     
     kCameraHeightIn = 33.0      # 18 to 26 inches
     kCameraPitchDeg = 11.5
     
     # import needed target data
+    kTopInnerRatio = target_data.kTopInnerRatio
     kTopOuterRatio = target_data.kTopOuterRatio
+    kMidInnerRatio = target_data.kMidInnerRatio
     kMidOuterRatio = target_data.kMidOuterRatio
     kLowOuterRatio = target_data.kLowOuterRatio
     
     kTop = target_data.location.TOP
     kMid = target_data.location.MIDDLE
     kLow = target_data.location.LOW
+    
+    kRatios = [kTopOuterRatio, kMidOuterRatio, kLowOuterRatio]
     
     def __init__(self):
         self.size = None
@@ -92,24 +100,44 @@ class TargetDetector(object):
             # TODO: What's the optimal setting for this? For smaller images, we
             # cannot morph as much, or the features blend into each other. 
             
+            # TODO: tune kMinWidth
+            
             # Note: if you set k to an even number, the detected
-            # contours are offset by some N pixels
+            # contours are offset by some N pixels. Sometimes.
             
             if w <= 320:
                 k = 1
                 offset = (0,0)
                 self.kHoleClosingIterations = 2 # originally 9
                 
+                self.kMinWidth = 2
+                
+                # drawing 
+                self.kThickness = 1
+                self.kTgtThickness = 1 
+                
             elif w <= 480:
                 k = 2
                 offset = (1,1)
                 self.kHoleClosingIterations = 9 # originally 9
                 
+                self.kMinWidth = 5
+                
+                # drawing
+                self.kThickness = 1
+                self.kTgtThickness = 2
+                 
             else:
                 k = 3
-                offset = (0,0)
-                self.kHoleClosingIterations = 9 # originally 9
+                offset = (1,1)
+                self.kHoleClosingIterations = 6 # originally 9
                 
+                self.kMinWidth = 10
+                
+                # drawing
+                self.kThickness = 1 
+                self.kTgtThickness = 2
+            
             self.morphKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (k,k), anchor=offset)
             
             logging.info("New image size: %sx%s, morph size set to %s, %s iterations", w,h,k, self.kHoleClosingIterations)
@@ -121,9 +149,6 @@ class TargetDetector(object):
         # convert to HSV
         cv2.cvtColor(img, cv2.cv.CV_BGR2HSV, self.hsv)
         cv2.split(self.hsv, [self.hue, self.sat, self.val])
-        
-        # uncommment this to draw on zeroed image
-        #img = np.zeros(img.shape, dtype=np.uint8)
         
         # Threshold each component separately
         # Hue
@@ -160,55 +185,54 @@ class TargetDetector(object):
         if self.show_bin:
             cv2.imshow('bin', self.bin)
         
-        targets = []
-        
         # TODO: Find all contours, but use the hierarchy to find contours that
         #       exist inside of another contour?
 
         
         # Find contours
-        contours, hierarchy = cv2.findContours(self.bin.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_TC89_KCOS)
+        contours, hierarchy = cv2.findContours(self.bin.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
+        
+        if self.show_contours:
+            cv2.drawContours(img, contours, -1, (255,0,0), thickness=self.kThickness)
+        
         contours = [cv2.convexHull(c.astype(np.float32), clockwise=True, returnPoints=True) for c in contours]
         
-        # TODO: if we use cv2.RETR_TREE, then we can iterate through contours
-        # and find contours that are inside other contours. This could help
-        # establish better rectangles
+        # stores the target data
+        ctargets = [None]*len(contours)
         
-        for c in contours:
-            x, y, w, h = cv2.boundingRect(c)
+        for hidx, contour, in enumerate(contours):
+            x, y, w, h = cv2.boundingRect(contour)
             ratio = float(h)/w
             
-            #if ratio < 1.0 and ratio > 0.5 and w > self.kMinWidth and w < self.kMaxWidth:
-            # if w > self.kMinWidth
-            #    continue
+            # remove noise (maybe check max width too?)
+            if w < self.kMinWidth:
+                continue
             
-            if self.show_contours:
-                cv2.drawContours(img, [c.astype(np.int32)], -1, (255,0,0))
-                
-            #continue
+            # TODO: these should not be linear on each side, since it gets distorted
+            # at angles. 
             
-            if abs(ratio - self.kTopOuterRatio) < 0.25:
-                p = cv2.approxPolyDP(c, self.kPolyAccuracy, False)
+            # TODO: get rid of magic constants
+            
+            if ratio >= self.kTopInnerRatio - 0.1 and ratio <= self.kTopOuterRatio + 0.03:
+                p = cv2.approxPolyDP(contour, self.kPolyAccuracy, False)
                 tgt = target_data.location.TOP
                 
-            elif abs(ratio - self.kMidOuterRatio) < 0.25:
-                p = cv2.approxPolyDP(c, self.kPolyAccuracy, False)
+            elif abs(ratio - self.kMidOuterRatio) < 0.1:
+                p = cv2.approxPolyDP(contour, self.kPolyAccuracy, False)
                 tgt = target_data.location.MIDDLE
                 
-            elif abs(ratio - self.kLowOuterRatio) < 0.25:
-                p = cv2.approxPolyDP(c, self.kPolyAccuracy, False)
+            elif abs(ratio - self.kLowOuterRatio) < 0.1:
+                p = cv2.approxPolyDP(contour, self.kPolyAccuracy, False)
                 tgt = target_data.location.LOW
                 
             else:
                 # discard this object
                 continue
             
-            #cv2.drawContours(img, [p.astype(np.int32)], -1, (255,255,0))
-            
             if not cv2.isContourConvex(p) or not (len(p) == 4 or len(p) == 5):
                 # discard this too
                 if self.show_missed:
-                    cv2.drawContours(img, [p.astype(np.int32)], -1, self.missedColor, thickness=1)
+                    cv2.drawContours(img, [p.astype(np.int32)], -1, self.missedColor, thickness=self.kThickness)
                 continue
                 
                 
@@ -236,26 +260,67 @@ class TargetDetector(object):
             if numNearlyHorizontal == 0 or numNearlyVertical != 2:
                 continue
             
-            targets.append(target_data.Target(x, y, w, h, p, tgt))          
+            # store for hierarchical analysis 
+            ctargets[hidx] = target_data.Target(x, y, w, h, p.astype(np.int32), tgt, ratio)               
+                    
+         
+        # ok, now that we have our target data, prune it using the
+        # hierarchy
+        
+        # hierarchy: next, prev, child, parent
+        all_targets = []
+
+        for hidx, target in enumerate(ctargets):
             
-            if self.show_targets:     
-                cv2.drawContours(img, [p.astype(np.int32)], -1, self.maybeColor, thickness=2)
+            if target is None:
+                continue
             
+            # if there's no parent, just keep the target
+            parent_idx = hierarchy[0,hidx,3]
+            if parent_idx == -1:
+                all_targets.append(target)
+                continue
+            
+            parent = ctargets[parent_idx] 
+            
+            # if there is a target, and the parent isn't a target, keep it
+            if parent is None:
+                all_targets.append(target)
+                continue
+            
+            # if it is, and they disagree on type, whichever difference is 
+            # closer... change the parent to that one
+            if parent.location != target.location:
+                # TODO?
+                pass
+            
+            # the child will be discarded
+            if self.show_missed:
+                cv2.drawContours(img, [target.polygon], -1, self.missedColor, thickness=self.kThickness)
+
         
         # does it make more sense to do this part in the UI thread?
             
         # categorize the targets according to position
         lows = []
         mids = []
-        tops = []
+        tops = [] 
         
-        for tgt in targets:
-            if tgt.location == self.kTop:
-                tops.append(tgt)
-            elif tgt.location == self.kMid:
-                mids.append(tgt)
-            elif tgt.location == self.kLow:
-                lows.append(tgt)
+        for target in all_targets:
+            if target is None:
+                continue
+            if target.location == self.kTop:
+                tops.append(target)
+                color = self.kTopColor
+            elif target.location == self.kMid:
+                mids.append(target)
+                color = self.kMidColor
+            elif target.location == self.kLow:
+                lows.append(target)
+                color = self.kLowColor
+                
+            if self.show_targets: 
+                cv2.drawContours(img, [target.polygon], -1, color, thickness=self.kTgtThickness)
         
         # determine the left and right targets if possible
         if len(tops) != 0:
@@ -266,24 +331,25 @@ class TargetDetector(object):
             mids.sort(key=lambda tgt: tgt.x)
                     
             # sort the tops by the highest target
-            tops.sort(key=lambda tgt: tgt.y, reverse=True)
+            # -> lowest numeric value is the highest!
+            tops.sort(key=lambda tgt: tgt.y)
             top = tops[0]
             
             next = target_data.location.LMIDDLE
                     
-            for tgt in mids:
-                if tgt.x < top.x:
-                    tgt.location = next
+            for target in mids:
+                if target.x < top.x:
+                    target.location = next
                     next = target_data.location.RMIDDLE 
                 else:
-                    tgt.location = target_data.location.RMIDDLE   
+                    target.location = target_data.location.RMIDDLE   
                     
         # sort the low targets
-        lows.sort(key=lambda tgt: tgt.y, reverse=True)         
+        lows.sort(key=lambda tgt: tgt.y)
             
         cat_tgts = {'top': tops,
                     'mid': mids,
                     'low': lows}
             
-        return img, targets, cat_tgts
+        return img, all_targets, cat_tgts
     

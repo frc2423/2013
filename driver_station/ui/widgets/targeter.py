@@ -201,7 +201,8 @@ class Targeter(CvWidget):
                             
                             elif self.target_location == self.MIDDLE:
                                 # prefer the highest
-                                mids.sort(key=lambda tgt: tgt.y, reverse=True)
+                                # -> which is the numerically lowest
+                                mids.sort(key=lambda tgt: tgt.y)
                                 target = mids[0]
                     
                     self.active_target = target
