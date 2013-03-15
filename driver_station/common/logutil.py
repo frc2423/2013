@@ -1,5 +1,6 @@
 
 import traceback
+from functools import wraps
 
 import logging
 import logging.handlers
@@ -62,4 +63,33 @@ def configure_logging(log_dir):
 
 
 def log_exception(logger, msg):
+    '''Convenience function to log an exception with'''
     logger.error('Exception: %s\n%s', msg, traceback.format_exc())
+    
+class exception_decorator(object):
+    '''
+        This decorator catches any exceptions that may occur in a function, 
+        and logs them so we know about it later.  
+        
+        Mostly intended for use in threads.
+        
+        Example usage:
+        
+            @exception_decorator(logger)
+            def some_function(arg):
+                .. 
+                # some exception gets thrown in here, it will be caught
+    '''
+    
+    def __init__(self, logger):
+        self.logger = logger
+        
+    def __call__(self, f, *args, **kwargs):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            try:
+                f(*args, **kwargs)
+            except:
+                log_exception(self.logger, 'Uncaught exception in %s' % f.__name__)
+        return wrapper 
+
