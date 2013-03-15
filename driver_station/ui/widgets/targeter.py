@@ -64,6 +64,9 @@ class Targeter(CvWidget):
     def on_expose(self, widget, event):
         CvWidget.on_expose(self, widget, event)
         
+        # TODO: Given the current shooter angle, put something on the
+        #       image that represents the possible vector where it'll be
+        
         with self.lock:
             active_target = self.active_target
             show_error = self.show_error

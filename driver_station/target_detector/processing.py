@@ -7,11 +7,13 @@ import threading
 
 import cv2
 import gtk
+import numpy as np
 
 from imgproc import CvImg, CvContour, colorspace
 import kwarqs2013cv
 
 import logging
+from common import logutil
 logger = logging.getLogger(__name__)
 
 
@@ -120,7 +122,7 @@ class ImageProcessor(object):
         self.camera_widget.connect('button-press-event', _on_button_pressed)
         
 
-        
+    @logutil.exception_decorator(logger)
     def _static_processing(self):
         
         logger.info("Static processing thread starting")
@@ -153,92 +155,120 @@ class ImageProcessor(object):
                     self.idx += 1
                     continue
                 
-                target_data = self.detector.processImage(cvimg.img)
-                logger.info('Finished processing')
+                try:
+                    target_data = self.detector.processImage(cvimg.img)
+                except:
+                    logutil.log_exception(logger, 'error processing image')
+                else:
+                    logger.info('Finished processing')
                 
-                # note that you cannot typically interact with the UI
-                # from another thread -- but this function is special
-                self.camera_widget.set_target_data(target_data)
+                    # note that you cannot typically interact with the UI
+                    # from another thread -- but this function is special
+                    self.camera_widget.set_target_data(target_data)
             
         logger.info("Static processing thread exiting")
 
         
     def _initialize_live(self):
-        self.vc = cv2.VideoCapture()
+        vc = cv2.VideoCapture()
         
-        self.vc.set(cv2.cv.CV_CAP_PROP_FPS, 1)
+        vc.set(cv2.cv.CV_CAP_PROP_FPS, 1)
         
         logger.info('Connecting to %s' % self.camera_ip)
-        self.vc.open('http://%s/mjpg/video.mjpg' % self.camera_ip)
-    
+        if not vc.open('http://%s/mjpg/video.mjpg' % self.camera_ip):
+            logger.error("Could not connect")
+            return
+        
         logger.info('Connected!')
-
+        return vc
             
+
+    @logutil.exception_decorator(logger)
     def _live_processing(self):
-        
-        # TODO: Need to determine best mechanisms to use for
-        # retry, or what happens when the camera cannot be talked 
-        # to? Ideally, if we use OpenCV's RTSP implementation, we
-        # will end up with a higher quality image stream than what
-        # SmartDashboard can provide us.. but, how robust is it?
-        
-        # TODO: How to integrate this with the SmartDashboard?
-        #        -> in particular, what kind of UI should we provide?
-        
-        # TODO: Exception handling in case something goes awry
-        # -> Need to restart processing if this crashes
-        # -> Need to log errors too
-        
-        # TODO: What other things are required for robustness?
-        
-        # TODO: Integration with pynetworktables
-        
-        # TODO: Run detection on a whole directory of images, and 
-        # print out the results or something to that effect
-        
-        # TODO: Given the current shooter angle, put something on the
-        #       image that represents the possible vector where it'll be
         
         logger.info("Live processing thread starting")
         
-        self._initialize_live()
-        
-        last_log = 0
-    
         while True:
-        
+            
+            # check for exit condition
             with self.lock:
                 if self.do_stop:
                     break
             
-            retval, img = self.vc.read()
-            if retval:
+            # open the video capture device
+            vc = self._initialize_live()
+            
+            if vc is None:
+                continue
+        
+            last_log = 0
+            exception_occurred = False
+            
+            # allocate a buffer for reading
+            h = vc.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)
+            w = vc.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)
+            
+            capture_buffer = np.empty(shape=(h, w, 3), dtype=np.uint8)
+            
+            while True:
+            
+                # check for exit condition
+                with self.lock:
+                    if self.do_stop:
+                        break
                 
-                # log images to directory
-                if self.img_logger is not None:
-                    tm = time.time()
-                    diff = tm - last_log
-                    if diff >= 1:
-                        self.img_logger.log_image(img)
+                #
+                # Read the video frame
+                #
+                
+                retval, img = vc.read(capture_buffer)
+                
+                if retval:
+                    
+                    # log images to directory
+                    if self.img_logger is not None:
+                        tm = time.time()
+                        diff = tm - last_log
+                        if diff >= 1:
+                            self.img_logger.log_image(img)
+                            
+                            # adjust for possible drift
+                            if diff > 1.5:
+                                last_log = tm
+                            else:
+                                last_log += 1
+                
+                    #
+                    # Process the image
+                    #
+                    
+                    try:
+                        target_data = self.detector.processImage(img)
+                    except:
+                        # if it happened once, it'll probably happen again. Don't flood
+                        # the logfiles... 
+                        if not exception_occurred:
+                            logutil.log_exception(logger, 'error processing image')
+                            exception_occurred = True
+                        self.camera_widget.set_error(img)
                         
-                        # adjust for possible drift
-                        if diff > 1.5:
-                            last_log = tm
-                        else:
-                            last_log += 1
-                
-                target_data = self.detector.processImage(img)
-                
-                # note that you cannot typically interact with the UI
-                # from another thread -- but this function is special
-                self.camera_widget.set_target_data(target_data)
-            #else:
-                #self.camera_widget.set_no_stream()
-                
-            else:
-                # TODO: Fix this 
-                print "No image acquired, exiting!"
-                break
+                    else:
+                        if exception_occurred:
+                            logger.info("Processing resumed, no more errors.")
+                            exception_occurred = False
+                        
+                        # note that you cannot typically interact with the UI
+                        # from another thread -- but this function is special
+                        self.camera_widget.set_target_data(target_data)
+                                        
+                else:
+                    if last_log == 0: 
+                        logger.error("Not able to connect to camera, retrying")
+                    else:
+                        logger.error("Camera disconnected, retrying")
+                        
+                    self.camera_widget.set_no_camera()
+                    break
             
         logger.info("Static processing thread exiting")
 
@@ -278,6 +308,7 @@ class ImageLogger(object):
             
         self.thread.join()
         
+    @logutil.exception_decorator(logger)
     def _log_thread(self):
         
         while True:
