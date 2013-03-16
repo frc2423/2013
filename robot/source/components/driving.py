@@ -4,7 +4,7 @@
 
 class Driving(object):
     '''
-        Wrapper around the RobotDrive class for driving
+        Wrapper around the RobotDrive class for driving1
     '''
 
     def __init__ (self, robot_drive):
@@ -25,4 +25,3 @@ class Driving(object):
             self.speed = None
         else:
             self.robot_drive.ArcadeDrive(0,0)
-            

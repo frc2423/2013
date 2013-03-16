@@ -1,4 +1,5 @@
 
+
 try:
     import wpilib
 except ImportError: 
@@ -19,7 +20,7 @@ class AutoTargeting(object):
         
         # get angle
         hangle, vangle, distance = self.target_detector.get_data()
-        
+        +
         wpilib.SmartDashboard.PutBoolean('Auto on', True if hangle is not None else False)
         
         if hangle is None:

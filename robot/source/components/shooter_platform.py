@@ -91,7 +91,7 @@ class ShooterPlatform(object):
         if d_angle > 0 or self.climber.position() == self.climber.LOWER:
             self.angle_jag.set_manual_motor_value(d_angle)
             self.d_angle = 0
-
++
     def set_speed_manual(self, d_speed):
         '''
             Presets the angle manually using %Vbus to the desired speed.
