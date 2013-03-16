@@ -21,11 +21,17 @@ class Targeter(CvWidget):
     MIDDLE = target_detector.target_data.location.MIDDLE
     LOW = target_detector.target_data.location.LOW
     
-    def __init__(self, fixed_size):
+    def __init__(self, fixed_size, table):
         CvWidget.__init__(self, fixed_size)
         
+        # NetworkTable instance
+        self.table = table
+        
+        if self.table is not None:
+            self.table.PutBoolean(u'Target Found', False)
+        
         self.lock = threading.Lock()
-        self.active_target = None
+        self._active_target = None
         self.target_location = None
         
         # don't set this right away, wait for 3 seconds -- otherwise the user 
@@ -37,6 +43,26 @@ class Targeter(CvWidget):
         # enable mouse clicks
         self.add_events(gtk.gdk.BUTTON_PRESS_MASK)
         self.connect('button-press-event', self.on_button_click)
+        
+    def _set_active_target(self, target):
+        self._active_target = target
+        
+        if target is not None:
+            self.target_location = target.location
+        
+            if self.table is not None:
+                self.table.PutNumber(u'Target HAngle', target.hangle)
+                self.table.PutNumber(u'Target VAngle', target.vangle)
+                self.table.PutNumber(u'Target Distance', target.distance)
+                self.table.PutBoolean(u'Target Found', True)
+                
+        elif self.table is not None:
+            self.table.PutBoolean(u'Target Found', False)
+        
+    def _get_active_target(self):
+        return self._active_target
+        
+    active_target = property(_get_active_target, _set_active_target)
         
     def _no_camera_timer(self):
         '''Called after N seconds starting up, to see if we found a camera yet'''
@@ -56,7 +82,6 @@ class Targeter(CvWidget):
                     continue
                 
                 self.active_target = target
-                self.target_location = target.location
                 
                 self.queue_draw()
                 break
@@ -149,6 +174,7 @@ class Targeter(CvWidget):
         
         # todo: figure out what the period of time is
         
+        target = None
         
         with self.lock: 
             try:
@@ -156,7 +182,6 @@ class Targeter(CvWidget):
                 self.targets = targets
                 
                 if self.target_location is not None:
-                    target = None
                     
                     if self.target_location == self.TOP:
                         tops = cat_tgts['top']
@@ -210,6 +235,8 @@ class Targeter(CvWidget):
                 self.active_target = None
                 self.show_error = True
                 logutil.log_exception(logger, 'Error calculating targeting data!')
+                
+        
         
         self.set_from_np(img)
 

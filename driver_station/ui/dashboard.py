@@ -31,16 +31,17 @@ class Dashboard(object):
         'on_window_destroy'
     ]
     
-    def __init__(self, processor):
+    def __init__(self, processor, table):
         
         self.camera_settings = camera_settings.CameraSettings(processor)
         
         util.initialize_from_xml(self, [self.camera_settings])
         
-        self.camera_widget = util.replace_widget(self.camera_widget, targeter.Targeter((640,480)))
+        self.camera_widget = util.replace_widget(self.camera_widget, targeter.Targeter((640,480), table))
 
         self.camera_settings.initialize()
-        
+       
+        self.table = table
         
         # how does this work then?
         # -> create widgets

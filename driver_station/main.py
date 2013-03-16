@@ -64,7 +64,7 @@ if __name__ == '__main__':
 
     # initialize UI
     import ui.dashboard
-    dashboard = ui.dashboard.Dashboard(processor)
+    dashboard = ui.dashboard.Dashboard(processor, table)
     
     # save the settings every N seconds
     glib.timeout_add_seconds(30, settings.save)
