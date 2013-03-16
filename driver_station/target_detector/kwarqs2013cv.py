@@ -51,9 +51,15 @@ class TargetDetector(object):
     kMidOuterRatio = target_data.kMidOuterRatio
     kLowOuterRatio = target_data.kLowOuterRatio
     
+    kTopTgtHCenter = target_data.kTopTgtHCenter
+    kMidTgtHCenter = target_data.kMidTgtHCenter
+    kLowTgtHCenter = target_data.kLowTgtHCenter
+    
     kTop = target_data.location.TOP
     kMid = target_data.location.MIDDLE
     kLow = target_data.location.LOW
+    
+    kOptimumVerticalPosition = target_data.kOptimumVerticalPosition
     
     kRatios = [kTopOuterRatio, kMidOuterRatio, kLowOuterRatio]
     
@@ -309,15 +315,24 @@ class TargetDetector(object):
         for target in all_targets:
             if target is None:
                 continue
+            
+            # calculate the targeting information
+            
+            
             if target.location == self.kTop:
                 tops.append(target)
                 color = self.kTopColor
+                self._set_measurements(iw, ih, target, self.kTopTgtHCenter, centerOfImageY)
+                
             elif target.location == self.kMid:
                 mids.append(target)
                 color = self.kMidColor
+                self._set_measurements(iw, ih, target, self.kMidTgtHCenter, centerOfImageY)
+                
             elif target.location == self.kLow:
                 lows.append(target)
                 color = self.kLowColor
+                self._set_measurements(iw, ih, target, self.kLowTgtHCenter, centerOfImageY)
                 
             if self.show_targets: 
                 cv2.drawContours(img, [target.polygon], -1, color, thickness=self.kTgtThickness)
@@ -353,3 +368,29 @@ class TargetDetector(object):
             
         return img, all_targets, cat_tgts
     
+    
+    def _set_measurements(self, iw, ih, target, tgt_center, centerOfImageY):
+        
+        # horizontal angle and vertical angle calculations from Youssef's code from 2012
+        target.hangle = (iw / 2.0 - target.cx) * self.kHorizontalFOVDeg / iw            
+        target.vangle = ((ih * self.kOptimumVerticalPosition) - target.cy) / (ih / self.kVerticalFOVDeg)
+
+        # Distance calculations from Stephen
+
+        # Distance to the goal is a function of the height of the goal      
+        # (kTopTgtHCenter) and the angle between the camera and the goal    
+        # (theta). The formula is just d = height / tan(theta)              
+
+        # First, want to find out angle between camera and center of goal   
+        # If the center of the goal is in the middle of the image, then     
+        # theta will be 0 degrees. If the center of the goal is at          
+        # the top of the image, then theta will be kVerticalFOVDeg/2        
+        # Similarly, if the center of the goal is at the bottom of the     
+        # image, then theta will be -kVerticalFOVDeg/2
+        
+        # We also have to take into account the angle the camera is mounted
+        # We can apply linear interpolation to figure all points in between
+        
+        theta = (centerOfImageY - target.cy)/centerOfImageY * self.kVerticalFOVDeg/2.0 + self.cameraMountAngle
+        target.distance = (tgt_center - self.cameraMountHeight) / math.tan(math.radians(theta))  
+

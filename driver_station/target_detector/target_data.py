@@ -42,8 +42,6 @@ location = common.enum(TOP=0,
 
 class Target(object):
     
-    __slots__ = ['x', 'y', 'w', 'h', 'cx', 'cy', 'polygon', 'location', 'ratio']
-    
     def __init__(self, x, y, w, h, polygon, location, ratio):
         self.x = x
         self.y = y
@@ -56,45 +54,8 @@ class Target(object):
         self.ratio = ratio
         
     def get_center(self):
-        return int(self.x + self.w/2.0), int(self.y + self.h/2.0)
+        return self.cx, self.cy
     
     def intersects(self, x, y):
         return cv2.pointPolygonTest(self.polygon, (x, y), False) >= 0
         
-    def get_measurements(self):
-        
-        # TODO: Fix these up 
-        # TODO: Do these really belong here? Just don't want to calculate
-        # them all the time for every potential target.. 
-        
-        # horizontal angle and vertical angle calculations from Youssef's code from 2012
-        hangle = (iw / 2.0 - pCenterX) * self.kHorizontalFOVDeg / iw            
-        vangle = ((ih * self.kOptimumVerticalPosition) - pCenterY) / (ih / self.kVerticalFOVDeg)
-
-        # Distance calculations from Stephen
-
-        # Distance to the goal is a function of the height of the goal      
-        # (kTopTgtHCenter) and the angle between the camera and the goal    
-        # (theta). The formula is just d = height / tan(theta)              
-
-        # First, want to find out angle between camera and center of goal   
-        # If the center of the goal is in the middle of the image, then     
-        # theta will be 0 degrees. If the center of the goal is at          
-        # the top of the image, then theta will be kVerticalFOVDeg/2        
-        # Similarly, if the center of the goal is at the bottom of the     
-        # image, then theta will be -kVerticalFOVDeg/2
-        
-        # We also have to take into account the angle the camera is mounted
-        # We can apply linear interpolation to figure all points in between
-        
-        theta = (centerOfImageY - pCenterY)/centerOfImageY * self.kVerticalFOVDeg/2.0 + self.cameraMountAngle
-        distance = (tgt_center - self.cameraMountHeight) / math.tan(math.radians(theta))  
-        
-        
-        return hangle, vangle, distance
-        
-    
-
-class Targets(object):
-    pass
-    
