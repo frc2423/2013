@@ -5,7 +5,8 @@
         
         components = {'drive': drive, 
                       'component1': component1, ... }
-        operator_control = OperatorControlManager(components)
+        ds = wpilib.DriverStation.GetInstance()
+        operator_control = OperatorControlManager(components, ds)
         
         class MyRobot(wpilib.SimpleRobot):
         
@@ -42,7 +43,7 @@ class OperatorControlManager(object):
         See template.txt for a sample operator  mode module
     '''
     
-    def __init__(self, components):
+    def __init__(self, components, ds):
         
         self.ds = wpilib.DriverStation.GetInstance()
         self.modes = {}
@@ -78,7 +79,7 @@ class OperatorControlManager(object):
 
                 if hasattr(obj, 'MODE_NAME') :
                     try:
-                        instance = obj(components)
+                        instance = obj(components, ds)
                     except:
                         
                         if not self.ds.IsFMSAttached():
@@ -100,23 +101,55 @@ class OperatorControlManager(object):
         
         # SmartDashboard interface
         sd = wpilib.SmartDashboard
-        self.chooser = wpilib.SendableChooser()
-        sd.PutData('Operator Control Mode', self.chooser) 
         
+        #
+        #    Control mode chooser
+        #
+        #    This chooser chooses the mode that we will decide what we do during
+        #    during the Operator Control Phase
+        
+        self.control_mode_chooser = wpilib.SendableChooser()
+        sd.PutData('Operator Control Mode', self.control_mode_chooser) 
+        print( 'More Important: ', sd._table.data)
         print("Loaded operator control modes:")
         for k,v in self.modes.items():
             
             if hasattr(v, 'DEFAULT') and v.DEFAULT == True:
                 print(" -> %s [Default]" % k)
-                self.chooser.AddDefault(k, v)
+                self.control_mode_chooser.AddDefault(k, v)
             else:
                 print( " -> %s" % k )
-                self.chooser.AddObject(k, v)
+                self.control_mode_chooser.AddObject(k, v)
         
+        #
+        #    Feeder mode chooser
+        #
+        #    This chooser is for the feeder, the feeders control is independent
+        #    of the mode that we are in.
+        
+        feeder = components['feeder']
+        self.feeder_chooser = wpilib.SendableChooser()
+        sd.PutData('Feeder Mode', self.feeder_chooser)
+        
+        self.feeder_chooser.AddDefault("Auto Mode", feeder.set_mode_auto)
+        self.feeder_chooser.AddObject("Manual Mode", feeder.set_mode_manual)
+        
+        #
+        #    Shooter mode chooser
+        #
+        #    If the shooter is on or off is independent of the mode that we are 
+        #    in.
+        
+        shooter = components['shooter_platform']
+        self.shooter_chooser = wpilib.SendableChooser()
+        sd.PutData('Shooter Mode', self.feeder_chooser)
+        
+        self.shooter_chooser.AddObject("On", shooter.set_on)
+        self.shooter_chooser.AddDefault("Off", shooter.set_off)
         print( "OperatorControlManager::__init__() Done" )
     
             
-    def run(self, robot):    
+    def run(self, robot, control_loop_wait_time):    
         '''
             This function does everything required to implement operator control
             mode behavior. 
@@ -127,7 +160,7 @@ class OperatorControlManager(object):
                           
         '''
         
-        print("OperatorControlManagerr::operator ()")
+        print("OperatorControlManager::operator ()")
              
         try:
             self.on_operator_control_enable()
@@ -135,15 +168,9 @@ class OperatorControlManager(object):
             if not self.ds.IsFMSAttached():
                 raise
         
-        # set the watch dog
-        dog = self.GetWatchdog()
-        dog.SetEnabled(True)
-        dog.SetExpiration(0.25)
-        
-        # put this in a consistent state when starting the robot
-        self.my_climber.lower()
-        compressor.Start()
-        
+        # get the watch dog
+        dog = robot.GetWatchdog()
+
         #
         # operator  control loop
         #
@@ -167,10 +194,6 @@ class OperatorControlManager(object):
             wpilib.Wait(control_loop_wait_time)
             dog.Feed()
             
-        #
-        # Done with operator mode, finish up
-        #
-        compressor.Stop()     
         try:
             self.on_operator_control_disable()
         except:
@@ -185,24 +208,39 @@ class OperatorControlManager(object):
     
     def on_operator_control_enable(self):
         '''Select the active operator control mode here, and enable it'''
-        self.active_mode = self.chooser.GetSelected()
+        self.active_mode = self.control_mode_chooser.GetSelected()
         if self.active_mode is not None:
-            print("OperatorControlManagerr: Enabling %s" % self.active_mode.MODE_NAME)
+            print("OperatorControlManager: Enabling %s" % self.active_mode.MODE_NAME)
             self.active_mode.on_enable()
  
     def on_operator_control_disable(self):
         '''Disable the active operator control'''
         if self.active_mode is not None:
-            print("OperatorControlManagerr: Disabling %s" % self.active_mode.MODE_NAME)
+            print("OperatorControlManager: Disabling %s" % self.active_mode.MODE_NAME)
             self.active_mode.on_disable()
             
         self.active_mode = None
         
     def set(self): 
-        '''Run the code for the current operator control mode'''
+        '''Select the active operator control mode here, and enable it'''
+        previous_mode = self.active_mode
+        self.active_mode = self.control_mode_chooser.GetSelected()
+        
         if self.active_mode is not None:
+            if self.active_mode is not previous_mode:
+                print("OperatorControlManager: Enabling %s" % self.active_mode.MODE_NAME)
+                self.active_mode.on_enable()
+        
+            #
+            #    Sets modes of shooters and feeder
+            #
+            self.feeder_chooser.GetSelected()()
+    
+            self.shooter_mode = self.shooter_chooser.GetSelected()()
+                
+            '''Run the code for the current operator control mode'''
             self.active_mode.set()
-   
+       
     #update done up top to all robot systems
     #def update(self):
     #    '''Run the code for the current operator control mode'''

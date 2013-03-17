@@ -2,6 +2,10 @@
     Joystick util functions and constants, there is no need to create the overhead
     of an object here
 '''
+try:
+    import wpilib
+except ImportError: 
+    import fake_wpilib as wpilib
 # axis constants
 X = wpilib.Joystick.kDefaultXAxis
 Y = wpilib.Joystick.kDefaultYAxis
@@ -45,18 +49,15 @@ AUTO_TARGET_BUTTON      = (1, TRIGGER)
 #    Joystick utility functions (yay overhead!)
 #
 
-def is_toggle_on(self, channel):
-    return not self.eio.GetDigital(channel)
+def stick_axis(cfg, ds):
+    return ds.GetStickAxis(*cfg)
 
-def stick_axis(self, cfg):
-    return self.ds.GetStickAxis(*cfg)
-
-def translate_axis(self, cfg, amin, amax):
+def translate_axis(cfg, amin, amax, ds):
     '''Returns an axis value between a min and a max'''
-    a = self.ds.GetStickAxis(*cfg)
+    a = ds.GetStickAxis(*cfg)
     
     # Xmax - (Ymax - Y)( (Xmax - Xmin) / (Ymax - Ymin) )
     return amax - ((1 - a)*( (amax - amin) / 2.0 ) )
     
-def stick_button_on(self, cfg):
-    return self.ds.GetStickButtons( cfg[0] ) & (1 << (cfg[1]-1))
+def stick_button_on(cfg, ds):
+    return ds.GetStickButtons( cfg[0] ) & (1 << (cfg[1]-1))
