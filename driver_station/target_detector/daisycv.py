@@ -114,8 +114,8 @@ class DaisyCv(object):
                 numNearlyVertical = 0
                 
                 for i in xrange(0,4):
-                    dy = p[i, 0, 0] - p[(i+1)%4, 0, 0]
-                    dx = p[i, 0, 1] - p[(i+1)%4, 0, 1] 
+                    dy = p[i, 0, 1] - p[(i+1)%4, 0, 1]
+                    dx = p[i, 0, 0] - p[(i+1)%4, 0, 0] 
                     slope = sys.float_info.max
                     
                     if dx != 0:
