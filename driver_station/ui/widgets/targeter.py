@@ -169,6 +169,8 @@ class Targeter(CvWidget):
             self._select_active_target(target_location)
             if target_location is None:
                 self.target_location = None
+            
+            self.queue_draw()
         
     def set_target_data(self, target_data, error=False):
         '''This is called from another thread, so be careful'''
