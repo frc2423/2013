@@ -34,6 +34,9 @@ class Targeter(CvWidget):
         self._active_target = None
         self.target_location = None
         
+        self.targets = None
+        self.cat_tgts = None
+        
         # don't set this right away, wait for 3 seconds -- otherwise the user 
         # might think there's an error when there really isn't one
         # -> if True/False, set camera/error appropriately. show blank if None
@@ -161,76 +164,25 @@ class Targeter(CvWidget):
             
         self.set_from_np(img)
         
+    def set_target(self, target_location):
+        with self.lock:
+            self._select_active_target(target_location)
+            if target_location is None:
+                self.target_location = None
+        
     def set_target_data(self, target_data, error=False):
         '''This is called from another thread, so be careful'''
         
         img, targets, cat_tgts = target_data
         
-        # ok, try to select the correct target
-        
-        # Note: if we lose track of the target for a short period of time, 
-        # that's ok. We hold onto the last known target preference for a 
-        # period of time and restore it if the robot saw it
-        
-        # todo: figure out what the period of time is
-        
-        target = None
-        
         with self.lock: 
             try:
                 self.show_error = error
+                self.cat_tgts = cat_tgts
                 self.targets = targets
                 
-                if self.target_location is not None:
-                    
-                    if self.target_location == self.TOP:
-                        tops = cat_tgts['top']
-                        
-                        # prefer the highest target
-                        if len(tops) != 0:
-                            target = tops[0]
-                        
-                    elif self.target_location == self.LOW:
-                        lows = cat_tgts['low']
-                        
-                        # prefer the highest target
-                        if len(lows) != 0:
-                            target = lows[0]
-                            
-                    else: # middle target is more complex
-                        
-                        # middle targets are ordered left to right
-                        
-                        mids = cat_tgts['mid']
-                        if len(mids) != 0:
-                        
-                            if self.target_location == self.LMIDDLE:
-                                # prefer lmiddle/middle
-                                for t in mids:
-                                    if t.location == self.LMIDDLE:
-                                        target = t
-                                        break
-                                    elif t.location == self.MIDDLE:
-                                        target = t
-                                        break
-                                
-                            elif self.target_location == self.RMIDDLE:
-                                # prefer rmiddle/middle
-                                for t in mids:
-                                    if t.location == self.RMIDDLE:
-                                        target = t
-                                        break
-                                    elif t.location == self.MIDDLE:
-                                        target = t
-                                        break
-                            
-                            elif self.target_location == self.MIDDLE:
-                                # prefer the highest
-                                # -> which is the numerically lowest
-                                mids.sort(key=lambda tgt: tgt.y)
-                                target = mids[0]
-                    
-                    self.active_target = target
+                self._select_active_target(self.target_location)
+                
             except:
                 self.active_target = None
                 self.show_error = True
@@ -240,4 +192,67 @@ class Targeter(CvWidget):
         
         self.set_from_np(img)
 
-
+    def _select_active_target(self, target_location):
+        '''Must be called while holding the lock'''
+        
+        # ok, try to select the correct target
+        
+        # Note: if we lose track of the target for a short period of time, 
+        # that's ok. We hold onto the last known target preference for a 
+        # period of time and restore it if the robot saw it
+        
+        # todo: figure out what the period of time is
+        
+        cat_tgts = self.cat_tgts
+        target = None
+        
+        if target_location is not None and cat_tgts is not None:
+                    
+            if target_location == self.TOP:
+                tops = cat_tgts['top']
+                
+                # prefer the highest target
+                if len(tops) != 0:
+                    target = tops[0]
+                
+            elif target_location == self.LOW:
+                lows = cat_tgts['low']
+                
+                # prefer the highest target
+                if len(lows) != 0:
+                    target = lows[0]
+                    
+            else: # middle target is more complex
+                
+                # middle targets are ordered left to right
+                
+                mids = cat_tgts['mid']
+                if len(mids) != 0:
+                
+                    if target_location == self.LMIDDLE:
+                        # prefer lmiddle/middle
+                        for t in mids:
+                            if t.location == self.LMIDDLE:
+                                target = t
+                                break
+                            elif t.location == self.MIDDLE:
+                                target = t
+                                break
+                        
+                    elif target_location == self.RMIDDLE:
+                        # prefer rmiddle/middle
+                        for t in mids:
+                            if t.location == self.RMIDDLE:
+                                target = t
+                                break
+                            elif t.location == self.MIDDLE:
+                                target = t
+                                break
+                    
+                    elif target_location == self.MIDDLE:
+                        # prefer the highest
+                        # -> which is the numerically lowest
+                        mids.sort(key=lambda tgt: tgt.y)
+                        target = mids[0]
+        
+        self.active_target = target
