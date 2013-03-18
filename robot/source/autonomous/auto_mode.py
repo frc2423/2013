@@ -25,7 +25,7 @@ left_angle = -90
 
 class Autonomous(object):
     
-    def __init__(self):
+    def __init__(self, my_drive,my_shooter_platform, my_target_detector, my_shooter, my_auto_targeting):
         
         self.driving = my_drive
         self.shooter_platform = my_shooter_platform
