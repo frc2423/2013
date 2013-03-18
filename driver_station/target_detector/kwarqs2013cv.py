@@ -20,6 +20,7 @@ class TargetDetector(object):
     
     contourColor = (255,128, 0)
     missedColor  = (255,255,0)
+    badRatioColor = (154,250,0)
     
     # each target type has a different color
     kTopColor     = (  0, 0, 255)   # red
@@ -30,19 +31,9 @@ class TargetDetector(object):
     kNearlyHorizontalSlope = math.tan(math.radians(20))
     kNearlyVerticalSlope = math.tan(math.radians(90-20))
     
-    # accuracy of polygon approximation
-    # -> TODO: determine what this actually means, seems like
-    #          it should be lower at lower resolutions
-    kPolyAccuracy = 10.0
-
-    kShooterOffsetDeg = 0.0
     #kHorizontalFOVDeg = 47.0        # AXIS M1011 field of view
     kHorizontalFOVDeg = 43.5         # AXIS M1011 field of view from WPILib
     kVerticalFOVDeg = 36.13          # from http://photo.stackexchange.com/questions/21536/how-can-i-calculate-vertical-field-of-view-from-horizontal-field-of-view
-    AXIS_CAMERA_VIEW_ANGLE = math.pi * 38.33 / 180.0
-    
-    kCameraHeightIn = 33.0      # 18 to 26 inches
-    kCameraPitchDeg = 11.5
     
     # import needed target data
     kTopInnerRatio = target_data.kTopInnerRatio
@@ -58,6 +49,8 @@ class TargetDetector(object):
     kTop = target_data.location.TOP
     kMid = target_data.location.MIDDLE
     kLow = target_data.location.LOW
+    kUnkL = target_data.location.UNKNOWNL
+    kUnkR = target_data.location.UNKNOWNR
     
     kOptimumVerticalPosition = target_data.kOptimumVerticalPosition
     
@@ -78,6 +71,9 @@ class TargetDetector(object):
         self.show_bin = False
         self.show_contours = False
         self.show_missed = False
+        self.show_badratio = False
+        self.show_ratio_labels = False
+        self.show_labels = True
         self.show_targets = True
         
         # thresholds
@@ -122,6 +118,9 @@ class TargetDetector(object):
                 self.kThickness = 1
                 self.kTgtThickness = 1 
                 
+                # accuracy of polygon approximation
+                self.kPolyAccuracy = 10.0
+                
             elif w <= 480:
                 k = 2
                 offset = (1,1)
@@ -132,6 +131,9 @@ class TargetDetector(object):
                 # drawing
                 self.kThickness = 1
                 self.kTgtThickness = 2
+                
+                # accuracy of polygon approximation
+                self.kPolyAccuracy = 15.0
                  
             else:
                 k = 3
@@ -143,6 +145,9 @@ class TargetDetector(object):
                 # drawing
                 self.kThickness = 1 
                 self.kTgtThickness = 2
+                
+                # accuracy of polygon approximation
+                self.kPolyAccuracy = 20.0
             
             self.morphKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (k,k), anchor=offset)
             
@@ -204,6 +209,8 @@ class TargetDetector(object):
         # stores the target data
         ctargets = [None]*len(contours)
         
+        #img = np.zeros(shape=img.shape, dtype=np.uint8)
+        
         for hidx, contour, in enumerate(contours):
             
             x, y, w, h = cv2.boundingRect(contour)
@@ -214,14 +221,14 @@ class TargetDetector(object):
             
             # detect defects.. 
             
-            # get the convex hull
-            convexhull = cv2.convexHull(contour.astype(np.float32), clockwise=True, returnPoints=True)
-            #defects = cv2.convexityDefects(contour, convexhull)
+            contour32 = contour.astype(np.float32)
             
-            #print defects
+            # get the convex hull
+            hull_idx = cv2.convexHull(contour32, clockwise=True, returnPoints=False)
+            hull_pts = np.take(contour32, hull_idx, 0).reshape(-1,1,2)
             
             # create a polygon from this thing
-            p = cv2.approxPolyDP(convexhull, self.kPolyAccuracy, False)
+            p = cv2.approxPolyDP(hull_pts, self.kPolyAccuracy, False)
             
             if not cv2.isContourConvex(p) or not (len(p) == 4 or len(p) == 5):
                 # discard this too
@@ -229,42 +236,67 @@ class TargetDetector(object):
                     cv2.drawContours(img, [p.astype(np.int32)], -1, self.missedColor, thickness=self.kThickness)
                 continue
             
-            # TODO: these should not be linear on each side, since it gets distorted
-            # at angles. 
-            
             # calculate the actual length of the sides, and determine the ratio
             # based on that. the original code used the bounding box, but that
             # fails when trying to discriminate rectangles from each other
+            ((centerX, centerY), (rw, rh), rotation) = cv2.minAreaRect(p)
+
+            # sometimes minAreaRect decides to rotate the rectangle too much.
+            # detect that and fix it. 
+            if (w > h and rh < rw) or (h > w and rw < rh):
+                rh, rw = rw, rh  # swap
             
-            # minAreaRect returns:
-            # -> ((centerX, centerY), (w, h), rotation)
-            rotated = cv2.minAreaRect(p)
-            #print x, y, w, h
-            #print rotated
+            ratio = float(rw)/rh
             
+            # most things at this point will be a rectangle. Look for
+            # things that have at least one large defect along the edge
+            # of the image that is greater than 25% of the width
+            defects = cv2.convexityDefects(contour, hull_idx)
             
-            ratio = float(rotated[1][0])/rotated[1][1]
+            big_defect = rw * 0.25
             
+            for i in xrange(defects.shape[0]):
+                start_idx, end_idx, far_idx, depth = defects[i,0]
+                if (depth / 255.0) > big_defect:
+                    
+                    x1 = contour[start_idx, 0, 0]
+                    x2 = contour[end_idx, 0, 0]
+                    
+                    # determine if its on the side
+                    if x1 < 5 and x2 < 5: 
+                        ratio = None
+                        tgt = target_data.location.UNKNOWNL
+                        break
+                    
+                    elif iw - x1 < 5 and iw - x2 < 5:
+                        ratio = None
+                        tgt = target_data.location.UNKNOWNR
+                        break
             
             # TODO: get rid of magic constants
             
-            if ratio >= self.kTopInnerRatio - 0.1 and ratio <= self.kTopOuterRatio + 0.03:
-                tgt = target_data.location.TOP
-                
-            elif abs(ratio - self.kMidOuterRatio) < 0.1:
-                tgt = target_data.location.MIDDLE
-                
-            elif abs(ratio - self.kLowOuterRatio) < 0.1:
-                tgt = target_data.location.LOW
-                
-            else:
-                # discard this object
-                continue
+            if ratio is not None:
             
-            #cv2.rectangle(img, (x,y), ((x + w), (y + h)), (255,0,0))
-            #cv2.circle(img, (int(rect[0][0]), int(rect[0][1])), 3, (255,0,0))
-                
-                
+                if ratio >= self.kTopInnerRatio - 0.1 and ratio <= self.kTopOuterRatio + 0.03:
+                    tgt = self.kTop
+                    
+                elif abs(ratio - self.kMidOuterRatio) < 0.1:
+                    tgt = self.kMid
+                    
+                elif abs(ratio - self.kLowOuterRatio) < 0.1:
+                    tgt = self.kLow
+                    
+                else:
+                    # discard this object
+                    
+                    if self.show_badratio:
+                        cv2.drawContours(img, [p.astype(np.int32)], -1, self.badRatioColor, thickness=self.kThickness)
+                    
+                        if self.show_ratio_labels:
+                            cv2.putText(img, '%.3f' % ratio, (x+5,y+5), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), bottomLeftOrigin=False)
+                    
+                    continue            
+                    
             # We passed the first test...we fit a rectangle to the polygon
             # Now do some more tests
             
@@ -273,8 +305,8 @@ class TargetDetector(object):
             numNearlyVertical = 0
             
             for i in xrange(0,4):
-                dy = p[i, 0, 0] - p[(i+1)%4, 0, 0]
-                dx = p[i, 0, 1] - p[(i+1)%4, 0, 1] 
+                dy = p[i, 0, 1] - p[(i+1)%4, 0, 1]
+                dx = p[i, 0, 0] - p[(i+1)%4, 0, 0] 
                 slope = sys.float_info.max
                 
                 if dx != 0:
@@ -317,73 +349,145 @@ class TargetDetector(object):
                 all_targets.append(target)
                 continue
             
-            # if it is, and they disagree on type, whichever difference is 
-            # closer... change the parent to that one
-            if parent.location != target.location:
-                # TODO?
+            # if the type is UNKNOWN, and it has a parent that is a target, get rid of it
+            if target.location == self.kUnkL or target.location == self.kUnkR:
                 pass
+            
+            else:
+                # if it is, and they disagree on type, whichever difference is 
+                # closer... change the parent to that one
+                if parent.location != target.location:
+                    # TODO?
+                    pass
             
             # the child will be discarded
             if self.show_missed:
                 cv2.drawContours(img, [target.polygon], -1, self.missedColor, thickness=self.kThickness)
-
-        
-        # does it make more sense to do this part in the UI thread?
+                
+                if self.show_ratio_labels:
+                    cv2.putText(img, '%.3f' % target.ratio, (target.x,target.y), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), bottomLeftOrigin=False)
             
         # categorize the targets according to position
         lows = []
         mids = []
-        tops = [] 
+        tops = []
+        unks = []
         
-        for target in all_targets:
+        def _draw_target(target, color, label):
+            if self.show_targets: 
+                cv2.drawContours(img, [target.polygon], -1, color, thickness=self.kTgtThickness)
+                
+                if self.show_labels or self.show_ratio_labels:
+                    ratio_label = '%.3f' % target.ratio if target.ratio is not None else 'None'
+                    
+                    if self.show_labels:
+                        if self.show_ratio_labels:
+                            label = label + ' ' + ratio_label 
+                    elif self.show_ratio_labels:
+                        label = ratio_label
+                    
+                    cv2.putText(img, label, (target.x,target.y), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), bottomLeftOrigin=False)
+        
+        for i, target in enumerate(all_targets):
             if target is None:
                 continue
             
             # calculate the targeting information
             
-            
             if target.location == self.kTop:
                 tops.append(target)
-                color = self.kTopColor
                 self._set_measurements(iw, ih, target, self.kTopTgtHCenter, centerOfImageY)
+                _draw_target(target, self.kTopColor, 'TOP')
                 
             elif target.location == self.kMid:
                 mids.append(target)
-                color = self.kMidColor
                 self._set_measurements(iw, ih, target, self.kMidTgtHCenter, centerOfImageY)
                 
             elif target.location == self.kLow:
                 lows.append(target)
-                color = self.kLowColor
                 self._set_measurements(iw, ih, target, self.kLowTgtHCenter, centerOfImageY)
+                _draw_target(target, self.kLowColor, 'LOW')
                 
-            if self.show_targets: 
-                cv2.drawContours(img, [target.polygon], -1, color, thickness=self.kTgtThickness)
-        
-        # determine the left and right targets if possible
-        if len(tops) != 0:
+            else:
+                unks.append(target)
+                continue
 
-            # -> sort by their left most edge
-            #    does it make sense to sort by their center instead?
+                            
+        # sort the tops by the highest target
+        # -> lowest numeric value is the highest!
+        tops.sort(key=lambda tgt: tgt.cy)
         
-            mids.sort(key=lambda tgt: tgt.x)
-                    
-            # sort the tops by the highest target
-            # -> lowest numeric value is the highest!
-            tops.sort(key=lambda tgt: tgt.y)
-            top = tops[0]
+        # determine what the unknown targets are, based on other targets
+        if len(unks) != 0:
+            if len(tops) != 0:
+                
+                for target in unks:
+                    if target.cy > tops[0].cy + tops[0].h * 0.5:
+                        target.location = self.kMid
+                        mids.append(target)
+                        
+                        _draw_target(target, self.kMidColor)
+                
+            elif len(mids) != 0:
+                
+                mids.sort(key=lambda tgt: tgt.cy)
+                
+                for target in unks:
+                    if target.cy < mids[0].cy - mids[0].h * 0.1:
+                        target.location = self.kTop
+                        tops.append(target)
+                        _draw_target(target, self.kTopColor, 'TOP')
+                                                    
+                    elif target.cy > mids[0].cy + mids[0].h:
+                        target.location = self.kLow
+                        lows.append(target)
+                        _draw_target(target, self.kLowColor, 'LOW')
+                        
+                    else:
+                        target.location = self.kMid
+                        mids.append(target)
+        
+        # determine the left and right middle targets if possible
+        # -> There's probably a better way to do this.. 
+        
+        # sort the middles by their left most edge    
+        mids.sort(key=lambda tgt: tgt.x)
+        
+        # since the leftmost is first, the left most target is probably 
+        # the left target.. 
+        next = target_data.location.LMIDDLE
+        label = 'L-MID'
+        
+        if len(tops) != 0:
             
-            next = target_data.location.LMIDDLE
+            top = tops[0]
                     
             for target in mids:
-                if target.x < top.x:
+                # the left most target is probably the left target.. 
+                if target.x < top.x: 
                     target.location = next
-                    next = target_data.location.RMIDDLE 
+                    
+                    _draw_target(target, self.kMidColor, label)
+                    
+                    next = target_data.location.MIDDLE
+                    label = 'MID?'
                 else:
-                    target.location = target_data.location.RMIDDLE   
+                    target.location = target_data.location.RMIDDLE
+                    _draw_target(target, self.kMidColor, 'R-MID')
+        else:
+            
+            for target in mids:
+                target.location = next
+                    
+                _draw_target(target, self.kMidColor, label)
+                
+                next = target_data.location.RMIDDLE
+                label = 'R-MID'                 
+                    
+        all_targets = lows + mids + tops
                     
         # sort the low targets
-        lows.sort(key=lambda tgt: tgt.y)
+        lows.sort(key=lambda tgt: tgt.cy)
             
         cat_tgts = {'top': tops,
                     'mid': mids,

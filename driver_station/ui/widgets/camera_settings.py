@@ -28,6 +28,9 @@ class CameraSettings(object):
         
         'on_check_show_contours_toggled',
         'on_check_show_missed_toggled',
+        'on_check_show_badratio_toggled',
+        'on_check_show_ratio_labels_toggled',
+        'on_check_show_labels_toggled',
         'on_check_show_targets_toggled',
         
         'on_camera_refresh_clicked'
@@ -82,6 +85,18 @@ class CameraSettings(object):
         
     def on_check_show_missed_toggled(self, widget):
         self.processor.detector.show_missed = widget.get_active()
+        self.processor.refresh()
+        
+    def on_check_show_badratio_toggled(self, widget):
+        self.processor.detector.show_badratio = widget.get_active()
+        self.processor.refresh()
+        
+    def on_check_show_ratio_labels_toggled(self, widget):
+        self.processor.detector.show_ratio_labels = widget.get_active()
+        self.processor.refresh()
+        
+    def on_check_show_labels_toggled(self, widget):
+        self.processor.detector.show_labels = widget.get_active()
         self.processor.refresh()
         
     def on_check_show_targets_toggled(self, widget):
