@@ -67,6 +67,8 @@ class FeederPro():
         self.distance = self.frisbee_sensor.GetDistance()
         self.using_frisbee_sensor = True
         
+        #mode of which feed to use
+        self.feed_mode_auto = True
     def get_frisbee_count(self):    
         '''Gets the distance away an object is from the sensor based on the voltage of the sensor'''
         self.frisbee_count = None
@@ -107,6 +109,21 @@ class FeederPro():
         '''
         return self.feed_sensor.GetDistance() < FEEDER_READY_DISTANCE
     
+    def set_mode_auto(self):
+        ''' sets mode auto '''
+        self.feed_mode_auto = True
+        
+    def set_mode_manual(self):
+        ''' sets mode manual '''
+        self.feed_mode_auto = False
+         
+    def feed(self):
+        ''' determines feed mode and uses it '''
+        if self.feed_mode_auto:
+            self.feed_auto()
+        else:
+            self.feed_manual()
+            
     def feed_auto(self):
         ''' automatic feed function this will stop at the sensor location'''
         

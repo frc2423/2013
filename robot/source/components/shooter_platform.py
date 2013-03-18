@@ -41,6 +41,8 @@ class ShooterPlatform(object):
         self.pre_is_ready_angle = None
         self.pre_is_ready_speed = None
         
+        #mode
+        self.wheel_on = False
        
     def current_angle(self):
         ''' Gets the real angle '''
@@ -55,7 +57,20 @@ class ShooterPlatform(object):
         
         # use the limit switch in case the pot breaks
         return not self.angle_jag.motor.GetForwardLimitOK()
-     
+    
+    def set_on(self):
+        self.wheel_on =True
+        
+    def set_off(self):
+        self.wheel_on = False
+        
+    def set_speed(self, speed):
+        ''' sets speed based on the mode it is in '''
+        if  self.wheel_on:
+            self.set_speed_manual(speed)
+        else:
+            self.set_speed_manual(0)
+         
     def set_angle_auto(self, d_angle):
         '''
             Presets the angle automatically to the desired angle stores the past 
