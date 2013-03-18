@@ -13,7 +13,7 @@ from imgproc import CvImg, CvContour, colorspace
 import kwarqs2013cv
 
 import logging
-from common import logutil
+from common import logutil, settings
 logger = logging.getLogger(__name__)
 
 
@@ -129,6 +129,14 @@ class ImageProcessor(object):
         
         logger.info("Static processing thread starting")
         idx = -1
+        
+        # resume processing with the last image the user looked at
+        last_img = settings.get('processing/last_img', None)
+        for i, image_name in enumerate(self.images):
+            if image_name == last_img:
+                self.idx = i
+                break 
+        
         while True:
         
             with self.condition:
@@ -162,6 +170,9 @@ class ImageProcessor(object):
                 except:
                     logutil.log_exception(logger, 'error processing image')
                 else:
+                    settings.set('processing/last_img', image_name)
+                    settings.save()
+                    
                     logger.info('Finished processing')
                 
                     # note that you cannot typically interact with the UI
