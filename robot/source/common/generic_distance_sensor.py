@@ -9,7 +9,7 @@
 '''
 
 import math
-from common.conversions import *
+from common.constants import *
 
 try:
     import wpilib
@@ -52,7 +52,7 @@ class GenericDistanceSensor(wpilib.AnalogChannel):
         v = self.GetVoltage()
         
         # if the value is zero, return zero
-        if v == 0:
+        if v <= 0:
             return 0
     
         # convert the voltage to a distance
@@ -71,7 +71,7 @@ class GenericDistanceSensor(wpilib.AnalogChannel):
         v = self.GetAverageVoltage()
                 
         # if the value is zero, return zero
-        if v == 0:
+        if v <= 0:
             return 0
     
         # convert the voltage to a distance

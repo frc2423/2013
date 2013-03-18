@@ -19,12 +19,18 @@ class ClimbingMode(object):
     DEFAULT = False
 
 
-    def __init__(self, components):
-        '''Constructor: store components locally here'''
+    def __init__(self, components, ds):
+        '''
+            Constructor
+            
+            params:components    dictionary of components
+            params:ds            driver station instance
+        '''
         self.climber = components['climber']
         self.platform = components['shooter_platform']
         self.drive = components['drive']
         self.feeder = components['feeder']
+        self.ds = ds
     def on_enable(self):
         pass
         
@@ -38,15 +44,15 @@ class ClimbingMode(object):
         # 
         #    Driving
         #
-        
-        self.drive.drive(self.stick_axis(self.DRIVE_SPEED_AXIS),
-                            self.stick_axis(self.DRIVE_ROTATE_AXIS),
-                            self.stick_button_on(self.DRIVE_FASTER_BUTTON))
+        ds = self.ds
+        self.drive.drive(stick_axis(DRIVE_SPEED_AXIS, ds),
+                            stick_axis(DRIVE_ROTATE_AXIS, ds),
+                            stick_button_on(DRIVE_FASTER_BUTTON, ds))
         #
         #    Shooter
         #
         self.platform.set_angle_auto(0)
-        self.platform.set_speed_manual(0.0)
+        self.platform.set_speed(0.0)
         
         #
         #    Climber
@@ -54,17 +60,17 @@ class ClimbingMode(object):
         #        the climbing safety features won't kick in
         #
         
-        if self.stick_button_on(self.CLIMB_DOWN_BUTTON):
+        if stick_button_on(CLIMB_DOWN_BUTTON, ds):
             self.my_climber.lower()
-        elif self.stick_button_on(self.CLIMB_UP_BUTTON):
+        elif stick_button_on(CLIMB_UP_BUTTON, ds):
             self.my_climber.climb() 
         
         #
         #climbing rotation, set after driving to override joystick input
         #
-        if self.stick_button_on(self.CLIMB_TWIST_L_BUTTON):
+        if stick_button_on(CLIMB_TWIST_L_BUTTON, ds):
             self.drive.drive(0.0, -0.9)
-        elif self.stick_button_on(self.CLIMB_TWIST_R_BUTTON):
+        elif stick_button_on(CLIMB_TWIST_R_BUTTON, ds):
             self.drive.drive(0.0, 0.9)
                   
             

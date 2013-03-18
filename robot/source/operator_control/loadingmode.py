@@ -21,12 +21,18 @@ class LoadingMode(object):
     DEFAULT = True
 
 
-    def __init__(self, components):
-        '''Constructor: store components locally here'''
+    def __init__(self, components, ds):
+        '''
+            Constructor
+            
+            params:components    dictionary of components
+            params:ds            driver station instance
+        '''
         self.climber = components['climber']
         self.platform = components['shooter_platform']
         self.drive = components['drive']
         self.feeder = components['feeder']
+        self.ds = ds
     def on_enable(self):
         pass
         
@@ -41,15 +47,15 @@ class LoadingMode(object):
         # 
         #    Driving
         #
-        
-        self.drive.drive(self.stick_axis(self.DRIVE_SPEED_AXIS),
-                            self.stick_axis(self.DRIVE_ROTATE_AXIS),
-                            self.stick_button_on(self.DRIVE_FASTER_BUTTON))
+        ds = self.ds
+        self.drive.drive(stick_axis(DRIVE_SPEED_AXIS, ds),
+                            stick_axis(DRIVE_ROTATE_AXIS, ds),
+                            stick_button_on(DRIVE_FASTER_BUTTON, ds))
         #
         #    Shooter set to 0
         #
         self.platform.set_angle_auto(0)
-        self.platform.set_speed_manual(0.0)
+        self.platform.set_speed(0.0)
         
         #
         #set climber to lowered

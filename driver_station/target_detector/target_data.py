@@ -37,8 +37,10 @@ kOptimumVerticalPosition = 0.7
 location = common.enum(TOP=0, 
                        LMIDDLE=3,   # left of top
                        RMIDDLE=4,   # right of top
-                       MIDDLE=1,    # unknown
-                       LOW=2)
+                       MIDDLE=1,    # unknown middle
+                       LOW=2,
+                       UNKNOWNL=5,
+                       UNKNOWNR=6)
 
 class Target(object):
     

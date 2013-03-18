@@ -20,11 +20,19 @@ class ManualMode(object):
     DEFAULT = False
 
 
-    def __init__(self, components):
-        '''Constructor: store components locally here'''
+    def __init__(self, components ,ds):
+        '''
+            Constructor
+            
+            params:components    dictionary of components
+            params:ds            driver station instance
+        '''
         self.climber = components['climber']
         self.shooter_platform = components['shooter_platform']
         self.feeder = components['feeder']
+        self.drive = components['drive']
+        self.platform = components['shooter_platform']
+        self.ds = ds
     def on_enable(self):
         pass
         
@@ -43,19 +51,19 @@ class ManualMode(object):
         # 
         #    Driving
         #
-        
-        self.drive.drive(self.stick_axis(self.DRIVE_SPEED_AXIS),
-                            self.stick_axis(self.DRIVE_ROTATE_AXIS),
-                            self.stick_button_on(self.DRIVE_FASTER_BUTTON))
+        ds = self.ds
+        self.drive.drive(stick_axis(DRIVE_SPEED_AXIS,ds),
+                            stick_axis(DRIVE_ROTATE_AXIS,ds),
+                            stick_button_on(DRIVE_FASTER_BUTTON,ds))
         
         #
         #    Shooter
         #
         
-        shootery = self.translate_axis(self.SHOOTER_WHEEL_AXIS, -1.0, 0.0)
+        shootery = translate_axis(SHOOTER_WHEEL_AXIS, -1.0, 0.0,ds)
         wpilib.SmartDashboard.PutNumber('Shooter Raw', shootery)
             
-        self.platform.set_speed_manual(shootery)
+        self.platform.set_speed(shootery)
        
         #
         #There should be some sort of toggle for this to turn the shooter on or off
@@ -66,7 +74,7 @@ class ManualMode(object):
         #
         #Shooting Platform control
         #
-        self.shooter_platform.set_angle_manual(-self.stick_axis(self.PLATFORM_ANGLE_AXIS))
+        self.shooter_platform.set_angle_manual(-stick_axis(PLATFORM_ANGLE_AXIS, ds))
         
         #
         #lower climber
@@ -77,9 +85,9 @@ class ManualMode(object):
         #    Feeder
         #
         #    what happens when the sensor breaks?
-        if self.stick_button_on(self.FEEDER_FEED_BUTTON):
-            self.feeder.feed_auto()
-        elif self.stick_button_on(self.FEEDER_BACK_BUTTON):
+        if stick_button_on(FEEDER_FEED_BUTTON, ds):
+            self.feeder.feed()
+        elif stick_button_on(FEEDER_BACK_BUTTON, ds):
             self.feeder.reverse_feed()
             
   #  def update(self):

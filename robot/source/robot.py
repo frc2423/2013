@@ -139,35 +139,15 @@ control_loop_wait_time = 0.02
                                                             
 class MyRobot(wpilib.SimpleRobot):
     
-    # available toggle switch ports on enhanced EIO
-    # -> 2, 4, 8, 12, 16
-    
     # import into this namespace
     ANGLE_MIN_ANGLE = ANGLE_MIN_ANGLE
     ANGLE_MAX_ANGLE = ANGLE_MAX_ANGLE
-    
-    EIO_CHANNELS = [2,4,8,12,16]
-    
-    # toggle switch definitions
-    # -> call is_toggle_on() with this value to get True/False
-    
-    SHOOTER_ON              = EIO_CHANNELS[0]
-    MANUAL_SHOOTER_ON       = EIO_CHANNELS[1]
-    MANUAL_ANGLE_ON         = EIO_CHANNELS[2]
-    AUTO_TARGETING_ON       = EIO_CHANNELS[3]
-    
     
     def __init__(self):
         wpilib.SimpleRobot.__init__(self)
         
         self.ds = wpilib.DriverStation.GetInstance()
-        self.eio = self.ds.GetEnhancedIO()
-        
-        # initialize the enhanced I/O ports for toggle switches
-        
-        for channel in self.EIO_CHANNELS:
-            self.eio.SetDigitalConfig(channel, wpilib.DriverStationEnhancedIO.kInputFloating)
-        
+             
         # create the component instances
         climber = Climber(valve1, valve2)
         
@@ -217,7 +197,7 @@ class MyRobot(wpilib.SimpleRobot):
         self.components = [v for v in components.values() if hasattr(v, 'update')]
         self.components.append(climber)
         # self.autonomous_mode = AutonomousModeManager(components)
-        self.operator_control_mode = OperatorControlManager(components)
+        self.operator_control_mode = OperatorControlManager(components, self.ds)
     
         
     def RobotInit(self):
@@ -241,11 +221,20 @@ class MyRobot(wpilib.SimpleRobot):
     def OperatorControl(self):
         
         print("MyRobot::OperatorControl()")
+        # set the watch dog
+        dog = self.GetWatchdog()
+        dog.SetEnabled(True)
+        dog.SetExpiration(0.25)
         
-        #All operator control functions are now in OperatorControlManager   
-        self.operator_control_mode.run(self)
+        compressor.Start()   
+        
+        # All operator control functions are now in OperatorControlManager   
+        self.operator_control_mode.run(self, control_loop_wait_time)
 
-            
+        #
+        # Done with operator mode, finish up
+        #
+        compressor.Stop()     
     
     #
     #    Other

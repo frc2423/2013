@@ -21,14 +21,20 @@ class AutoTargetMode(object):
     DEFAULT = False
 
 
-    def __init__(self, components):
-        '''Constructor: store components locally here'''
+    def __init__(self, components, ds):
+        '''
+            Constructor
+            
+            params:components    dictionary of components
+            params:ds            driver station instance
+        '''
         self.climber = components['climber']
         self.auto_targeting = components['auto_targeting']
         self.robot_turner = components['robot_turner']
         self.feeder = components['feeder']
         self.drive = components['drive']
         self.platform = components['shooter_platform']
+        self.ds = ds
     def on_enable(self):
         pass
         
@@ -48,11 +54,12 @@ class AutoTargetMode(object):
         #
         #    Shooter
         #
-        
-        shootery = self.translate_axis(self.SHOOTER_WHEEL_AXIS, -1.0, 0.0)
+        #    Shooter is manual because we do not have an encoder
+        ds = self.ds
+        shootery = translate_axis(SHOOTER_WHEEL_AXIS, -1.0, 0.0, ds)
         wpilib.SmartDashboard.PutNumber('Shooter Raw', shootery)
             
-        self.platform.set_speed_manual(shootery)
+        self.platform.set_speed(shootery)
        
         #
         #There should be some sort of toggle for this to turn the shooter on or off
@@ -66,17 +73,17 @@ class AutoTargetMode(object):
         #
         self.auto_targeting.perform_targeting()
         
-        if self.stick_button_on(self.AUTO_TARGET_BUTTON):
-            self.robot_turner.auto_turn()
+        if stick_button_on(AUTO_TARGET_BUTTON,ds):
+            robot_turner.auto_turn()
              
     
         # 
         #    Driving
         #
         
-        self.drive.drive(self.stick_axis(self.DRIVE_SPEED_AXIS),
-                            self.stick_axis(self.DRIVE_ROTATE_AXIS),
-                            self.stick_button_on(self.DRIVE_FASTER_BUTTON))
+        self.drive.drive(stick_axis(DRIVE_SPEED_AXIS, ds),
+                            stick_axis(DRIVE_ROTATE_AXIS, ds),
+                            stick_button_on(DRIVE_FASTER_BUTTON, ds))
 
         #
         #    make sure sure climber is lowered 
@@ -87,9 +94,9 @@ class AutoTargetMode(object):
         #    Feeder
         #
         #    what happens when the sensor breaks?
-        if self.stick_button_on(self.FEEDER_FEED_BUTTON):
-            self.feeder.feed_auto()
-        elif self.stick_button_on(self.FEEDER_BACK_BUTTON):
+        if stick_button_on(FEEDER_FEED_BUTTON, ds):
+            self.feeder.feed()
+        elif stick_button_on(FEEDER_BACK_BUTTON, ds):
             self.feeder.reverse_feed()
             
   #  def update(self):

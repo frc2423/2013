@@ -28,6 +28,7 @@ class Dashboard(object):
         
     ]
     ui_signals = [
+        'on_cancel_targeting_button_clicked',
         'on_window_destroy'
     ]
     
@@ -72,6 +73,9 @@ class Dashboard(object):
         
     def on_window_destroy(self, widget):
         gtk.main_quit()
+        
+    def on_cancel_targeting_button_clicked(self, widget):
+        self.camera_widget.set_target(None)
         
     #
     # Camera debug settings
