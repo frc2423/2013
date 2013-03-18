@@ -201,45 +201,68 @@ class TargetDetector(object):
         if self.show_contours:
             cv2.drawContours(img, contours, -1, (255,0,0), thickness=self.kThickness)
         
-        contours = [cv2.convexHull(c.astype(np.float32), clockwise=True, returnPoints=True) for c in contours]
-        
         # stores the target data
         ctargets = [None]*len(contours)
         
         for hidx, contour, in enumerate(contours):
+            
             x, y, w, h = cv2.boundingRect(contour)
-            ratio = float(h)/w
             
             # remove noise (maybe check max width too?)
             if w < self.kMinWidth:
                 continue
             
-            # TODO: these should not be linear on each side, since it gets distorted
-            # at angles. 
+            # detect defects.. 
             
-            # TODO: get rid of magic constants
+            # get the convex hull
+            convexhull = cv2.convexHull(contour.astype(np.float32), clockwise=True, returnPoints=True)
+            #defects = cv2.convexityDefects(contour, convexhull)
             
-            if ratio >= self.kTopInnerRatio - 0.1 and ratio <= self.kTopOuterRatio + 0.03:
-                p = cv2.approxPolyDP(contour, self.kPolyAccuracy, False)
-                tgt = target_data.location.TOP
-                
-            elif abs(ratio - self.kMidOuterRatio) < 0.1:
-                p = cv2.approxPolyDP(contour, self.kPolyAccuracy, False)
-                tgt = target_data.location.MIDDLE
-                
-            elif abs(ratio - self.kLowOuterRatio) < 0.1:
-                p = cv2.approxPolyDP(contour, self.kPolyAccuracy, False)
-                tgt = target_data.location.LOW
-                
-            else:
-                # discard this object
-                continue
+            #print defects
+            
+            # create a polygon from this thing
+            p = cv2.approxPolyDP(convexhull, self.kPolyAccuracy, False)
             
             if not cv2.isContourConvex(p) or not (len(p) == 4 or len(p) == 5):
                 # discard this too
                 if self.show_missed:
                     cv2.drawContours(img, [p.astype(np.int32)], -1, self.missedColor, thickness=self.kThickness)
                 continue
+            
+            # TODO: these should not be linear on each side, since it gets distorted
+            # at angles. 
+            
+            # calculate the actual length of the sides, and determine the ratio
+            # based on that. the original code used the bounding box, but that
+            # fails when trying to discriminate rectangles from each other
+            
+            # minAreaRect returns:
+            # -> ((centerX, centerY), (w, h), rotation)
+            rotated = cv2.minAreaRect(p)
+            #print x, y, w, h
+            #print rotated
+            
+            
+            ratio = float(rotated[1][0])/rotated[1][1]
+            
+            
+            # TODO: get rid of magic constants
+            
+            if ratio >= self.kTopInnerRatio - 0.1 and ratio <= self.kTopOuterRatio + 0.03:
+                tgt = target_data.location.TOP
+                
+            elif abs(ratio - self.kMidOuterRatio) < 0.1:
+                tgt = target_data.location.MIDDLE
+                
+            elif abs(ratio - self.kLowOuterRatio) < 0.1:
+                tgt = target_data.location.LOW
+                
+            else:
+                # discard this object
+                continue
+            
+            #cv2.rectangle(img, (x,y), ((x + w), (y + h)), (255,0,0))
+            #cv2.circle(img, (int(rect[0][0]), int(rect[0][1])), 3, (255,0,0))
                 
                 
             # We passed the first test...we fit a rectangle to the polygon
