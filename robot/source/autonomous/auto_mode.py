@@ -18,12 +18,14 @@ from systems.robot_turner import RobotTurner
 
 #time for velocity
 t = 1
-distance_1 = 3
+distance_1 = 5
 distance_2 = 8.81
 right_angle = 90
 left_angle = -90
 
 class Autonomous(object):
+    '''storing each component object
+    starts from 4 different positions, moves a certain distance to be able to shoot, then turns and uses autoshooter'''
     
     def __init__(self, my_drive,my_shooter_platform, my_target_detector, my_shooter, my_auto_targeting):
         
@@ -79,17 +81,7 @@ class Autonomous(object):
             self.RobotTurner.auto_turn()
         
         
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+    
         
         
         
