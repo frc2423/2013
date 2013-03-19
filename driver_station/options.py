@@ -27,6 +27,9 @@ def configure_options():
     parser.add_option('--logdir', dest='log_dir', default=_get_logdir_path(),
                       help='Directory to store logging information into')
     
+    parser.add_option('--competition', dest='competition', default=False, action='store_true',
+                      help='Set the dashboard to be in competition mode')
+	
     target_detector.options.configure_options(parser)
     
     return parser
