@@ -27,7 +27,7 @@ class Autonomous(object):
     '''storing each component object
     starts from 4 different positions, moves a certain distance to be able to shoot, then turns and uses autoshooter'''
     
-    def __init__(self, my_drive,my_shooter_platform, my_target_detector, my_shooter, my_auto_targeting):
+    def __init__(self, my_drive, my_shooter_platform, my_target_detector, my_shooter, my_auto_targeting):
         
         self.driving = my_drive
         self.shooter_platform = my_shooter_platform
@@ -79,6 +79,29 @@ class Autonomous(object):
         else:
             self.RobotTurner.set_angle(right_angle)
             self.RobotTurner.auto_turn()
+            
+    def update(self, time_elapsed):
+        if self.time_elapsed <t:
+            self.driving.drive(1, 0)
+        else:
+            target_data =  self.target_detector.get_data()
+            if target_data[0] == None:
+                self.driving.drive(0, .5)
+            elif not self.target_detector.is_aimed():
+                self.auto_targeting.perform_targeting()
+            else:
+                if self.shooter_platform.wheel_on != True:
+                    self.shooter_platform.set_on()
+                self.shooter.shoot_if_ready()
+                
+                
+                
+                
+            
+    
+        
+            
+ 
         
         
     
