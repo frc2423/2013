@@ -25,7 +25,7 @@ class BottomLeft(object):
 
     def __init__(self, components):
         
-        self.driving = components['driving']
+        self.driving = components['drive']
         self.shooter_platform = components ['shooter_platform']
         self.target_detector = components ['target_detector']
         self.shooter = ['shooter']
@@ -34,26 +34,35 @@ class BottomLeft(object):
         
         
     def on_enable(self):
-        #t determined by t = distance/v
+        #t determined by t = distance/v where distance is either top or bottom and v is the robot's speed
         v = 1
         distance_bot = 5
-        distance_top = 8.81
         t = distance_bot/v
+        #replace power of driving appropriately 
         ang_pw_left = -.5
-        ang_pw_right = .5
         drive_pw = 1
+        
+        pass
         
         
     def on_disable(self):
         pass
         
     def update(self, time_elapsed):
-        if self.time_elapsed < t:
+        v = 1
+        distance_bot = 5
+        t = distance_bot/v
+        ang_pw_left = -.5
+        drive_pw = 1
+        #needs an is_aimed() function
+        if time_elapsed < t:
             self.driving.drive(drive_pw, 0)
+            
+        #turn until target is retrieved; turn wheel on if off; shoot when ready
         else:
             target_data =  self.target_detector.get_data()
             if target_data[0] == None:
-                self.driving.drive(0, ang_pw)
+                self.driving.drive(0, ang_pw_left)
             elif not self.target_detector.is_aimed():
                 self.auto_targeting.perform_targeting()
             else:
@@ -61,8 +70,4 @@ class BottomLeft(object):
                     self.shooter_platform.set_on()
                 self.shooter.shoot_if_ready()
                 
-        
-        
-        
-        
         
