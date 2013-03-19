@@ -2,7 +2,7 @@
 import gtk
 
 import util
-from widgets import targeter, camera_settings
+from widgets import targeter, camera_settings, frisbee_widget
 
 import logging
 logger = logging.getLogger(__name__)
@@ -24,6 +24,7 @@ class Dashboard(object):
         'window',
         
         'camera_widget',
+        'frisbee_widget',
         
         
     ]
@@ -40,11 +41,13 @@ class Dashboard(object):
         
         self.camera_widget = util.replace_widget(self.camera_widget, targeter.Targeter((640,480), table))
 
+        self.frisbee_widget = util.replace_widget(self.frisbee_widget, frisbee_widget.FrisbeeWidget(table))
+
         self.camera_settings.initialize()
        
         self.table = table
         
-        
+        self.window.set_title("Kwarqs Dashboard")
        
         if competition:
             self.window.move(0,0)

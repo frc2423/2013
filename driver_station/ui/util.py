@@ -3,6 +3,7 @@ import os
 
 import gtk
 
+data_dir = os.path.join(os.path.dirname(__file__), 'data')
 
 def initialize_from_xml(this, other=None):
     '''
@@ -21,7 +22,7 @@ def initialize_from_xml(this, other=None):
         Returns the builder object when done
     '''
     builder = gtk.Builder()
-    builder.add_from_file(os.path.join(os.path.dirname(__file__), 'data', this.ui_filename))
+    builder.add_from_file(os.path.join(data_dir, this.ui_filename))
     
     objects = [this]
     if other is not None:
