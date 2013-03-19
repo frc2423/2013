@@ -112,7 +112,7 @@ class OperatorControlManager(object):
         
         self.control_mode_chooser = wpilib.SendableChooser()
         sd.PutData('Operator Control Mode', self.control_mode_chooser) 
-        print( 'More Important: ', sd._table.data)
+        
         print("Loaded operator control modes:")
         for k,v in self.modes.items():
             

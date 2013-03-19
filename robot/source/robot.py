@@ -196,7 +196,7 @@ class MyRobot(wpilib.SimpleRobot):
         self.components = []
         self.components = [v for v in components.values() if hasattr(v, 'update')]
         self.components.append(climber)
-        # self.autonomous_mode = AutonomousModeManager(components)
+        self.autonomous_mode = AutonomousModeManager(components)
         self.operator_control_mode = OperatorControlManager(components, self.ds)
     
         
@@ -216,7 +216,7 @@ class MyRobot(wpilib.SimpleRobot):
         self.my_climber.lower()
         
         # this does all the autonomous mode work for us
-        # self.autonomous_mode.run(self, control_loop_wait_time)
+        self.autonomous_mode.run(self, control_loop_wait_time)
         
     def OperatorControl(self):
         

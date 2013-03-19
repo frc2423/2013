@@ -21,7 +21,7 @@ class Test(object):
             self.op_iterator = iter(self.op_chooser.choices)
 
         if hasattr(myrobot, "autonomous_mode"):
-            self.auto_chooser = myrobot.autonomous_mode.autonomous_mode_chooser
+            self.auto_chooser = myrobot.autonomous_mode.chooser
             self.auto_iterator = iter(self.auto_chooser.choices)
     
         self.Reset()
