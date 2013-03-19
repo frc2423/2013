@@ -32,7 +32,7 @@ class Dashboard(object):
         'on_window_destroy'
     ]
     
-    def __init__(self, processor, table):
+    def __init__(self, processor, table, competition):
         
         self.camera_settings = camera_settings.CameraSettings(processor)
         
@@ -44,6 +44,11 @@ class Dashboard(object):
        
         self.table = table
         
+        
+       
+        if competition:
+            self.window.move(0,0)
+            self.window.resize(1356, 525)
         # how does this work then?
         # -> create widgets
         # -> connect them to pynetworktables stuff somehow
