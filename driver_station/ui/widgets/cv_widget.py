@@ -55,19 +55,7 @@ class CvWidget(gtk.DrawingArea):
         
         cr = event.window.cairo_create()
         cr.set_source_surface(self.surface)
-        
-        # TODO: only draw damaged sections, instead of the whole image
-        w, h = self._fixed_size
-        
-        # tell cairo to draw the image onto the context
-        cr.line_to(0,0)
-        cr.line_to(w,0)
-        cr.line_to(w,h)
-        cr.line_to(0,h)
-        cr.line_to(0,0)
-        
-        cr.fill()
-        cr.stroke()
+        cr.paint()
     
     
     def set_from_np(self, img):
