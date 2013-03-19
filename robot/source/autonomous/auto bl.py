@@ -19,7 +19,7 @@ from systems.robot_turner import RobotTurner
 
 class BottomLeft(object):
     
-    MODE_NAME = "bottom left"
+    MODE_NAME = "bottom_left"
     DEFAULT = False
 
 
