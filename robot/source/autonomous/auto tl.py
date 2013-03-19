@@ -37,7 +37,7 @@ class TopLeft(object):
         #t determined by t = distance/v where distance is either top or bottom and v is the robot's speed
         v = 1
         distance_top = 8.81
-        t = distance_bot/v
+        t = distance_top/v
         #replace power of driving appropriately 
         ang_pw_left = -.5
         drive_pw = 1
