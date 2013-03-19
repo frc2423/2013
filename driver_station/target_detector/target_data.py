@@ -30,7 +30,8 @@ kLowTgtHCenter  = kLowEdgeHeight + kLowHeight/2.0
 kLowInnerRatio  = kLowHeight/kLowWidth                                    # 0.827586206897 
 kLowOuterRatio  = (kLowHeight + kTapeWidth*2)/(kLowWidth + kTapeWidth*2)  # 0.864864864865
 
-kOptimumVerticalPosition = 0.7
+kOptimumVerticalPosition = 0.7      # percent from top
+kOptimumHorizontalPosition = 0.55    # percent from left
 
 
 # target location types

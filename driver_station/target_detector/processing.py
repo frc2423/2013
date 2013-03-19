@@ -280,7 +280,7 @@ class ImageProcessor(object):
                     else:
                         logger.error("Camera disconnected, retrying")
                         
-                    self.camera_widget.set_no_camera()
+                    self.camera_widget.set_error()
                     break
             
         logger.info("Static processing thread exiting")

@@ -53,6 +53,7 @@ class TargetDetector(object):
     kUnkR = target_data.location.UNKNOWNR
     
     kOptimumVerticalPosition = target_data.kOptimumVerticalPosition
+    kOptimumHorizontalPosition = target_data.kOptimumHorizontalPosition
     
     kRatios = [kTopOuterRatio, kMidOuterRatio, kLowOuterRatio]
     
@@ -74,6 +75,7 @@ class TargetDetector(object):
         self.show_badratio = False
         self.show_ratio_labels = False
         self.show_labels = True
+        self.show_hangle = True
         self.show_targets = True
         
         # thresholds
@@ -253,25 +255,26 @@ class TargetDetector(object):
             # of the image that is greater than 25% of the width
             defects = cv2.convexityDefects(contour, hull_idx)
             
-            big_defect = rw * 0.25
-            
-            for i in xrange(defects.shape[0]):
-                start_idx, end_idx, far_idx, depth = defects[i,0]
-                if (depth / 255.0) > big_defect:
-                    
-                    x1 = contour[start_idx, 0, 0]
-                    x2 = contour[end_idx, 0, 0]
-                    
-                    # determine if its on the side
-                    if x1 < 5 and x2 < 5: 
-                        ratio = None
-                        tgt = target_data.location.UNKNOWNL
-                        break
-                    
-                    elif iw - x1 < 5 and iw - x2 < 5:
-                        ratio = None
-                        tgt = target_data.location.UNKNOWNR
-                        break
+            if defects is not None:
+                big_defect = rw * 0.25
+                
+                for i in xrange(defects.shape[0]):
+                    start_idx, end_idx, far_idx, depth = defects[i,0]
+                    if (depth / 255.0) > big_defect:
+                        
+                        x1 = contour[start_idx, 0, 0]
+                        x2 = contour[end_idx, 0, 0]
+                        
+                        # determine if its on the side
+                        if x1 < 5 and x2 < 5: 
+                            ratio = None
+                            tgt = target_data.location.UNKNOWNL
+                            break
+                        
+                        elif iw - x1 < 5 and iw - x2 < 5:
+                            ratio = None
+                            tgt = target_data.location.UNKNOWNR
+                            break
             
             # TODO: get rid of magic constants
             
@@ -375,18 +378,23 @@ class TargetDetector(object):
         
         def _draw_target(target, color, label):
             if self.show_targets: 
+                
+                components = []
                 cv2.drawContours(img, [target.polygon], -1, color, thickness=self.kTgtThickness)
                 
-                if self.show_labels or self.show_ratio_labels:
-                    ratio_label = '%.3f' % target.ratio if target.ratio is not None else 'None'
+                cv2.circle(img, (target.cx, target.cy), 3, color)
+                
+                if self.show_labels:
+                    components.append(label)
                     
-                    if self.show_labels:
-                        if self.show_ratio_labels:
-                            label = label + ' ' + ratio_label 
-                    elif self.show_ratio_labels:
-                        label = ratio_label
+                if self.show_hangle:
+                    components.append('%.1f' % target.hangle)
                     
-                    cv2.putText(img, label, (target.x,target.y), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), bottomLeftOrigin=False)
+                if self.show_ratio_labels:
+                    components.append('R%.3f' % target.ratio if target.ratio is not None else 'None')
+                
+                if len(components) != 0:
+                    cv2.putText(img, ' '.join(components), (target.x,target.y), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), bottomLeftOrigin=False)
         
         for i, target in enumerate(all_targets):
             if target is None:
@@ -402,6 +410,7 @@ class TargetDetector(object):
             elif target.location == self.kMid:
                 mids.append(target)
                 self._set_measurements(iw, ih, target, self.kMidTgtHCenter, centerOfImageY)
+                # don't draw the middle targets yet
                 
             elif target.location == self.kLow:
                 lows.append(target)
@@ -425,8 +434,8 @@ class TargetDetector(object):
                     if target.cy > tops[0].cy + tops[0].h * 0.5:
                         target.location = self.kMid
                         mids.append(target)
-                        
-                        _draw_target(target, self.kMidColor)
+                        self._set_measurements(iw, ih, target, self.kMidTgtHCenter, centerOfImageY)
+                        # don't draw middle targets yet
                 
             elif len(mids) != 0:
                 
@@ -436,16 +445,20 @@ class TargetDetector(object):
                     if target.cy < mids[0].cy - mids[0].h * 0.1:
                         target.location = self.kTop
                         tops.append(target)
+                        self._set_measurements(iw, ih, target, self.kTopTgtHCenter, centerOfImageY)
                         _draw_target(target, self.kTopColor, 'TOP')
                                                     
                     elif target.cy > mids[0].cy + mids[0].h:
                         target.location = self.kLow
                         lows.append(target)
+                        self._set_measurements(iw, ih, target, self.kLowTgtHCenter, centerOfImageY)
                         _draw_target(target, self.kLowColor, 'LOW')
                         
                     else:
                         target.location = self.kMid
                         mids.append(target)
+                        self._set_measurements(iw, ih, target, self.kLowTgtHCenter, centerOfImageY)
+                        # don't draw middle targets yet
         
         # determine the left and right middle targets if possible
         # -> There's probably a better way to do this.. 
@@ -499,7 +512,7 @@ class TargetDetector(object):
     def _set_measurements(self, iw, ih, target, tgt_center, centerOfImageY):
         
         # horizontal angle and vertical angle calculations from Youssef's code from 2012
-        target.hangle = (iw / 2.0 - target.cx) * self.kHorizontalFOVDeg / iw            
+        target.hangle = (iw * self.kOptimumHorizontalPosition - target.cx) * self.kHorizontalFOVDeg / iw            
         target.vangle = ((ih * self.kOptimumVerticalPosition) - target.cy) / (ih / self.kVerticalFOVDeg)
 
         # Distance calculations from Stephen

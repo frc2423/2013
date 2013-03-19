@@ -21,6 +21,9 @@ class Targeter(CvWidget):
     MIDDLE = target_detector.target_data.location.MIDDLE
     LOW = target_detector.target_data.location.LOW
     
+    kOptimumHorizontalPosition = target_detector.target_data.kOptimumHorizontalPosition
+    kOptimumVerticalPosition = target_detector.target_data.kOptimumVerticalPosition
+    
     def __init__(self, fixed_size, table):
         CvWidget.__init__(self, fixed_size)
         
@@ -98,14 +101,14 @@ class Targeter(CvWidget):
         with self.lock:
             active_target = self.active_target
             show_error = self.show_error
+            
+        ww, wh = event.window.get_size()
         
         # if there is an error, draw a warning icon 
         if show_error == True:
             pixbuf = self.render_icon(gtk.STOCK_DIALOG_WARNING, gtk.ICON_SIZE_DIALOG)
             
             # center it
-            ww, wh = event.window.get_size()
-            
             pw = pixbuf.get_width()
             ph = pixbuf.get_height()
             
@@ -115,33 +118,42 @@ class Targeter(CvWidget):
             
             event.window.draw_pixbuf(None, pixbuf, 0, 0, x, y)
         
-            
-        if active_target is None:
-            return
-        
+        cxt = event.window.cairo_create()
         
         # this needs improvement
-        if active_target is None:
-            return
-        
-        cxt = event.window.cairo_create()
-        if self.zoom != 1:
-            scale = 1.0/self.zoom
-            cxt.scale(scale, scale)
-        
-        polygon = self.active_target.polygon
+        if active_target is not None:
             
-        self.draw_contour(cxt, polygon)
+            if self.zoom != 1:
+                scale = 1.0/self.zoom
+                cxt.scale(scale, scale)
+            
+            polygon = self.active_target.polygon
+                
+            self.draw_contour(cxt, polygon)
         
+        # finally, draw lines indicating the optimal shooting
+        hw = int(self.kOptimumHorizontalPosition * ww)
+        vh = int(self.kOptimumVerticalPosition * wh)
+        
+        cxt.set_source_rgb(0.5, 0.5, 0.5)
+        cxt.set_line_width(1)
+        
+        cxt.line_to(0, vh)
+        cxt.line_to(ww, vh)
+        cxt.stroke()
+        
+        cxt.line_to(hw, 0)
+        cxt.line_to(hw, wh)
+        cxt.stroke()
         
     def draw_contour(self, cxt, contour):    
         
         # TODO: improve this too
             
-        x, y = contour[0,0]
-        cxt.move_to(int(x), int(y))
+        #x, y = contour[0,0]
+        #cxt.move_to(int(x), int(y))
         
-        for x,y in contour[1:,0,:]:
+        for x,y in contour[:,0,:]:
             cxt.line_to(int(x), int(y))
             
         # close it off
