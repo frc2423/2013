@@ -23,13 +23,14 @@ class BottomLeft(object):
     DEFAULT = False
 
 
-    def __init__(self, my_drive, my_shooter_platform, my_target_detector, my_shooter, my_auto_targeting):
+    def __init__(self, components):
         
-        self.driving = my_drive
-        self.shooter_platform = my_shooter_platform
-        self.target_detector = my_target_detector
-        self.shooter = my_shooter
-        self.auto_targeting = my_auto_targeting
+        self.driving = components['driving']
+        self.shooter_platform = components ['shooter_platform']
+        self.target_detector = components ['target_detector']
+        self.shooter = ['shooter']
+        self.auto_targeting = ['auto_targeting']
+        
         
         
     def on_enable(self):
@@ -47,7 +48,7 @@ class BottomLeft(object):
         pass
         
     def update(self, time_elapsed):
-        if self.time_elapsed <t:
+        if self.time_elapsed < t:
             self.driving.drive(drive_pw, 0)
         else:
             target_data =  self.target_detector.get_data()
