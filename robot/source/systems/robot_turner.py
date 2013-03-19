@@ -16,11 +16,11 @@ class RobotTurner(object):
     # sorted list of angle, speed
     # -> don't make too many in this list, since we iterate on it linearly
     THRESHOLDS = [
-        (0.0,  0.0),
-        (1.0,  0.94),
-        (5.0,  0.96),
-        (10.0, 0.985),
-        (20.0, 1.0),
+        (0.0, 0.0),     #(0.0,  0.0),
+        (1.0, 0.84),    #(1.0,  0.94),
+        (5.0, 0.86),    #(5.0,  0.96),
+        (10.0, 0.865),  #(10.0, 0.985),
+        (20.0, 0.9),    #(20.0, 1.0),
     ]
     
     def __init__(self, driving):

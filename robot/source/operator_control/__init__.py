@@ -29,6 +29,8 @@ import inspect
 import os
 import sys
 
+from common.delay import PreciseDelay
+
 try:
     import wpilib
 except ImportError:
@@ -168,13 +170,14 @@ class OperatorControlManager(object):
             if not self.ds.IsFMSAttached():
                 raise
         
-        # get the watch dog
+        # get the watchdog
         dog = robot.GetWatchdog()
 
         #
-        # operator  control loop
+        # operator control loop
         #
         
+        delay = PreciseDelay(control_loop_wait_time)
 
         while robot.IsOperatorControl () and robot.IsEnabled():
             # measure loop time
@@ -186,13 +189,15 @@ class OperatorControlManager(object):
                     raise
             
             robot.update()
+            dog.Feed()
+            
+            delay.wait()
+            
             
             # how long does it take us to run the loop?
             # -> we're using a lot of globals, what happens when we change it?
             wpilib.SmartDashboard.PutNumber('Loop time', wpilib.Timer.GetPPCTimestamp() - start)
             
-            wpilib.Wait(control_loop_wait_time)
-            dog.Feed()
             
         try:
             self.on_operator_control_disable()

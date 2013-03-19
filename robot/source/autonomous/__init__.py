@@ -28,6 +28,8 @@ import inspect
 import os
 import sys
 
+from common.delay import PreciseDelay
+
 try:
     import wpilib
 except ImportError:
@@ -147,6 +149,8 @@ class AutonomousModeManager(object):
         # Autonomous control loop
         #
         
+        delay = PreciseDelay(control_loop_wait_time)
+        
         while robot.IsAutonomous() and robot.IsEnabled():
  
             try:            
@@ -157,8 +161,7 @@ class AutonomousModeManager(object):
             
             robot.update()
              
-            # TODO: Fix this, since this isn't a consistent wait period
-            wpilib.Wait(control_loop_wait_time)
+            delay.wait()
             
         #
         # Done with autonomous, finish up

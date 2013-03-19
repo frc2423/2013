@@ -133,7 +133,7 @@ camera_led.Set(wpilib.Relay.kForward)
 speed_threshold = 100
 
 # control loop time
-control_loop_wait_time = 0.02
+control_loop_wait_time = 0.025
 
 
                                                             
