@@ -72,16 +72,39 @@ def replace_widget(old_widget, new_widget):
     try:                                                                                                                                                                                                                                       
         packing = parent.query_child_packing(old_widget)                                                                                                                                                                                       
     except:                                                                                                                                                                                                                                    
-        pass                                                                                                                                                                                                                                   
+        pass
+    
+    table_options = {}
+    
+    try:
+        # save/restore table options
+        for prop in ['bottom-attach', 'left-attach', 'right-attach', 'top-attach', 'x-options', 'x-padding', 'y-options', 'y-padding']:
+            table_options[prop] = parent.child_get_property(old_widget, prop)
+    except:
+        pass                                                                                                                                                                                                                              
                                                                                                                                                                                                                                                
     parent.remove(old_widget)                                                                                                                                                                                                                  
     new_widget.unparent()                                                                                                                                                                                                                      
     parent.add(new_widget)                                                                                                                                                                                                                     
+    
+    if len(table_options) != 0:
+        for k, v in table_options.iteritems():  
+            parent.child_set_property(new_widget, k, v)
                                                                                                                                                                                                                                                
     if position is not None:                                                                                                                                                                                                                   
         parent.child_set_property(new_widget, 'position', position)                                                                                                                                                                            
                                                                                                                                                                                                                                                
     if packing is not None:                                                                                                                                                                                                                    
-        parent.set_child_packing(new_widget, *packing)    
+        parent.set_child_packing(new_widget, *packing)  
+        
+    
         
     return new_widget
+
+def pixbuf_from_stock(stock_id, stock_size):
+    render_widget = gtk.Button()
+    return render_widget.render_icon(stock_id, stock_size)
+
+def pixbuf_from_file(filename):
+    return gtk.gdk.pixbuf_new_from_file(os.path.join(data_dir, filename))
+    
