@@ -64,7 +64,6 @@ class ManualMode(object):
         #
         
         if self.sd.GetBoolean("Wheel On"):
-            print('SHOOT')
             shootery = translate_axis(SHOOTER_WHEEL_AXIS, -1.0, 0.0,ds)
             self.sd.PutNumber('Shooter Raw', shootery)
             
