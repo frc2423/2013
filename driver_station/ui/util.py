@@ -1,6 +1,7 @@
 
 import os
 
+import cairo
 import gtk
 
 data_dir = os.path.join(os.path.dirname(__file__), 'data')
@@ -107,4 +108,6 @@ def pixbuf_from_stock(stock_id, stock_size):
 
 def pixbuf_from_file(filename):
     return gtk.gdk.pixbuf_new_from_file(os.path.join(data_dir, filename))
-    
+
+def surface_from_png(filename):
+    return cairo.ImageSurface.create_from_png(os.path.join(data_dir, filename))

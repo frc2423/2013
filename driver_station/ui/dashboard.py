@@ -124,6 +124,10 @@ class Dashboard(object):
                        'Auto Target Mode': self.shooting_mode_button }
             
             nt.attach_chooser_buttons(table, 'Operator Control Mode', widgets)
+            
+            # robot widget
+            nt.attach_fn(table, 'Angle', lambda k, v: self.robot_widget.set_angle(v), self.robot_widget)
+            nt.attach_fn(table, 'Frisbees', lambda k, v: self.robot_widget.set_frisbee_count(v), self.robot_widget)
         
     def on_wheel_status_toggled(self, widget):
         self.update_ready_status()

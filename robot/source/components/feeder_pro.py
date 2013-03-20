@@ -69,6 +69,9 @@ class FeederPro():
         
         #mode of which feed to use
         self.feed_mode_auto = True
+        
+        self.sd_frisbees = 20
+        
     def get_frisbee_count(self):    
         '''Gets the distance away an object is from the sensor based on the voltage of the sensor'''
         self.frisbee_count = None
@@ -200,10 +203,13 @@ class FeederPro():
         #wpilib.SmartDashboard.PutNumber('Action State', self.action_state)
         #wpilib.SmartDashboard.PutNumber('Feeder dist', self.feed_sensor.GetDistance())
     
-        #fs = self.get_frisbee_count()
-        #if self.frisbee_count is None:
-        #    fs = -1
+        fs = self.get_frisbee_count()
+        if self.frisbee_count is None:
+            fs = -1
             
-        #wpilib.SmartDashboard.PutNumber('Frisbees', fs)
+        if fs != self.sd_frisbees:
+            wpilib.SmartDashboard.PutNumber('Frisbees', fs)
+            self.sd_frisbees = fs
+            
         #wpilib.SmartDashboard.PutNumber('Frisbee Distance', self.distance)
         
