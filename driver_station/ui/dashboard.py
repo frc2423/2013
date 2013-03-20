@@ -85,7 +85,7 @@ class Dashboard(object):
             active = util.pixbuf_from_file(mode + '-on.png')
             inactive = util.pixbuf_from_file(mode + '-off.png')
             name =  '%s_mode_button' % mode
-            setattr(self, name, util.replace_widget(getattr(self, name), toggle_button.ToggleButton(active, inactive, clickable=True, default=True)))
+            setattr(self, name, util.replace_widget(getattr(self, name), toggle_button.ToggleButton(active, inactive, clickable=True, default=False)))
             
         # setup the fire button
         active = util.pixbuf_from_file('fire-on.png')
@@ -116,6 +116,14 @@ class Dashboard(object):
             nt.attach_toggle(table, 'Wheel OK', self.wheel_status)
             
             nt.attach_chooser_combo(table, 'choose', self.autonomous_chooser)
+            
+            # other chooser
+            widgets = {'climbing': self.climbing_mode_button, 
+                       'loading': self.loading_mode_button,
+                       'manual': self.manual_mode_button,
+                       'shooting': self.shooting_mode_button }
+            
+            nt.attach_chooser_buttons(table, 'mode', widgets)
             
         # how does this work then?
         # -> create widgets

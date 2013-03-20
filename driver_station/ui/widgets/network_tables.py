@@ -91,78 +91,99 @@ def attach_toggle(table, key, widget):
     destroy_id = widget.connect('destroy', _on_destroy)
     
     
+
+def attach_chooser(table, key, widget, on_choices, on_selected):
+    '''Generic function to attach to a chooser variable'''
     
-# TODO: more generic
+    key = unicode(key)
+    
+    def _get_choices():
+        options = pynetworktables.StringArray()
+        listener.table.RetrieveValue(u'options', options)
+        return [options.get(i) for i in xrange(options.size())]
+                
+    def _on_update(table_key, value):
+        if table_key == u'choices':
+            on_choices(_get_choices())
+        elif table_key == u'selected':
+            on_selected(value)
+    
+    def _on_destroy(widget):
+        '''Clean up after ourselves'''
+        listener.detach()
+    
+    listener = UiListener(_on_update)
+    
+    subtable = table.GetSubTable(key)
+    listener.attach(subtable)
+    
+    widget.connect('destroy', _on_destroy)
+    
+    return listener
+
 
 def attach_chooser_combo(table, key, widget):
     '''Attach a chooser widget to a combo box'''
     
     # TODO: need to be able to save/restore these values
     # for setting autonomous mode.. 
-    
-    key = unicode(key)
-    
-    def _set_selected(value):
+
+    def _on_choices(choices):
+        widget.handler_block(changed_id)
+        
+        model = widget.get_model()
+        model.clear()
+        
+        for choice in choices:
+            model.append((choice,))
+        
+        widget.handler_unblock(changed_id)
+            
+    def _on_selected(value):
         for i, row in enumerate(widget.get_model()):
             if row[0] == value:
                 widget.handler_block(changed_id)
                 widget.set_active(i)
                 widget.handler_unblock(changed_id)
                 break
-    
-    def _setup_choices(subtable):
-        
-        choices = pynetworktables.StringArray()
-        subtable.RetrieveValue(u'options', choices)
-        
-        widget.handler_block(changed_id)
-        
-        model = widget.get_model()
-        model.clear()
-        
-        for i in xrange(choices.size()):
-            model.append((choices.get(i),))
-        
-        widget.handler_unblock(changed_id)
-            
-        _set_selected(subtable.GetString(u'selected'))
-        
-
-    def _on_subtable_update(table_key, value):
-        if table_key == key:
-            subtable = table.GetSubTable(table_key)
-            listener.attach(subtable)
-            
-            _setup_choices(subtable)
-                
-    def _on_update(table_key, value):
-        if table_key == u'choices':
-            _setup_choices(listener.table)
-        elif table_key == u'selected':
-            _set_selected(value)
             
     def _on_combo_changed(widget):
         active = widget.get_active_iter()
         if active:
             selected = widget.get_model()[active][0]
-            if hasattr(listener, 'table'):
-                listener.table.PutString(u'selected', unicode(selected))
+            listener.table.PutString(u'selected', unicode(selected))
 
-    def _on_destroy(widget):
-        '''Clean up after ourselves'''
-        sublistener.detach()
-        listener.detach()
-
-    # attach to buttons
-    listener = UiListener(_on_update)
     
-    sublistener = UiSubtableListener(_on_subtable_update)
-    sublistener.attach(table)
-    
+    listener = attach_chooser(table, key, widget, _on_choices, _on_selected)
     changed_id = widget.connect('changed', _on_combo_changed)
-    widget.connect('destroy', _on_destroy)
     
+def attach_chooser_buttons(table, key, widgets):
+    '''widgets is a dictionary {'option': toggle button}'''
     
+    def _on_choices(choices):
+        # TODO: log that the choices don't match?
+        pass
+    
+    def _on_selected(value):
+        for k, (button, id) in widgets.iteritems():
+            button.handler_block(id)
+            button.set_active(k == value)
+            button.handler_unblock(id)
+            
+    def _on_toggle(widget, selected):
+        listener.table.PutString(u'selected', unicode(selected))
+    
+    def _on_destroy(widget, id):
+        widget.disconnect(id)
+    
+    # attach to widgets first
+    for k, v in widgets.iteritems():
+        id = v.connect('toggled', _on_toggle, k)
+        v.connect('destroy', _on_destroy, id)
+        widgets[k] = (v, id)
+        widget = v
+    
+    listener = attach_chooser(table, key, widget, _on_choices, _on_selected)
     
     
 # attach to a boolean
