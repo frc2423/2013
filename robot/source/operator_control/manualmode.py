@@ -65,11 +65,6 @@ class ManualMode(object):
             
         self.platform.set_speed(shootery)
        
-        #
-        #There should be some sort of toggle for this to turn the shooter on or off
-        # 
-        # else:
-        #     self.my_shooter_platform.set_speed_manual(0.0)   
         
         #
         #Shooting Platform control
@@ -77,14 +72,28 @@ class ManualMode(object):
         self.shooter_platform.set_angle_manual(-stick_axis(PLATFORM_ANGLE_AXIS, ds))
         
         #
-        #lower climber
+        #    Climber
+        #        - Must come after anything that sets angle, otherwise
+        #        the climbing safety features won't kick in
         #
-        self.climber.lower()
+        
+        if stick_button_on(CLIMB_DOWN_BUTTON, ds):
+            self.my_climber.lower()
+        elif stick_button_on(CLIMB_UP_BUTTON, ds):
+            self.my_climber.climb() 
+        
+        #
+        #climbing rotation, set after driving to override joystick input
+        #
+        if stick_button_on(CLIMB_TWIST_L_BUTTON, ds):
+            self.drive.drive(0.0, -0.9)
+        elif stick_button_on(CLIMB_TWIST_R_BUTTON, ds):
+            self.drive.drive(0.0, 0.9)
         
         #
         #    Feeder
         #
-        #    what happens when the sensor breaks?
+        #    
         if stick_button_on(FEEDER_FEED_BUTTON, ds):
             self.feeder.feed()
         elif stick_button_on(FEEDER_BACK_BUTTON, ds):

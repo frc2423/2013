@@ -16,6 +16,7 @@ from systems.shooter import Shooter
 from systems.auto_targeting import AutoTargeting
 from systems.robot_turner import RobotTurner
 
+WHEEL_SPEED = .9
 
 class BottomLeft(object):
     
@@ -30,7 +31,9 @@ class BottomLeft(object):
         self.target_detector = components ['target_detector']
         self.shooter = ['shooter']
         self.auto_targeting = ['auto_targeting']
-        
+        self.turner = ['robot_turner']
+        # local targeted value
+        self.is_targeted = False        
         
         
     def on_enable(self):
@@ -41,12 +44,12 @@ class BottomLeft(object):
         #replace power of driving appropriately 
         ang_pw_left = -.5
         drive_pw = 1
-        
         pass
         
         
     def on_disable(self):
-        pass
+        ''' disable shooter, don't want to start with it on'''
+        self.shooter_platform.set_speed_manual(0)
         
     def update(self, time_elapsed):
         v = 1
@@ -63,11 +66,13 @@ class BottomLeft(object):
             target_data =  self.target_detector.get_data()
             if target_data[0] == None:
                 self.driving.drive(0, ang_pw_left)
-            elif not self.target_detector.is_aimed():
+            elif not self.auto_targeting.is_aimed() and not self.is_targeted:
                 self.auto_targeting.perform_targeting()
             else:
+                #we targeted once, so lets remember that and try to shoot
+                self.is_targeted = True
                 if self.shooter_platform.wheel_on != True:
-                    self.shooter_platform.set_on()
+                    self.shooter_platform.set_speed_manual(WHEEL_SPEED)
                 self.shooter.shoot_if_ready()
                 
         

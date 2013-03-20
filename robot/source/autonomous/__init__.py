@@ -131,7 +131,8 @@ class AutonomousModeManager(object):
         '''
         
         print("AutonomousModeManager::Autonomous()")
-        
+        sd = wpilib.SmartDashboard
+        sd.PutBoolean('InAutonomous', True)
         # don't risk the watchdog, hopefully we do everything right here :)
         robot.GetWatchdog().SetEnabled(False)
         
@@ -172,7 +173,9 @@ class AutonomousModeManager(object):
         except:
             if not self.ds.IsFMSAttached():
                 raise
-    
+            
+        sd.PutBoolean('InAutonomous', False)
+        
     #
     #   Internal methods used to implement autonomous mode switching. Most
     #   users of this class will not want to use these functions, use the

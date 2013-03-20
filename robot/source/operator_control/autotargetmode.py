@@ -61,12 +61,6 @@ class AutoTargetMode(object):
             
         self.platform.set_speed(shootery)
        
-        #
-        #There should be some sort of toggle for this to turn the shooter on or off
-        # 
-        # else:
-        #     self.my_shooter_platform.set_speed_manual(0.0)   
-            
             
         #
         #    set auto targeting of shooter platform and robot position
@@ -74,7 +68,7 @@ class AutoTargetMode(object):
         self.auto_targeting.perform_targeting()
         
         if stick_button_on(AUTO_TARGET_BUTTON,ds):
-            robot_turner.auto_turn()
+            self.robot_turner.auto_turn()
              
     
         # 
@@ -93,7 +87,7 @@ class AutoTargetMode(object):
         #
         #    Feeder
         #
-        #    what happens when the sensor breaks?
+        
         if stick_button_on(FEEDER_FEED_BUTTON, ds):
             self.feeder.feed()
         elif stick_button_on(FEEDER_BACK_BUTTON, ds):

@@ -5,6 +5,7 @@ try:
 except ImportError: 
     import fake_wpilib as wpilib
 
+THRESHOLD = .1
 class AutoTargeting(object):
     
     def __init__(self, robot_turner, shooter_platform, target_detector):
@@ -38,4 +39,13 @@ class AutoTargeting(object):
         
         self.shooter_platform.set_angle_auto(self.last_vangle)
         
+    def is_aimed(self):
+        ''' determine if we are actually aimed at the target '''
+        # get angle
+        hangle, vangle, distance = self.target_detector.get_data()
+        
+        if abs(hangle) < THRESHOLD and abs(vangle) < THRESHOLD:
+            return True
+        else:
+            return False
     # no update function required

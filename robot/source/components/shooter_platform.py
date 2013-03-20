@@ -59,9 +59,11 @@ class ShooterPlatform(object):
         return not self.angle_jag.motor.GetForwardLimitOK()
     
     def set_on(self):
+        ''' this allows the wheel to be turned on'''
         self.wheel_on =True
         
     def set_off(self):
+        ''' this does not allow the wheel to move when calling set_speed'''
         self.wheel_on = False
         
     def set_speed(self, speed):
