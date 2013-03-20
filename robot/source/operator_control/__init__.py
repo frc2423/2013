@@ -111,7 +111,6 @@ class OperatorControlManager(object):
         #    during the Operator Control Phase
         
         self.control_mode_chooser = wpilib.SendableChooser()
-        sd.PutData('Operator Control Mode', self.control_mode_chooser) 
         
         print("Loaded operator control modes:")
         for k,v in self.modes.items():
@@ -122,6 +121,9 @@ class OperatorControlManager(object):
             else:
                 print( " -> %s" % k )
                 self.control_mode_chooser.AddObject(k, v)
+                
+        # must PutData after setting up objects
+        sd.PutData('Operator Control Mode', self.control_mode_chooser) 
         
         #
         #    Feeder mode chooser
@@ -144,7 +146,7 @@ class OperatorControlManager(object):
         
         shooter = components['shooter_platform']
         self.shooter_chooser = wpilib.SendableChooser()
-        sd.PutData('Shooter Mode', self.feeder_chooser)
+        sd.PutData('Shooter Mode', self.shooter_chooser)
         
         self.shooter_chooser.AddObject("On", shooter.set_on)
         self.shooter_chooser.AddDefault("Off", shooter.set_off)

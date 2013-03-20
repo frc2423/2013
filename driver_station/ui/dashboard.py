@@ -115,38 +115,15 @@ class Dashboard(object):
             nt.attach_toggle(table, 'Wheel On', self.wheel_on_button)
             nt.attach_toggle(table, 'Wheel OK', self.wheel_status)
             
-            nt.attach_chooser_combo(table, 'choose', self.autonomous_chooser)
+            nt.attach_chooser_combo(table, 'Autonomous Mode', self.autonomous_chooser)
             
             # other chooser
-            widgets = {'climbing': self.climbing_mode_button, 
-                       'loading': self.loading_mode_button,
-                       'manual': self.manual_mode_button,
-                       'shooting': self.shooting_mode_button }
+            widgets = {'Climbing Mode': self.climbing_mode_button, 
+                       'Loading Mode': self.loading_mode_button,
+                       'Manual Mode': self.manual_mode_button,
+                       'Auto Target Mode': self.shooting_mode_button }
             
-            nt.attach_chooser_buttons(table, 'mode', widgets)
-            
-        # how does this work then?
-        # -> create widgets
-        # -> connect them to pynetworktables stuff somehow
-        # -> show widgets?
-        
-        # -> is there a way to automatically do this with the gtk builder file perhaps?
-        # --- sorta like initialize_from_builder on steroids? neat. 
-        
-        # -> start up the opencv thread? or does that happen in main
-        # --- probably in main, it should talk to this, not the other
-        #     way around. keep logic out of here if possible. 
-        
-        # first step needed: display the cv image on a pixbuf without too much
-        # lag
-        
-        # also, how do we need to format the targeting information? Who keeps track 
-        # of that? 
-        
-        # sdwidgets directory attaches widgets to a sd type? 
-        
-        # can we even get useful information from sd?
-        # -> probably not, need better wrapper functions in SIP
+            nt.attach_chooser_buttons(table, 'Operator Control Mode', widgets)
         
     def on_wheel_status_toggled(self, widget):
         self.update_ready_status()

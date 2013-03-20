@@ -103,7 +103,6 @@ class AutonomousModeManager(object):
         # SmartDashboard interface
         sd = wpilib.SmartDashboard
         self.chooser = wpilib.SendableChooser()
-        sd.PutData('Autonomous Mode', self.chooser) 
         
         print("Loaded autonomous modes:")
         for k,v in self.modes.items():
@@ -114,6 +113,9 @@ class AutonomousModeManager(object):
             else:
                 print( " -> %s" % k )
                 self.chooser.AddObject(k, v)
+                
+        # must PutData after setting up objects
+        sd.PutData('Autonomous Mode', self.chooser)
         
         print( "AutonomousModeManager::__init__() Done" )
     

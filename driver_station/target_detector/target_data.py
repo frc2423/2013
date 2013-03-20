@@ -63,8 +63,8 @@ class Target(object):
     
     def h_ok(self):
         '''Horizontal angle on target'''
-        return abs(self.hangle) <= 1
+        return abs(self.hangle) <= 2.0
     
     def v_ok(self):
         '''Vertical angle on target'''
-        return abs(self.vangle) <= 1
+        return abs(self.vangle) <= 2.0
