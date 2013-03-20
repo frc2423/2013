@@ -102,7 +102,7 @@ class OperatorControlManager(object):
         # the user select one using the SmartDashboard.
         
         # SmartDashboard interface
-        sd = wpilib.SmartDashboard
+        self.sd = wpilib.SmartDashboard
         
         #
         #    Control mode chooser
@@ -123,33 +123,11 @@ class OperatorControlManager(object):
                 self.control_mode_chooser.AddObject(k, v)
                 
         # must PutData after setting up objects
-        sd.PutData('Operator Control Mode', self.control_mode_chooser) 
+        self.sd.PutData('Operator Control Mode', self.control_mode_chooser)
         
-        #
-        #    Feeder mode chooser
-        #
-        #    This chooser is for the feeder, the feeders control is independent
-        #    of the mode that we are in.
+        # setup other defaults here
+        self.feeder = components['feeder']
         
-        feeder = components['feeder']
-        self.feeder_chooser = wpilib.SendableChooser()
-        sd.PutData('Feeder Mode', self.feeder_chooser)
-        
-        self.feeder_chooser.AddDefault("Auto Mode", feeder.set_mode_auto)
-        self.feeder_chooser.AddObject("Manual Mode", feeder.set_mode_manual)
-        
-        #
-        #    Shooter mode chooser
-        #
-        #    If the shooter is on or off is independent of the mode that we are 
-        #    in.
-        
-        shooter = components['shooter_platform']
-        self.shooter_chooser = wpilib.SendableChooser()
-        sd.PutData('Shooter Mode', self.shooter_chooser)
-        
-        self.shooter_chooser.AddObject("On", shooter.set_on)
-        self.shooter_chooser.AddDefault("Off", shooter.set_off)
         print( "OperatorControlManager::__init__() Done" )
     
             
@@ -230,6 +208,11 @@ class OperatorControlManager(object):
         
     def set(self): 
         '''Select the active operator control mode here, and enable it'''
+        
+        # these run in all modes, so just set it up here
+        self.feeder.set_auto_mode(self.sd.GetBoolean("Feeder Auto"))
+      
+        # switch mode if neccessary  
         previous_mode = self.active_mode
         self.active_mode = self.control_mode_chooser.GetSelected()
         
@@ -237,20 +220,8 @@ class OperatorControlManager(object):
             if self.active_mode is not previous_mode:
                 print("OperatorControlManager: Enabling %s" % self.active_mode.MODE_NAME)
                 self.active_mode.on_enable()
-        
-            #
-            #    Sets modes of shooters and feeder
-            #
-            self.feeder_chooser.GetSelected()()
-    
-            self.shooter_mode = self.shooter_chooser.GetSelected()()
                 
             '''Run the code for the current operator control mode'''
             self.active_mode.set()
-       
-    #update done up top to all robot systems
-    #def update(self):
-    #    '''Run the code for the current operator control mode'''
-    #    if self.active_mode is not None:
-    #        self.active_mode.update()
+
 

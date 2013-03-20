@@ -16,7 +16,7 @@ class ManualMode(object):
     # on the SmartDashboard
     MODE_NAME = "Manual Mode"
     
-    # Set this to True if this is the default autonomous mode, otherwise False
+    # Set this to True if this is the default mode, otherwise False
     DEFAULT = False
 
 
@@ -33,6 +33,9 @@ class ManualMode(object):
         self.drive = components['drive']
         self.platform = components['shooter_platform']
         self.ds = ds
+        
+        self.sd = wpilib.SmartDashboard
+        
     def on_enable(self):
         pass
         
@@ -60,14 +63,16 @@ class ManualMode(object):
         #    Shooter
         #
         
-        shootery = translate_axis(SHOOTER_WHEEL_AXIS, -1.0, 0.0,ds)
-        wpilib.SmartDashboard.PutNumber('Shooter Raw', shootery)
+        if self.sd.GetBoolean("Wheel On"):
+            print('SHOOT')
+            shootery = translate_axis(SHOOTER_WHEEL_AXIS, -1.0, 0.0,ds)
+            self.sd.PutNumber('Shooter Raw', shootery)
             
-        self.platform.set_speed(shootery)
+            self.platform.set_speed_manual(shootery)
        
         
         #
-        #Shooting Platform control
+        # Shooting Platform control
         #
         self.shooter_platform.set_angle_manual(-stick_axis(PLATFORM_ANGLE_AXIS, ds))
         
@@ -83,7 +88,7 @@ class ManualMode(object):
             self.my_climber.climb() 
         
         #
-        #climbing rotation, set after driving to override joystick input
+        # climbing rotation, set after driving to override joystick input
         #
         if stick_button_on(CLIMB_TWIST_L_BUTTON, ds):
             self.drive.drive(0.0, -0.9)
@@ -98,17 +103,5 @@ class ManualMode(object):
             self.feeder.feed()
         elif stick_button_on(FEEDER_BACK_BUTTON, ds):
             self.feeder.reverse_feed()
-            
-  #  def update(self):
-  #      '''
-  #          Updates components
-  #      '''
-  #      #
-  #      #update components
-  #      #
-  #      self.drive.update()
-  #      self.climber.update()
-  #      self.auto_targeting.update()
-  #      self.feeder.update()
-        
+
  

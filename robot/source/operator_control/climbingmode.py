@@ -8,14 +8,16 @@
         of platform but allows climbing. It is used when we are trying to climb
         the pyramid. This mode cannot shoot.
 '''
+
 from common.joystick_util import * 
+
 class ClimbingMode(object):
 
     # this name should be descriptive and unique. This will be shown to the user
     # on the SmartDashboard
     MODE_NAME = "Climbing Mode"
     
-    # Set this to True if this is the default autonomous mode, otherwise False
+    # Set this to True if this is the default mode, otherwise False
     DEFAULT = False
 
 
@@ -31,6 +33,7 @@ class ClimbingMode(object):
         self.drive = components['drive']
         self.feeder = components['feeder']
         self.ds = ds
+        
     def on_enable(self):
         pass
         
@@ -52,7 +55,7 @@ class ClimbingMode(object):
         #    Shooter
         #
         self.platform.set_angle_auto(0)
-        self.platform.set_speed(0.0)
+        self.platform.set_speed_manual(0.0)
         
         #
         #    Climber
@@ -72,17 +75,4 @@ class ClimbingMode(object):
             self.drive.drive(0.0, -0.9)
         elif stick_button_on(CLIMB_TWIST_R_BUTTON, ds):
             self.drive.drive(0.0, 0.9)
-                  
-            
-  #  def update(self):
-  #      '''
-  #          Updates components
-  #      '''
-  #      #
-  #      #update components
-  #      #
-  #      self.drive.update()
-  #      self.climber.update()
-  #      self.auto_targeting.update()
-  #      self.feeder.update()
-        
+

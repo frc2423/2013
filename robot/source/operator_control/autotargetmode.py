@@ -35,6 +35,7 @@ class AutoTargetMode(object):
         self.drive = components['drive']
         self.platform = components['shooter_platform']
         self.ds = ds
+    
     def on_enable(self):
         pass
         
@@ -51,16 +52,19 @@ class AutoTargetMode(object):
             performs auto targeting and keeps climber constantly in lowered 
             position
         '''
+        
+        ds = self.ds
+        
         #
         #    Shooter
         #
         #    Shooter is manual because we do not have an encoder
-        ds = self.ds
-        shootery = translate_axis(SHOOTER_WHEEL_AXIS, -1.0, 0.0, ds)
-        wpilib.SmartDashboard.PutNumber('Shooter Raw', shootery)
+        
+        if self.sd.GetBoolean("Wheel On"):
+            shootery = translate_axis(SHOOTER_WHEEL_AXIS, -1.0, 0.0, ds)
+            wpilib.SmartDashboard.PutNumber('Shooter Raw', shootery)
             
-        self.platform.set_speed(shootery)
-       
+            self.platform.set_speed_manual(shootery)
             
         #
         #    set auto targeting of shooter platform and robot position
@@ -92,16 +96,3 @@ class AutoTargetMode(object):
             self.feeder.feed()
         elif stick_button_on(FEEDER_BACK_BUTTON, ds):
             self.feeder.reverse_feed()
-            
-  #  def update(self):
-  #      '''
-  #          Updates components
-  #      '''
-  #      #
-  #      #update components
-  #      #
-  #      self.drive.update()
-  #      self.climber.update()
-  #      self.auto_targeting.update()
-  #      self.feeder.update()
-        

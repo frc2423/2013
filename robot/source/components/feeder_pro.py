@@ -109,13 +109,9 @@ class FeederPro():
         '''
         return self.feed_sensor.GetDistance() < FEEDER_READY_DISTANCE
     
-    def set_mode_auto(self):
+    def set_auto_mode(self, value):
         ''' sets mode auto '''
-        self.feed_mode_auto = True
-        
-    def set_mode_manual(self):
-        ''' sets mode manual '''
-        self.feed_mode_auto = False
+        self.feed_mode_auto = bool(value)
          
     def feed(self):
         ''' determines feed mode and uses it '''

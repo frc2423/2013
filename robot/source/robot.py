@@ -198,6 +198,10 @@ class MyRobot(wpilib.SimpleRobot):
         self.components.append(climber)
         self.autonomous_mode = AutonomousModeManager(components)
         self.operator_control_mode = OperatorControlManager(components, self.ds)
+        
+        # initialize other needed SmartDashboard inputs
+        wpilib.SmartDashboard.PutBoolean("Wheel On", False)
+        wpilib.SmartDashboard.PutBoolean("Feeder Auto", True)
     
         
     def RobotInit(self):

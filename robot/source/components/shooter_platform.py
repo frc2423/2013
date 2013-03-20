@@ -57,21 +57,6 @@ class ShooterPlatform(object):
         
         # use the limit switch in case the pot breaks
         return not self.angle_jag.motor.GetForwardLimitOK()
-    
-    def set_on(self):
-        ''' this allows the wheel to be turned on'''
-        self.wheel_on =True
-        
-    def set_off(self):
-        ''' this does not allow the wheel to move when calling set_speed'''
-        self.wheel_on = False
-        
-    def set_speed(self, speed):
-        ''' sets speed based on the mode it is in '''
-        if  self.wheel_on:
-            self.set_speed_manual(speed)
-        else:
-            self.set_speed_manual(0)
          
     def set_angle_auto(self, d_angle):
         '''

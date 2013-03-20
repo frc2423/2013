@@ -33,6 +33,7 @@ class LoadingMode(object):
         self.drive = components['drive']
         self.feeder = components['feeder']
         self.ds = ds
+        
     def on_enable(self):
         pass
         
@@ -55,23 +56,11 @@ class LoadingMode(object):
         #    Shooter set to 0
         #
         self.platform.set_angle_auto(0)
-        self.platform.set_speed(0.0)
+        self.platform.set_speed_manual(0.0)
         
         #
         #set climber to lowered
         #
         self.climber.lower()
-            
-  #  def update(self):
-  #      '''
-  #          Updates components
-  #      '''
-  #      #
-  #      #update components
-  #      #
-  #      self.drive.update()
-  #      self.climber.update()
-  #      self.auto_targeting.update()
-  #      self.feeder.update()
-        
+    
         
