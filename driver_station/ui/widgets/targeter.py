@@ -1,6 +1,7 @@
 
 import glib
 import gtk
+import gobject
 
 from cv_widget import CvWidget
 
@@ -14,6 +15,10 @@ logger = logging.getLogger(__name__)
 
 
 class Targeter(CvWidget):
+    
+    __gsignals__ = {
+        'target-update': (gobject.SIGNAL_ACTION, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,)), 
+    }
     
     TOP = target_detector.target_data.location.TOP
     LMIDDLE = target_detector.target_data.location.LMIDDLE
@@ -64,6 +69,9 @@ class Targeter(CvWidget):
                 
         elif self.table is not None:
             self.table.PutBoolean(u'Target Found', False)
+            
+        # notify listeners of new target event
+        glib.idle_add(self.emit, 'target-update', target)
         
     def _get_active_target(self):
         return self._active_target
@@ -270,3 +278,5 @@ class Targeter(CvWidget):
                         target = mids[0]
         
         self.active_target = target
+
+gobject.type_register(Targeter)

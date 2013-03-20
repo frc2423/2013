@@ -2,7 +2,6 @@
 import common
 import cv2
 
-
 # target data in inches
 kTapeWidth      = 4.0
 
@@ -61,4 +60,11 @@ class Target(object):
     
     def intersects(self, x, y):
         return cv2.pointPolygonTest(self.polygon, (x, y), False) >= 0
-        
+    
+    def h_ok(self):
+        '''Horizontal angle on target'''
+        return abs(self.hangle) <= 1
+    
+    def v_ok(self):
+        '''Vertical angle on target'''
+        return abs(self.vangle) <= 1
