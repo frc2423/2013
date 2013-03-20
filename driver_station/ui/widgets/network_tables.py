@@ -101,12 +101,22 @@ def attach_chooser(table, key, widget, on_choices, on_selected):
         options = pynetworktables.StringArray()
         listener.table.RetrieveValue(u'options', options)
         return [options.get(i) for i in xrange(options.size())]
+    
+    def _get_selected():
+        selected = listener.table.GetValue(u'selected')
+        if selected is None:
+            selected = listener.table.GetValue(u'default')
+        return selected
                 
     def _on_update(table_key, value):
-        if table_key == u'choices':
+        if table_key == u'options':
             on_choices(_get_choices())
+            on_selected(_get_selected())
         elif table_key == u'selected':
             on_selected(value)
+        elif table_key == u'default':
+            if listener.table.GetValue(u'selected') is None:
+                on_selected(value)
     
     def _on_destroy(widget):
         '''Clean up after ourselves'''
