@@ -58,7 +58,7 @@ class TopLeft(object):
         distance_top = 8.81
         t = distance_top/v
         ang_pw_left = -.5
-        drive_pw = 1
+        drive_pw = 1.0 
         #needs an is_aimed() function
         if time_elapsed < t:
             self.driving.drive(drive_pw, 0)

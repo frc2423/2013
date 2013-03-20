@@ -21,7 +21,7 @@ WHEEL_SPEED = .9
 class TopRight(object):
     
     MODE_NAME = "top_right"
-    DEFAULT = False
+    DEFAULT = True
     
 
     def __init__(self, components):
@@ -49,7 +49,7 @@ class TopRight(object):
         
     def on_disable(self):
         ''' disable shooter, don't want to start with it on'''
-        self.shooter_platform.set_speed_manual(0)
+        self.shooter_platform.set_speed_manual(0.0)
         
     def update(self, time_elapsed):
         v = 1
@@ -57,16 +57,15 @@ class TopRight(object):
         #this shall just be put in by imperical testing
         t = distance_top/v
         ang_pw_right = .5
-        drive_pw = 1 
+        drive_pw = 1.0 
         #needs an is_aimed() function
         if time_elapsed < t:
-            self.driving.drive(drive_pw, 0)
-            
+            self.driving.drive(drive_pw, 0.0)
         #turn until target is retrieved; turn wheel on if off; shoot when ready
         else:
             target_data = self.target_detector.get_data()
             if target_data[0] == None:
-                self.driving.drive(0, ang_pw_right)
+                self.driving.drive(0.0, ang_pw_right)
             elif not self.auto_targeting.is_aimed() and not self.is_targeted:
                 self.auto_targeting.perform_targeting()
                 self.turner.auto_turn()
