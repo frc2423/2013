@@ -114,6 +114,9 @@ class AutonomousModeManager(object):
                 print( " -> %s" % k )
                 self.chooser.AddObject(k, v)
                 
+        # provide a none option        
+        self.chooser.AddObject('None', None)
+                
         # must PutData after setting up objects
         sd.PutData('Autonomous Mode', self.chooser)
         
