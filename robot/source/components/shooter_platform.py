@@ -36,6 +36,8 @@ class ShooterPlatform(object):
         #current states
         self.pre_angle = None
         self.pre_speed = None
+        
+        self.pre_wheel_ok = None
 
         #is ready
         self.pre_is_ready_angle = None
@@ -151,6 +153,13 @@ class ShooterPlatform(object):
         #
         # Displays speed info
         #
+        
+        # TODO: Make this better
+        wheel_ok = (abs(self.shooter_jag.value) > 0)
+        if self.pre_wheel_ok != wheel_ok:
+            wpilib.SmartDashboard.PutBoolean('Wheel OK', wheel_ok)
+            self.pre_wheel_ok = wheel_ok
+            
         
         #cs = self.current_speed()
         #if self.pre_speed != self.current_speed():
