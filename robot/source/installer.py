@@ -23,6 +23,7 @@ dirs = [
     'autonomous',
     'common',
     'components',
+    'operator_control',
     'systems',
 ]
 

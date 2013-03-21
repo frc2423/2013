@@ -64,9 +64,9 @@ class ClimbingMode(object):
         #
         
         if stick_button_on(CLIMB_DOWN_BUTTON, ds):
-            self.my_climber.lower()
+            self.climber.lower()
         elif stick_button_on(CLIMB_UP_BUTTON, ds):
-            self.my_climber.climb() 
+            self.climber.climb() 
         
         #
         #climbing rotation, set after driving to override joystick input
