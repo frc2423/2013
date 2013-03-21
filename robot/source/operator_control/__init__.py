@@ -210,7 +210,7 @@ class OperatorControlManager(object):
         '''Select the active operator control mode here, and enable it'''
         
         # these run in all modes, so just set it up here
-        self.feeder.set_auto_mode(self.sd.GetBoolean("Feeder Auto"))
+        self.feeder.set_auto_mode(self.sd.GetBoolean("Auto Feeder"))
       
         # switch mode if neccessary  
         previous_mode = self.active_mode
