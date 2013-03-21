@@ -39,6 +39,7 @@ class Dashboard(object):
         'ready_status',
         'horizontal_status',
         'vertical_status',
+        'target_status',
         
         'fire_button',
         'wheel_on_button',
@@ -89,7 +90,7 @@ class Dashboard(object):
         active_pixbuf = util.pixbuf_from_stock(gtk.STOCK_YES, gtk.ICON_SIZE_BUTTON)
         inactive_pixbuf = util.pixbuf_from_stock(gtk.STOCK_NO, gtk.ICON_SIZE_BUTTON)
         
-        for name in ['wheel_status', 'ready_status', 'horizontal_status', 'vertical_status']:
+        for name in ['wheel_status', 'ready_status', 'horizontal_status', 'vertical_status', 'target_status']:
             old_widget = getattr(self, name)
             text = old_widget.get_label()
             setattr(self, name, util.replace_widget(old_widget, toggle_button.ToggleButton(active_pixbuf, inactive_pixbuf, text, clickable=False, default=False)))
@@ -199,9 +200,11 @@ class Dashboard(object):
         if target is None:
             self.horizontal_status.set_active(False)
             self.vertical_status.set_active(False)
+            self.target_status.set_active(False)
         else:
             self.horizontal_status.set_active(target.h_ok())
             self.vertical_status.set_active(target.v_ok())
+            self.target_status.set_active(True)
             
         self.update_ready_status()
             
