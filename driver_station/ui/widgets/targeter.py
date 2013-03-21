@@ -91,14 +91,15 @@ class Targeter(CvWidget):
         y = event.y * self.zoom
         
         with self.lock:
-            for target in self.targets:
-                if not target.intersects(x, y):
-                    continue
-                
-                self.active_target = target
-                
-                self.queue_draw()
-                break
+            if self.targets is not None:
+                for target in self.targets:
+                    if not target.intersects(x, y):
+                        continue
+                    
+                    self.active_target = target
+                    
+                    self.queue_draw()
+                    break
         
     def on_expose(self, widget, event):
         CvWidget.on_expose(self, widget, event)
