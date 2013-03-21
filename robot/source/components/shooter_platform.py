@@ -116,7 +116,11 @@ class ShooterPlatform(object):
     def is_ready_speed(self):
         ''' checks if the speed is right'''
         #returns true if current speed is within threshold.
-        return self.shooter_jag.is_ready()
+        #return self.shooter_jag.is_ready()
+        
+        current = self.shooter_jag.motor.GetOutputCurrent()
+        return current > 5 and current < 25.0
+        
         
     def is_ready(self):
         ''' checks if the shooter_platform is ready to shoot'''
@@ -131,7 +135,7 @@ class ShooterPlatform(object):
         #
         # Displays angle info
         #
-        wpilib.SmartDashboard.PutNumber('Angle Raw', self.angle_jag.motor.GetPosition())
+        #wpilib.SmartDashboard.PutNumber('Angle Raw', self.angle_jag.motor.GetPosition())
         ca = self.current_angle()
         if self.pre_angle != ca:
             wpilib.SmartDashboard.PutNumber('Angle', ca)
@@ -156,13 +160,20 @@ class ShooterPlatform(object):
         #
         
         # TODO: Make this better
-        wheel_ok = (abs(self.shooter_jag.value) > 0)
+        #wheel_ok = (abs(self.shooter_jag.value) > 0)
+        #if self.pre_wheel_ok != wheel_ok:
+        #    wpilib.SmartDashboard.PutBoolean('Wheel OK', wheel_ok)
+        #    self.pre_wheel_ok = wheel_ok
+
+        wheel_ok = self.is_ready_speed()
         if self.pre_wheel_ok != wheel_ok:
             wpilib.SmartDashboard.PutBoolean('Wheel OK', wheel_ok)
             self.pre_wheel_ok = wheel_ok
+
+        #wpilib.SmartDashboard.PutNumber('Current', self.shooter_jag.motor.GetOutputCurrent())
             
-        wpilib.SmartDashboard.PutBoolean('Forward', self.angle_jag.motor.GetForwardLimitOK())
-        wpilib.SmartDashboard.PutBoolean('Reverse', self.angle_jag.motor.GetReverseLimitOK())
+        #wpilib.SmartDashboard.PutBoolean('Forward', self.angle_jag.motor.GetForwardLimitOK())
+        #wpilib.SmartDashboard.PutBoolean('Reverse', self.angle_jag.motor.GetReverseLimitOK())
             
         
         #cs = self.current_speed()
