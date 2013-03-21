@@ -35,6 +35,8 @@ class AutoTargetMode(object):
         self.drive = components['drive']
         self.platform = components['shooter_platform']
         self.ds = ds
+        
+        self.sd = wpilib.SmartDashboard
     
     def on_enable(self):
         pass
