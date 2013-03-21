@@ -489,13 +489,9 @@ class TargetDetector(object):
                     _draw_target(target, self.kMidColor, 'R-MID')
         else:
             
+            # these ones we can't determine where they are
             for target in mids:
-                target.location = next
-                    
-                _draw_target(target, self.kMidColor, label)
-                
-                next = target_data.location.RMIDDLE
-                label = 'R-MID'                 
+                _draw_target(target, self.kMidColor, 'MID')                 
                     
         all_targets = lows + mids + tops
                     
