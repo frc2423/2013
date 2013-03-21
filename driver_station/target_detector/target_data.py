@@ -32,6 +32,7 @@ kLowOuterRatio  = (kLowHeight + kTapeWidth*2)/(kLowWidth + kTapeWidth*2)  # 0.86
 kOptimumVerticalPosition = 0.7      # percent from top
 kOptimumHorizontalPosition = 0.5    # percent from left
 
+kThreshold = 0.5
 
 # target location types
 location = common.enum(TOP=0, 
@@ -63,8 +64,8 @@ class Target(object):
     
     def h_ok(self):
         '''Horizontal angle on target'''
-        return abs(self.hangle) <= 2.0
+        return abs(self.hangle) <= kThreshold
     
     def v_ok(self):
         '''Vertical angle on target'''
-        return abs(self.vangle) <= 2.0
+        return abs(self.vangle) <= kThreshold

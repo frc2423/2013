@@ -149,21 +149,21 @@ class ShooterPlatform(object):
         # Displays speed info
         #
         
-        cs = self.current_speed()
-        if self.pre_speed != self.current_speed():
-            wpilib.SmartDashboard.PutNumber('WSpeed', cs)
+        #cs = self.current_speed()
+        #if self.pre_speed != self.current_speed():
+        #    wpilib.SmartDashboard.PutNumber('WSpeed', cs)
             
-        if self.pre_d_speed != self.d_speed:
-            wpilib.SmartDashboard.PutNumber('WSpeed Desired', self.d_speed)
+        #if self.pre_d_speed != self.d_speed:
+        #    wpilib.SmartDashboard.PutNumber('WSpeed Desired', self.d_speed)
             
         # tuning: difference between speed and desired speed
-        sdt = self.d_speed - cs
-        if self.pre_sdt != sdt:
-            wpilib.SmartDashboard.PutNumber('WSpeed DT', sdt)
-            self.pre_sdt = sdt
+        #sdt = self.d_speed - cs
+        #if self.pre_sdt != sdt:
+        #    wpilib.SmartDashboard.PutNumber('WSpeed DT', sdt)
+        #    self.pre_sdt = sdt
             
-        if self.pre_is_ready_speed != self.is_ready_speed():
-            wpilib.SmartDashboard.PutBoolean('WSpeed Ready', self.is_ready_speed())
+        #if self.pre_is_ready_speed != self.is_ready_speed():
+        #    wpilib.SmartDashboard.PutBoolean('WSpeed Ready', self.is_ready_speed())
              
 
     def update(self):
@@ -186,11 +186,11 @@ class ShooterPlatform(object):
         #Set all pre variables, since we are done with the current ones
         #
         self.pre_angle = self.current_angle()
-        self.pre_speed = self.current_speed()
+        #self.pre_speed = self.current_speed()
         self.pre_d_angle = self.d_angle
-        self.pre_d_speed = self.d_speed
+        #self.pre_d_speed = self.d_speed
         self.pre_is_ready_angle = self.is_ready_angle()
-        self.pre_is_ready_speed = self.is_ready_speed()
+        #self.pre_is_ready_speed = self.is_ready_speed()
             
         
             

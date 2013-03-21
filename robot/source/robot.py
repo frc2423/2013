@@ -209,7 +209,7 @@ class MyRobot(wpilib.SimpleRobot):
         # initialize other needed SmartDashboard inputs
         self.sd.PutBoolean("Wheel On", False)
         self.sd.PutBoolean("Auto Feeder", True)
-        self.sd.PutBoolean("Fire", False)
+        self.sd.PutNumber("Fire", 0)
     
         
     def RobotInit(self):

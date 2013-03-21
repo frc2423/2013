@@ -56,7 +56,7 @@ class BottomLeft(object):
         distance_bot = 5
         t = distance_bot/v
         ang_pw_left = -.5
-        drive_pw = 1.0 
+        drive_pw = 1.0
         #needs an is_aimed() function
         if time_elapsed < t:
             self.driving.drive(drive_pw, 0)

@@ -231,5 +231,5 @@ class Dashboard(object):
         
     def on_fire_clicked(self, widget):
         if self.table is not None:
-            self.table.PutBoolean(u'Fire', True)
+            self.table.PutNumber(u'Fire', 5)
         

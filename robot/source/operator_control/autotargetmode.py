@@ -40,7 +40,7 @@ class AutoTargetMode(object):
     
     def on_enable(self):
         # no unexpected firing should occur when switching modes
-        self.sd.PutBoolean("Fire", False)
+        self.sd.PutNumber("Fire", 0)
         
     def on_disable(self):
         '''
@@ -95,8 +95,10 @@ class AutoTargetMode(object):
         #    Feeder
         #
         
-        if stick_button_on(FEEDER_FEED_BUTTON, ds) or self.sd.GetBoolean("Fire"):
-            self.sd.PutBoolean("Fire", False)
+        fire_counter = int(self.sd.GetNumber("Fire"))
+        if stick_button_on(FEEDER_FEED_BUTTON, ds) or fire_counter != 0:
+            if fire_counter > 0:
+                self.sd.PutNumber("Fire", fire_counter - 1)
             self.feeder.feed()
         elif stick_button_on(FEEDER_BACK_BUTTON, ds):
             self.feeder.reverse_feed()
