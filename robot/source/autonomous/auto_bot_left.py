@@ -27,11 +27,11 @@ class BottomLeft(object):
     def __init__(self, components):
         
         self.driving = components['drive']
-        self.shooter_platform = components ['shooter_platform']
-        self.target_detector = components ['target_detector']
-        self.shooter = ['shooter']
-        self.auto_targeting = ['auto_targeting']
-        self.turner = ['robot_turner']
+        self.shooter_platform = components['shooter_platform']
+        self.target_detector = components['target_detector']
+        #self.shooter = components['shooter']
+        self.auto_targeting = components['auto_targeting']
+        self.turner = components['robot_turner']
         # local targeted value
         self.is_targeted = False        
         
@@ -73,6 +73,6 @@ class BottomLeft(object):
                 self.is_targeted = True
                 if self.shooter_platform.wheel_on != True:
                     self.shooter_platform.set_speed_manual(WHEEL_SPEED)
-                self.shooter.shoot_if_ready()
+                #self.shooter.shoot_if_ready()
                 
         
