@@ -4,6 +4,8 @@ import gtk
 import util
 from widgets import targeter, camera_settings, robot_widget, image_button, toggle_button 
 
+from target_detector import target_data
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -26,6 +28,8 @@ class Dashboard(object):
         'camera_widget',
         'robot_widget',
         
+        'control_notebook',
+        
         'climbing_mode_button',
         'loading_mode_button',
         'manual_mode_button',
@@ -38,14 +42,27 @@ class Dashboard(object):
         
         'fire_button',
         'wheel_on_button',
+        'auto_feed_button',
+        
+        'unused_1',
+        'unused_2',
+        'unused_3',
         
         'autonomous_chooser',
+        'auton_target_high',
+        'auton_target_low',
+        'auton_target_mid',
         
     ]
     ui_signals = [
         'on_cancel_targeting_button_clicked',
         'on_window_destroy'
     ]
+    
+    # keep in sync with robot
+    MODE_DISABLED       = 1
+    MODE_AUTONOMOUS     = 2
+    MODE_TELEOPERATED   = 3
     
     def __init__(self, processor, table, competition):
         
@@ -91,16 +108,18 @@ class Dashboard(object):
         active = util.pixbuf_from_file('fire-on.png')
         inactive = util.pixbuf_from_file('fire-off.png')
         self.fire_button = util.replace_widget(self.fire_button, image_button.ImageButton(inactive))
+        self.fire_button.connect('clicked', self.on_fire_clicked)
         
         # save these for later
         self.fire_button.active_pixbuf = active
         self.fire_button.inactive_pixbuf = inactive
         
-        # setup the wheel on button
+        # setup the toggle buttons
         active = util.pixbuf_from_file('toggle-on.png')
         inactive = util.pixbuf_from_file('toggle-off.png')
-        self.wheel_on_button = util.replace_widget(self.wheel_on_button, toggle_button.ToggleButton(active, inactive, clickable=True, default=False))
         
+        for name in ['wheel_on_button', 'auto_feed_button', 'unused_1', 'unused_2', 'unused_3']:
+            setattr(self, name, util.replace_widget(getattr(self, name), toggle_button.ToggleButton(active, inactive, clickable=True, default=False)))
             
         # attach to the targeter widget
         self.camera_widget.connect('target-update', self.on_target_update)
@@ -115,6 +134,8 @@ class Dashboard(object):
             nt.attach_toggle(table, 'Wheel On', self.wheel_on_button)
             nt.attach_toggle(table, 'Wheel OK', self.wheel_status)
             
+            nt.attach_toggle(table, 'Auto Feeder', self.auto_feed_button)
+            
             nt.attach_chooser_combo(table, 'Autonomous Mode', self.autonomous_chooser)
             
             # other chooser
@@ -128,6 +149,47 @@ class Dashboard(object):
             # robot widget
             nt.attach_fn(table, 'Angle', lambda k, v: self.robot_widget.set_angle(v), self.robot_widget)
             nt.attach_fn(table, 'Frisbees', lambda k, v: self.robot_widget.set_frisbee_count(v), self.robot_widget)
+            
+            # modes
+            nt.attach_fn(table, 'Robot Mode', self.on_robot_mode_update, self.window)
+       
+    def on_robot_mode_update(self, key, value):
+        value = int(value)
+        if value == self.MODE_AUTONOMOUS:
+            
+            current_mode = None
+            active = self.autonomous_chooser.get_active_iter()
+            if active:
+                current_mode = self.autonomous_chooser.get_model()[active][0]
+            
+            logger.info("Robot switched into autonomous mode")
+            logger.info("-> Current mode is: %s", current_mode)
+            self.control_notebook.set_current_page(0)
+            
+            # determine the height the user wants
+            if self.auton_target_high.get_active():
+                logger.info("-> Selecting high target for autonomous mode")
+                self.camera_widget.set_target(target_data.location.TOP)
+                
+            elif self.auton_target_mid.get_active():
+                logger.info("-> Selecting middle target for autonomous mode")
+                self.camera_widget.set_target(target_data.location.MIDDLE)
+                
+            elif self.auton_target_low.get_active():
+                logger.info("-> Selecting low target for autonomous mode")
+                self.camera_widget.set_target(target_data.location.LOW)
+            
+        elif value == self.MODE_TELEOPERATED:
+            logger.info("Robot switched into teleoperated mode")
+            self.control_notebook.set_current_page(1)
+            self.camera_widget.set_target(None)
+            
+        else:
+            logger.info("Robot switched into disabled mode")
+            self.control_notebook.set_current_page(0)
+        
+            
+        
         
     def on_wheel_status_toggled(self, widget):
         self.update_ready_status()
@@ -167,7 +229,7 @@ class Dashboard(object):
     def on_cancel_targeting_button_clicked(self, widget):
         self.camera_widget.set_target(None)
         
-    #
-    # Camera debug settings
-    #
-    
+    def on_fire_clicked(self, widget):
+        if self.table is not None:
+            self.table.PutBoolean(u'Fire', True)
+        
