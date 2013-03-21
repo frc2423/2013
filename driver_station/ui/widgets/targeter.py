@@ -191,7 +191,7 @@ class Targeter(CvWidget):
             if target_location is None:
                 self.target_location = None
             
-            self.queue_draw()
+            glib.idle_add(self.queue_draw)
         
     def set_target_data(self, target_data, error=False):
         '''This is called from another thread, so be careful'''
@@ -211,8 +211,6 @@ class Targeter(CvWidget):
                 self.show_error = True
                 logutil.log_exception(logger, 'Error calculating targeting data!')
                 
-        
-        
         self.set_from_np(img)
 
     def _select_active_target(self, target_location):

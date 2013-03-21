@@ -85,6 +85,6 @@ class CvWidget(gtk.DrawingArea):
                 cv2.cvtColor(src, cv2.COLOR_BGR2BGRA, self.buffer)
         
         # .. and invalidate?
-        self.queue_draw()
+        glib.idle_add(self.queue_draw)
         
     
