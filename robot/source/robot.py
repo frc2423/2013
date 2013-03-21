@@ -136,6 +136,7 @@ speed_threshold = 100
 control_loop_wait_time = 0.025
 
 
+
                                                             
 class MyRobot(wpilib.SimpleRobot):
     
@@ -143,10 +144,16 @@ class MyRobot(wpilib.SimpleRobot):
     ANGLE_MIN_ANGLE = ANGLE_MIN_ANGLE
     ANGLE_MAX_ANGLE = ANGLE_MAX_ANGLE
     
+    # keep in sync with driver station
+    MODE_DISABLED       = 1
+    MODE_AUTONOMOUS     = 2
+    MODE_TELEOPERATED   = 3
+    
     def __init__(self):
         wpilib.SimpleRobot.__init__(self)
         
         self.ds = wpilib.DriverStation.GetInstance()
+        self.sd = wpilib.SmartDashboard
              
         # create the component instances
         climber = Climber(valve1, valve2)
@@ -200,8 +207,9 @@ class MyRobot(wpilib.SimpleRobot):
         self.operator_control_mode = OperatorControlManager(components, self.ds)
         
         # initialize other needed SmartDashboard inputs
-        wpilib.SmartDashboard.PutBoolean("Wheel On", False)
-        wpilib.SmartDashboard.PutBoolean("Feeder Auto", True)
+        self.sd.PutBoolean("Wheel On", False)
+        self.sd.PutBoolean("Auto Feeder", True)
+        self.sd.PutBoolean("Fire", False)
     
         
     def RobotInit(self):
@@ -209,12 +217,16 @@ class MyRobot(wpilib.SimpleRobot):
 
     def Disabled(self):
         print("MyRobot::Disabled()")
+        
+        self.sd.PutNumber("Robot Mode", self.MODE_DISABLED)
     
         while self.IsDisabled():
             wpilib.Wait(control_loop_wait_time)
             
     def Autonomous(self):        
         print("MyRobot::Autonomous()")
+        
+        self.sd.PutNumber("Robot Mode", self.MODE_AUTONOMOUS)
         
         # put this in a consistent state when starting the robot
         self.my_climber.lower()
@@ -225,6 +237,9 @@ class MyRobot(wpilib.SimpleRobot):
     def OperatorControl(self):
         
         print("MyRobot::OperatorControl()")
+        
+        self.sd.PutNumber("Robot Mode", self.MODE_TELEOPERATED)
+        
         # set the watch dog
         dog = self.GetWatchdog()
         dog.SetEnabled(True)

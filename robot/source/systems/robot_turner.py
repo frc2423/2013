@@ -44,7 +44,7 @@ class RobotTurner(object):
             if a <= ta:
                 rotate = tr
                 break
-        print('angle', self.angle, 'rotate', rotate)
+        #print('angle', self.angle, 'rotate', rotate)
         self.updated = True
         self.driving.drive(0.0, -math.copysign(rotate, self.angle))
         
@@ -55,16 +55,16 @@ class RobotTurner(object):
         # -> Really, this should be on a thread. But we've had problems with
         #    threads on the cRio, so do this for now
         
-        wpilib.SmartDashboard.PutNumber('Turner Angle', self.angle)
+        #wpilib.SmartDashboard.PutNumber('Turner Angle', self.angle)
         
         if self.updated == True and self.angle != 0:
             if self.angle < 0.0:
-                print('decay +', self.angle)
+                #print('decay +', self.angle)
                 self.angle += self.DECAY
                 if self.angle > 0.0:
                     self.angle = 0   # done turning 
             else:
-                print('decay -', self.angle)
+                #print('decay -', self.angle)
                 self.angle -= self.DECAY
                 if self.angle < 0.0:
                     self.angle = 0   # done turning
