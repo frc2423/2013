@@ -18,7 +18,7 @@ class LoadingMode(object):
     
     # Since we expect autonomous to shoot out all our frisbees this should be the 
     # default mode 
-    DEFAULT = True
+    DEFAULT = False
 
 
     def __init__(self, components, ds):

@@ -64,10 +64,7 @@ class AutoTargetMode(object):
         #    Shooter is manual because we do not have an encoder
         
         if self.sd.GetBoolean("Wheel On"):
-            shootery = translate_axis(SHOOTER_WHEEL_AXIS, -1.0, 0.0, ds)
-            wpilib.SmartDashboard.PutNumber('Shooter Raw', shootery)
-            
-            self.platform.set_speed_manual(shootery)
+            self.platform.set_speed_manual(self.platform.WHEEL_SPEED_ON)
             
         #
         #    set auto targeting of shooter platform and robot position

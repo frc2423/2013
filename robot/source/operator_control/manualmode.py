@@ -17,7 +17,7 @@ class ManualMode(object):
     MODE_NAME = "Manual Mode"
     
     # Set this to True if this is the default mode, otherwise False
-    DEFAULT = False
+    DEFAULT = True
 
 
     def __init__(self, components ,ds):
@@ -65,10 +65,7 @@ class ManualMode(object):
         #
         
         if self.sd.GetBoolean("Wheel On"):
-            shootery = translate_axis(SHOOTER_WHEEL_AXIS, -1.0, 0.0,ds)
-            self.sd.PutNumber('Shooter Raw', shootery)
-            
-            self.platform.set_speed_manual(shootery)
+            self.platform.set_speed_manual(self.platform.WHEEL_SPEED_ON)
        
         
         #
@@ -83,9 +80,9 @@ class ManualMode(object):
         #
         
         if stick_button_on(CLIMB_DOWN_BUTTON, ds):
-            self.my_climber.lower()
+            self.climber.lower()
         elif stick_button_on(CLIMB_UP_BUTTON, ds):
-            self.my_climber.climb() 
+            self.climber.climb() 
         
         #
         # climbing rotation, set after driving to override joystick input

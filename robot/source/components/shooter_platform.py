@@ -8,6 +8,7 @@ class ShooterPlatform(object):
     ''' Handles shooter and angle components together'''
     
     LOWER_ANGLE_SPEED = 1.0
+    WHEEL_SPEED_ON = -1.0
     
     def __init__(self, angle_jag, shooter_jag, climber):
         ''' 
@@ -130,7 +131,7 @@ class ShooterPlatform(object):
         #
         # Displays angle info
         #
-        #wpilib.SmartDashboard.PutNumber('Angle Raw', self.angle_jag.motor.GetPosition())
+        wpilib.SmartDashboard.PutNumber('Angle Raw', self.angle_jag.motor.GetPosition())
         ca = self.current_angle()
         if self.pre_angle != ca:
             wpilib.SmartDashboard.PutNumber('Angle', ca)
@@ -159,6 +160,9 @@ class ShooterPlatform(object):
         if self.pre_wheel_ok != wheel_ok:
             wpilib.SmartDashboard.PutBoolean('Wheel OK', wheel_ok)
             self.pre_wheel_ok = wheel_ok
+            
+        wpilib.SmartDashboard.PutBoolean('Forward', self.angle_jag.motor.GetForwardLimitOK())
+        wpilib.SmartDashboard.PutBoolean('Reverse', self.angle_jag.motor.GetReverseLimitOK())
             
         
         #cs = self.current_speed()
