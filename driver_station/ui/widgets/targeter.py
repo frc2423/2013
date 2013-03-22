@@ -136,9 +136,14 @@ class Targeter(CvWidget):
                 scale = 1.0/self.zoom
                 cxt.scale(scale, scale)
             
-            polygon = self.active_target.polygon
+            polygon = active_target.polygon
                 
-            self.draw_contour(cxt, polygon)
+            if active_target.h_ok() and active_target.v_ok():
+                self.draw_contour(cxt, active_target.polygon, (0,1,0,1), (1,1,0))
+            else:
+                b, g, r = [v/255.0 for v in active_target.color]
+                
+                self.draw_contour(cxt, active_target.polygon, (r, g, b, 0.5), (r, g, b))
         
         # finally, draw lines indicating the optimal shooting
         hw = int(self.kOptimumHorizontalPosition * ww)
@@ -155,12 +160,9 @@ class Targeter(CvWidget):
         cxt.line_to(hw, wh)
         cxt.stroke()
         
-    def draw_contour(self, cxt, contour):    
+    def draw_contour(self, cxt, contour, fill_color, outline_color):    
         
         # TODO: improve this too
-            
-        #x, y = contour[0,0]
-        #cxt.move_to(int(x), int(y))
         
         for x,y in contour[:,0,:]:
             cxt.line_to(int(x), int(y))
@@ -169,11 +171,11 @@ class Targeter(CvWidget):
         cxt.close_path()
         
         # fill it in
-        cxt.set_source_rgb(0, 1, 0)
+        cxt.set_source_rgba(*fill_color)
         cxt.fill_preserve()
         
         # outline it
-        cxt.set_source_rgb(1, 1, 0)
+        cxt.set_source_rgb(*outline_color)
         cxt.set_line_width(3)
         cxt.stroke()
         

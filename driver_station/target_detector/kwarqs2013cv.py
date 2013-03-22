@@ -28,6 +28,9 @@ class TargetDetector(object):
     kMidColor     = (255, 0, 255)   # magenta
     kLowColor     = (255, 0,   0)   # blue
     
+    #kLineType     = 8
+    kLineType     = cv2.CV_AA
+    
     # constants that need to be tuned
     kNearlyHorizontalSlope = math.tan(math.radians(20))
     kNearlyVerticalSlope = math.tan(math.radians(90-20))
@@ -210,7 +213,7 @@ class TargetDetector(object):
         contours, hierarchy = cv2.findContours(self.bin.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
         
         if self.show_contours:
-            cv2.drawContours(img, contours, -1, (255,0,0), thickness=self.kThickness)
+            cv2.drawContours(img, contours, -1, (255,0,0), thickness=self.kThickness, lineType=self.kLineType)
         
         # stores the target data
         ctargets = [None]*len(contours)
@@ -239,7 +242,7 @@ class TargetDetector(object):
             if not cv2.isContourConvex(p) or not (len(p) == 4 or len(p) == 5):
                 # discard this too
                 if self.show_missed:
-                    cv2.drawContours(img, [p.astype(np.int32)], -1, self.missedColor, thickness=self.kThickness)
+                    cv2.drawContours(img, [p.astype(np.int32)], -1, self.missedColor, thickness=self.kThickness, lineType=self.kLineType)
                 continue
             
             # calculate the actual length of the sides, and determine the ratio
@@ -297,7 +300,7 @@ class TargetDetector(object):
                     # discard this object
                     
                     if self.show_badratio:
-                        cv2.drawContours(img, [p.astype(np.int32)], -1, self.badRatioColor, thickness=self.kThickness)
+                        cv2.drawContours(img, [p.astype(np.int32)], -1, self.badRatioColor, thickness=self.kThickness, lineType=self.kLineType)
                     
                         if self.show_ratio_labels:
                             cv2.putText(img, '%.3f' % ratio, (x+5,y+5), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), bottomLeftOrigin=False)
@@ -369,7 +372,7 @@ class TargetDetector(object):
             
             # the child will be discarded
             if self.show_missed:
-                cv2.drawContours(img, [target.polygon], -1, self.missedChildColor, thickness=self.kThickness)
+                cv2.drawContours(img, [target.polygon], -1, self.missedChildColor, thickness=self.kThickness, lineType=self.kLineType)
                 
                 if self.show_ratio_labels:
                     cv2.putText(img, '%.3f' % target.ratio, (target.x,target.y), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), bottomLeftOrigin=False)
@@ -380,13 +383,13 @@ class TargetDetector(object):
         tops = []
         unks = []
         
-        def _draw_target(target, color, label):
+        def _draw_target(target, label):
             if self.show_targets: 
                 
                 components = []
-                cv2.drawContours(img, [target.polygon], -1, color, thickness=self.kTgtThickness)
+                cv2.drawContours(img, [target.polygon], -1, target.color, thickness=self.kTgtThickness, lineType=self.kLineType)
                 
-                cv2.circle(img, (target.cx, target.cy), 3, color)
+                cv2.circle(img, (target.cx, target.cy), 3, target.color)
                 
                 if self.show_labels:
                     components.append(label)
@@ -506,24 +509,29 @@ class TargetDetector(object):
             # calculate the targeting information and draw them
             
             if target.location == self.kTop:
+                target.color = self.kTopColor
                 self._set_measurements(iw, ih, target, self.kTopTgtHCenter, centerOfImageY)
-                _draw_target(target, self.kTopColor, 'TOP')
+                _draw_target(target, 'TOP')
                 
             elif target.location == self.kMid:
+                target.color = self.kMidColor
                 self._set_measurements(iw, ih, target, self.kMidTgtHCenter, centerOfImageY)
-                _draw_target(target, self.kMidColor, 'MID')
+                _draw_target(target, 'MID')
                 
             elif target.location == self.kMidL:
+                target.color = self.kMidColor
                 self._set_measurements(iw, ih, target, self.kMidTgtHCenter, centerOfImageY)
-                _draw_target(target, self.kMidColor, 'LMID')
+                _draw_target(target, 'LMID')
                 
             elif target.location == self.kMidR:
+                target.color = self.kMidColor
                 self._set_measurements(iw, ih, target, self.kMidTgtHCenter, centerOfImageY)
-                _draw_target(target, self.kMidColor, 'RMID')
+                _draw_target(target, 'RMID')
                 
             elif target.location == self.kLow:
+                target.color = self.kLowColor
                 self._set_measurements(iw, ih, target, self.kLowTgtHCenter, centerOfImageY)
-                _draw_target(target, self.kLowColor, 'LOW')
+                _draw_target(target, 'LOW')
         
                     
         # sort the low targets
