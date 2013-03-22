@@ -1,10 +1,48 @@
 
 # various network tables utility routines
-from pynetworktables import ITableListener
+from pynetworktables import ITableListener, IRemoteConnectionListener
 
 import glib
 import gobject
 import pynetworktables
+
+
+class RemoteListener(IRemoteConnectionListener):
+    '''Calls a function when a table value is updated'''
+    
+    def __init__(self, connect_fn, disconnect_fn):
+        '''fn must be a callable that takes (value)'''
+        IRemoteConnectionListener.__init__(self)
+        self.connect_fn = connect_fn
+        self.disconnect_fn = disconnect_fn
+        
+    def attach(self, table):
+        self.table = table
+        table.AddConnectionListener(self, True)
+        
+    def detach(self):
+        if hasattr(self, 'table'):
+            self.table.RemoveConnectionListener(self)
+        
+    def Connected(self, remote):
+        self.connect_fn(remote)
+        
+    def Disconnected(self, remote):
+        self.disconnect_fn(remote)
+        
+class UiRemoteListener(RemoteListener):
+    '''Calls a function on the UI thread when a table value is updated'''
+    
+    def __init__(self, connect_fn, disconnect_fn):
+        '''fn must be a callable that takes (value)'''
+        RemoteListener.__init__(self, connect_fn, disconnect_fn)
+        
+    def Connected(self, remote):
+        glib.idle_add(self.connect_fn, remote)
+        
+    def Disconnected(self, remote):
+        glib.idle_add(self.disconnect_fn, remote)
+        
 
 class Listener(ITableListener):
     '''Calls a function when a table value is updated'''
@@ -48,6 +86,19 @@ class UiSubtableListener(UiListener):
         self.table = table
         table.AddSubTableListener(self)
 
+
+def attach_connection_listener(table, connect_fn, disconnect_fn, remove_widget):
+    '''Wait for connection notifications, removed when a widget dies'''
+    
+    def _on_destroy(widget):
+        '''Clean up after ourselves'''
+        listener.detach()
+    
+    listener = UiRemoteListener(connect_fn, disconnect_fn)
+    listener.attach(table)
+    
+    remove_widget.connect('destroy', _on_destroy)
+    
 
 def attach_fn(table, key, fn, remove_widget):
     '''Attach a specific NetworkTable key to a fn, removed when a widget dies'''

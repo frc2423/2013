@@ -154,6 +154,21 @@ class Dashboard(object):
             
             # modes
             nt.attach_fn(table, 'Robot Mode', self.on_robot_mode_update, self.window)
+            
+            # connection listener
+            nt.attach_connection_listener(table, self.on_connection_connect, self.on_connection_disconnect, self.window)
+       
+    def on_connection_connect(self, remote):
+        if remote.IsServer():
+            logger.info("NetworkTables connection to robot detected")
+        else:
+            logger.info("NetworkTables connection to client detected")
+        
+    def on_connection_disconnect(self, remote):
+        if remote.IsServer():
+            logger.info("NetworkTables disconnected from robot")
+        else:
+            logger.info("NetworkTables disconnected from client")
        
     def on_robot_mode_update(self, key, value):
         value = int(value)
