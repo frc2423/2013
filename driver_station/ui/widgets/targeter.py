@@ -45,11 +45,7 @@ class Targeter(CvWidget):
         self.targets = None
         self.cat_tgts = None
         
-        # don't set this right away, wait for 3 seconds -- otherwise the user 
-        # might think there's an error when there really isn't one
-        # -> if True/False, set camera/error appropriately. show blank if None
         self.show_error = None
-        glib.timeout_add_seconds(3, self._no_camera_timer)
         
         # enable mouse clicks
         self.add_events(gtk.gdk.BUTTON_PRESS_MASK)
@@ -77,6 +73,13 @@ class Targeter(CvWidget):
         return self._active_target
         
     active_target = property(_get_active_target, _set_active_target)
+        
+    def start(self):
+        # don't set this right away, wait for 3 seconds -- otherwise the user 
+        # might think there's an error when there really isn't one
+        # -> if True/False, set camera/error appropriately. show blank if None
+        if self.show_error is None:
+            glib.timeout_add_seconds(3, self._no_camera_timer)
         
     def _no_camera_timer(self):
         '''Called after N seconds starting up, to see if we found a camera yet'''

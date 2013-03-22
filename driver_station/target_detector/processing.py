@@ -60,7 +60,9 @@ class ImageProcessor(object):
     def start(self):
         if self.img_logger is not None:
             self.img_logger.start()
-        self.thread.start()
+        
+        if not self.thread.is_alive():
+            self.thread.start()
         
     def stop(self):
         self.do_stop = True
@@ -324,7 +326,8 @@ class ImageLogger(object):
             self.condition.notify()
             
     def start(self):
-        self.thread.start()
+        if not self.thread.is_alive():
+            self.thread.start()
         
     def stop(self):
         with self.condition:

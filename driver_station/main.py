@@ -76,7 +76,9 @@ if __name__ == '__main__':
         processor.initialize(options, dashboard.camera_widget)
     except RuntimeError:
         exit(1)
-    processor.start()
+        
+    if table is None:
+        processor.start()
     
     # gtk main
     dashboard.show_all()

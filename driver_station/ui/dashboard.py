@@ -159,10 +159,15 @@ class Dashboard(object):
             nt.attach_connection_listener(table, self.on_connection_connect, self.on_connection_disconnect, self.window)
        
     def on_connection_connect(self, remote):
+        
+        # this doesn't seem to actually tell the difference
         if remote.IsServer():
             logger.info("NetworkTables connection to robot detected")
         else:
             logger.info("NetworkTables connection to client detected")
+            
+        self.processor.start()
+        self.camera_widget.start()
         
     def on_connection_disconnect(self, remote):
         if remote.IsServer():
