@@ -233,6 +233,10 @@ class Dashboard(object):
         self.camera_widget.set_target(None)
         
     def on_fire_clicked(self, widget):
+        
+        # presumably when the user fires, they want to remain stationary
+        self.camera_widget.set_target(None)
+        
         if self.table is not None:
             self.table.PutNumber(u'Fire', 5)
         
