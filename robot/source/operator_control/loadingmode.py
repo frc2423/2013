@@ -35,7 +35,12 @@ class LoadingMode(object):
         self.ds = ds
         
     def on_enable(self):
-        pass
+        
+        #
+        # set climber to lowered
+        #
+        
+        self.climber.lower()
         
     def on_disable(self):
         pass
@@ -58,9 +63,15 @@ class LoadingMode(object):
         self.platform.set_angle_auto(0)
         self.platform.set_speed_manual(0.0)
         
-        #
-        #set climber to lowered
-        #
-        self.climber.lower()
-    
+
         
+        #
+        #    Climber
+        #        - Must come after anything that sets angle, otherwise
+        #        the climbing safety features won't kick in
+        #
+        
+        if stick_button_on(CLIMB_DOWN_BUTTON, ds):
+            self.climber.lower()
+        elif stick_button_on(CLIMB_UP_BUTTON, ds):
+            self.climber.climb() 

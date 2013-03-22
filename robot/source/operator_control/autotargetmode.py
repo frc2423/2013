@@ -47,6 +47,11 @@ class AutoTargetMode(object):
         # no unexpected firing should occur when switching modes
         self.sd.PutNumber("Fire", 0)
         
+        #
+        #    make sure sure climber is lowered 
+        #       
+        self.climber.lower()
+        
     def on_disable(self):
         '''
             This function is called when Operator Control mode is exiting. You should
@@ -112,10 +117,17 @@ class AutoTargetMode(object):
                             stick_axis(DRIVE_ROTATE_AXIS, ds),
                             stick_button_on(DRIVE_FASTER_BUTTON, ds))
 
+        
         #
-        #    make sure sure climber is lowered 
-        #       
-        self.climber.lower()
+        #    Climber
+        #        - Must come after anything that sets angle, otherwise
+        #        the climbing safety features won't kick in
+        #
+        
+        if stick_button_on(CLIMB_DOWN_BUTTON, ds):
+            self.climber.lower()
+        elif stick_button_on(CLIMB_UP_BUTTON, ds):
+            self.climber.climb()
         
         #
         #    Feeder
