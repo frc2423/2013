@@ -67,6 +67,7 @@ class Dashboard(object):
     
     def __init__(self, processor, table, competition):
         
+        self.processor = processor
         self.camera_settings = camera_settings.CameraSettings(processor)
         
         util.initialize_from_xml(self, [self.camera_settings])
@@ -158,6 +159,8 @@ class Dashboard(object):
         value = int(value)
         if value == self.MODE_AUTONOMOUS:
             
+            self.processor.enable_image_logging()
+            
             current_mode = None
             active = self.autonomous_chooser.get_active_iter()
             if active:
@@ -181,11 +184,17 @@ class Dashboard(object):
                 self.camera_widget.set_target(target_data.location.LOW)
             
         elif value == self.MODE_TELEOPERATED:
+            
+            self.processor.enable_image_logging()
+            
             logger.info("Robot switched into teleoperated mode")
             self.control_notebook.set_current_page(1)
             self.camera_widget.set_target(None)
             
         else:
+            # don't waste disk space while the robot isn't enabled
+            self.processor.disable_image_logging()
+            
             logger.info("Robot switched into disabled mode")
             self.control_notebook.set_current_page(0)
         

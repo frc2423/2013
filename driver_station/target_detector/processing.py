@@ -31,6 +31,7 @@ class ImageProcessor(object):
         self.detector = kwarqs2013cv.TargetDetector()
         self.lock = threading.Lock()
         self.condition = threading.Condition(self.lock)
+        self.image_log_enabled = False
     
     def initialize(self, options, camera_widget):
         
@@ -70,6 +71,14 @@ class ImageProcessor(object):
         
         if self.img_logger is not None:
             self.img_logger.stop()
+            
+    def enable_image_logging(self):
+        with self.lock:
+            self.image_log_enabled = True
+            
+    def disable_image_logging(self):
+        with self.lock:
+            self.image_log_enabled = False
         
     def refresh(self):
         with self.condition:
@@ -229,6 +238,8 @@ class ImageProcessor(object):
                 with self.lock:
                     if self.do_stop:
                         break
+                    
+                    image_log_enabled = self.image_log_enabled
                 
                 #
                 # Read the video frame
@@ -243,7 +254,8 @@ class ImageProcessor(object):
                         tm = time.time()
                         diff = tm - last_log
                         if diff >= 1:
-                            self.img_logger.log_image(img)
+                            if image_log_enabled:
+                                self.img_logger.log_image(img)
                             
                             # adjust for possible drift
                             if diff > 1.5:
