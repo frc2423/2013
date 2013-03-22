@@ -69,7 +69,7 @@ class ShooterPlatform(object):
         ''' Returns True if the platform is in the max position '''
         
         #use the limit swith in case the pot breaks
-        return not self.angle_jag.motor.GetReverseLimitOk()
+        return not self.angle_jag.motor.GetReverseLimitOK()
          
     def set_angle_auto(self, d_angle):
         '''

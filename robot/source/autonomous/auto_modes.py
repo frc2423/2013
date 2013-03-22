@@ -119,11 +119,11 @@ class DumbMode(AutoModes):
         ''' Assume sensors are broken and override regular update function'''
         
         #raise shooter platform to max 
-        while not self.shooter_platform.at_max():
+        if not self.shooter_platform.at_max():
             self.shooter_platform.set_speed_manual(\
                             self.shooter_platform.RAISE_ANGLE_SPEED)
         
-        if self.shooter_platform.at_max():
+        else:
             #shoot if wheel is at ready speed
             self.shooter_platform.set_speed_manual(WHEEL_SPEED)
             self.shooter.shoot_if_ready()    
