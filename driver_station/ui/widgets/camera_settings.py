@@ -15,6 +15,10 @@ class CameraSettings(object):
     ]
     
     ui_signals = [
+                  
+        'on_thresh_pit_button_clicked',
+        'on_thresh_comp_button_clicked',
+                  
         'on_adj_thresh_hue_p_value_changed',
         'on_adj_thresh_hue_n_value_changed',
         'on_adj_thresh_sat_value_changed',
@@ -48,6 +52,20 @@ class CameraSettings(object):
         self.adj_thresh_hue_n.set_value(settings.get('camera/thresh_hue_n', detector.thresh_hue_n))
         self.adj_thresh_sat.set_value(settings.get('camera/thresh_sat', detector.thresh_sat))
         self.adj_thresh_val.set_value(settings.get('camera/thresh_val', detector.thresh_val))
+    
+    def on_thresh_pit_button_clicked(self, widget):
+        detector = self.processor.detector
+        self.adj_thresh_hue_p.set_value(detector.kPitThreshHueP)
+        self.adj_thresh_hue_n.set_value(detector.kPitThreshHueN)
+        self.adj_thresh_sat.set_value(detector.kPitThreshSat)
+        self.adj_thresh_val.set_value(detector.kPitThreshVal)
+    
+    def on_thresh_comp_button_clicked(self, widget):
+        detector = self.processor.detector
+        self.adj_thresh_hue_p.set_value(detector.kCompThreshHueP)
+        self.adj_thresh_hue_n.set_value(detector.kCompThreshHueN)
+        self.adj_thresh_sat.set_value(detector.kCompThreshSat)
+        self.adj_thresh_val.set_value(detector.kCompThreshVal)
     
     def _on_thresh(self, widget, name):
         v = widget.get_value()

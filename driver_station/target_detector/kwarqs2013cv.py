@@ -64,6 +64,16 @@ class TargetDetector(object):
     
     kRatios = [kTopOuterRatio, kMidOuterRatio, kLowOuterRatio]
     
+    kCompThreshHueP = 30
+    kCompThreshHueN = 75
+    kCompThreshSat = 188
+    kCompThreshVal = 16
+    
+    kPitThreshHueP = 45
+    kPitThreshHueN = 75
+    kPitThreshSat = 200
+    kPitThreshVal = 55
+    
     def __init__(self):
         self.size = None
         
@@ -86,10 +96,10 @@ class TargetDetector(object):
         self.show_targets = True
         
         # thresholds
-        self.thresh_hue_p = settings.get('camera/thresh_hue_p', 30)     # 45
-        self.thresh_hue_n = settings.get('camera/thresh_hue_n', 75)     # 75
-        self.thresh_sat = settings.get('camera/thresh_sat', 188)        # 200
-        self.thresh_val = settings.get('camera/thresh_val', 16)         # 55
+        self.thresh_hue_p = settings.get('camera/thresh_hue_p', self.kCompThreshHueP)
+        self.thresh_hue_n = settings.get('camera/thresh_hue_n', self.kCompThreshHueN)
+        self.thresh_sat = settings.get('camera/thresh_sat', self.kCompThreshSat)
+        self.thresh_val = settings.get('camera/thresh_val', self.kCompThreshVal)
     
     def processImage(self, img):
         

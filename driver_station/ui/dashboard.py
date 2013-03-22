@@ -57,7 +57,7 @@ class Dashboard(object):
     ]
     ui_signals = [
         'on_cancel_targeting_button_clicked',
-        'on_window_destroy'
+        'on_window_destroy',
     ]
     
     # keep in sync with robot
