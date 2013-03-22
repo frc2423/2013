@@ -20,6 +20,7 @@ class TargetDetector(object):
     
     contourColor = (255,128, 0)
     missedColor  = (255,255,0)
+    missedChildColor  = (0xd4, 255, 128)
     badRatioColor = (154,250,0)
     
     # each target type has a different color
@@ -40,6 +41,7 @@ class TargetDetector(object):
     kTopOuterRatio = target_data.kTopOuterRatio
     kMidInnerRatio = target_data.kMidInnerRatio
     kMidOuterRatio = target_data.kMidOuterRatio
+    kLowInnerRatio = target_data.kLowInnerRatio
     kLowOuterRatio = target_data.kLowOuterRatio
     
     kTopTgtHCenter = target_data.kTopTgtHCenter
@@ -48,6 +50,8 @@ class TargetDetector(object):
     
     kTop = target_data.location.TOP
     kMid = target_data.location.MIDDLE
+    kMidL = target_data.location.LMIDDLE
+    kMidR = target_data.location.RMIDDLE
     kLow = target_data.location.LOW
     kUnkL = target_data.location.UNKNOWNL
     kUnkR = target_data.location.UNKNOWNR
@@ -79,10 +83,10 @@ class TargetDetector(object):
         self.show_targets = True
         
         # thresholds
-        self.thresh_hue_p = settings.get('camera/thresh_hue_p', 60-15)
-        self.thresh_hue_n = settings.get('camera/thresh_hue_n', 60+15)
-        self.thresh_sat = settings.get('camera/thresh_sat', 200)
-        self.thresh_val = settings.get('camera/thresh_val', 55)
+        self.thresh_hue_p = settings.get('camera/thresh_hue_p', 30)     # 45
+        self.thresh_hue_n = settings.get('camera/thresh_hue_n', 75)     # 75
+        self.thresh_sat = settings.get('camera/thresh_sat', 188)        # 200
+        self.thresh_val = settings.get('camera/thresh_val', 16)         # 55
     
     def processImage(self, img):
         
@@ -283,10 +287,10 @@ class TargetDetector(object):
                 if ratio >= self.kTopInnerRatio - 0.1 and ratio <= self.kTopOuterRatio + 0.03:
                     tgt = self.kTop
                     
-                elif abs(ratio - self.kMidOuterRatio) < 0.1:
+                elif ratio >= self.kMidInnerRatio - 0.1 and ratio <= self.kMidOuterRatio + 0.2:
                     tgt = self.kMid
                     
-                elif abs(ratio - self.kLowOuterRatio) < 0.1:
+                elif ratio >= self.kLowInnerRatio - 0.2 and ratio <= self.kLowOuterRatio + 0.4:
                     tgt = self.kLow
                     
                 else:
@@ -365,7 +369,7 @@ class TargetDetector(object):
             
             # the child will be discarded
             if self.show_missed:
-                cv2.drawContours(img, [target.polygon], -1, self.missedColor, thickness=self.kThickness)
+                cv2.drawContours(img, [target.polygon], -1, self.missedChildColor, thickness=self.kThickness)
                 
                 if self.show_ratio_labels:
                     cv2.putText(img, '%.3f' % target.ratio, (target.x,target.y), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), bottomLeftOrigin=False)
@@ -395,47 +399,42 @@ class TargetDetector(object):
                 
                 if len(components) != 0:
                     cv2.putText(img, ' '.join(components), (target.x,target.y), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), bottomLeftOrigin=False)
+                    
+        #
+        # split the targets into groups
+        #
         
         for i, target in enumerate(all_targets):
             if target is None:
                 continue
             
-            # calculate the targeting information
-            
             if target.location == self.kTop:
                 tops.append(target)
-                self._set_measurements(iw, ih, target, self.kTopTgtHCenter, centerOfImageY)
-                _draw_target(target, self.kTopColor, 'TOP')
-                
+              
             elif target.location == self.kMid:
                 mids.append(target)
-                self._set_measurements(iw, ih, target, self.kMidTgtHCenter, centerOfImageY)
-                # don't draw the middle targets yet
-                
+             
             elif target.location == self.kLow:
                 lows.append(target)
-                self._set_measurements(iw, ih, target, self.kLowTgtHCenter, centerOfImageY)
-                _draw_target(target, self.kLowColor, 'LOW')
-                
+            
             else:
                 unks.append(target)
-                continue
 
                             
-        # sort the tops by the highest target
-        # -> lowest numeric value is the highest!
-        tops.sort(key=lambda tgt: tgt.cy)
+        
         
         # determine what the unknown targets are, based on other targets
         if len(unks) != 0:
             if len(tops) != 0:
                 
+                # sort the tops by the highest target
+                # -> lowest numeric value is the highest!
+                tops.sort(key=lambda tgt: tgt.cy)
+                
                 for target in unks:
                     if target.cy > tops[0].cy + tops[0].h * 0.5:
                         target.location = self.kMid
                         mids.append(target)
-                        self._set_measurements(iw, ih, target, self.kMidTgtHCenter, centerOfImageY)
-                        # don't draw middle targets yet
                 
             elif len(mids) != 0:
                 
@@ -445,26 +444,19 @@ class TargetDetector(object):
                     if target.cy < mids[0].cy - mids[0].h * 0.1:
                         target.location = self.kTop
                         tops.append(target)
-                        self._set_measurements(iw, ih, target, self.kTopTgtHCenter, centerOfImageY)
-                        _draw_target(target, self.kTopColor, 'TOP')
                                                     
                     elif target.cy > mids[0].cy + mids[0].h:
                         target.location = self.kLow
                         lows.append(target)
-                        self._set_measurements(iw, ih, target, self.kLowTgtHCenter, centerOfImageY)
-                        _draw_target(target, self.kLowColor, 'LOW')
                         
                     else:
                         target.location = self.kMid
                         mids.append(target)
-                        self._set_measurements(iw, ih, target, self.kLowTgtHCenter, centerOfImageY)
-                        # don't draw middle targets yet
         
         # determine the left and right middle targets if possible
         # -> There's probably a better way to do this.. 
         
-        # sort the middles by their left most edge    
-        mids.sort(key=lambda tgt: tgt.x)
+        
         
         # since the leftmost is first, the left most target is probably 
         # the left target.. 
@@ -473,27 +465,66 @@ class TargetDetector(object):
         
         if len(tops) != 0:
             
+            # if there is more than one top, then assume the highest one is 
+            # the true top.. because there can only be one.  
+            
+            if len(tops) > 1:
+                
+                # sort the tops by the highest target
+                # -> lowest numeric value is the highest!
+                tops.sort(key=lambda tgt: tgt.cy)
+                
+                mids += tops[1:]
+                tops = [tops[0]]
+            
             top = tops[0]
+            
+            # sort the middles by their left most edge    
+            mids.sort(key=lambda tgt: tgt.x)
                     
             for target in mids:
                 # the left most target is probably the left target.. 
                 if target.x < top.x: 
                     target.location = next
-                    
-                    _draw_target(target, self.kMidColor, label)
-                    
                     next = target_data.location.MIDDLE
-                    label = 'MID?'
                 else:
                     target.location = target_data.location.RMIDDLE
-                    _draw_target(target, self.kMidColor, 'R-MID')
         else:
             
             # these ones we can't determine where they are
-            for target in mids:
-                _draw_target(target, self.kMidColor, 'MID')                 
+            pass
+                 
                     
         all_targets = lows + mids + tops
+        
+        #
+        # Ok, now that mess is done, actually draw the things and calculate measurements
+        #
+        
+        for i, target in enumerate(all_targets):
+                        
+            # calculate the targeting information and draw them
+            
+            if target.location == self.kTop:
+                self._set_measurements(iw, ih, target, self.kTopTgtHCenter, centerOfImageY)
+                _draw_target(target, self.kTopColor, 'TOP')
+                
+            elif target.location == self.kMid:
+                self._set_measurements(iw, ih, target, self.kMidTgtHCenter, centerOfImageY)
+                _draw_target(target, self.kMidColor, 'MID')
+                
+            elif target.location == self.kMidL:
+                self._set_measurements(iw, ih, target, self.kMidTgtHCenter, centerOfImageY)
+                _draw_target(target, self.kMidColor, 'LMID')
+                
+            elif target.location == self.kMidR:
+                self._set_measurements(iw, ih, target, self.kMidTgtHCenter, centerOfImageY)
+                _draw_target(target, self.kMidColor, 'RMID')
+                
+            elif target.location == self.kLow:
+                self._set_measurements(iw, ih, target, self.kLowTgtHCenter, centerOfImageY)
+                _draw_target(target, self.kLowColor, 'LOW')
+        
                     
         # sort the low targets
         lows.sort(key=lambda tgt: tgt.cy)
