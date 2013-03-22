@@ -16,8 +16,6 @@ from systems.shooter import Shooter
 from systems.auto_targeting import AutoTargeting
 from systems.robot_turner import RobotTurner
 
-WHEEL_SPEED = .9
-
 class AutoModes(object):
     
     def __init__(self, components):
@@ -57,7 +55,7 @@ class AutoModes(object):
             else:
                 #we targeted once, so lets remember that and try to shoot
                 self.is_targeted = True
-                self.shooter_platform.set_speed_manual(WHEEL_SPEED)
+                self.shooter_platform.set_speed_manual(self.shooter_platform.WHEEL_SPEED_ON)
                 self.shooter.shoot_if_ready()
                 
 class TopRight(AutoModes):
@@ -120,11 +118,10 @@ class DumbMode(AutoModes):
         
         #raise shooter platform to max 
         if not self.shooter_platform.at_max():
-            self.shooter_platform.set_speed_manual(\
-                            self.shooter_platform.RAISE_ANGLE_SPEED)
+            self.shooter_platform.set_angle_manual(self.shooter_platform.RAISE_ANGLE_SPEED)
         
         else:
             #shoot if wheel is at ready speed
-            self.shooter_platform.set_speed_manual(WHEEL_SPEED)
+            self.shooter_platform.set_speed_manual(self.shooter_platform.WHEEL_SPEED_ON)
             self.shooter.shoot_if_ready()    
         

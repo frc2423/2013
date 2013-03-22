@@ -146,7 +146,7 @@ class Targeter(CvWidget):
             else:
                 b, g, r = [v/255.0 for v in active_target.color]
                 
-                self.draw_contour(cxt, active_target.polygon, (r, g, b, 0.5), (r, g, b))
+                self.draw_contour(cxt, active_target.polygon, (r, g, b, 0.8), (r, g, b))
         
         # finally, draw lines indicating the optimal shooting
         hw = int(self.kOptimumHorizontalPosition * ww)

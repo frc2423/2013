@@ -2,9 +2,6 @@ try:
     import wpilib
 except:
     import fake_wpilib as wpilib
-    
-from components import shooter_platform
-from components import feeder
 
 SHOOT_TIME = .5
 class Shooter():
@@ -21,32 +18,35 @@ class Shooter():
             param:feeder - a feeder object all setup
         '''
     
-        self.shooter_platform = shooter_platform
+        self.shooter_platform = shooter_platfrom
         self.feeder = feeder
         self.driver = driver
         self.state = None
         self.min_calls = wpilib.Timer
-        self.manual_feed = False 
+        self.manual_feed = False
+    
     def shoot_if_ready(self):
         ''' if motor is ready and there are frisbees set feeder to kick frisbee '''
-        feed_auto_mode = feeder.set_auto_mode()
-        if  self.shooter_platform.is_ready()  and self.feeder.has_frisbee()\
-            and feed_auto_mode:
-                #auto feed when in auto mode
-                feeder.feed_auto()
+        self.feeder.set_auto_mode(True)
+        
+        # TODO: Fix this
+        
+        if self.shooter_platform.is_ready()  and self.feeder.has_frisbee():
+            #auto feed when in auto mode
+            self.feeder.feed_auto()
                 
-        elif self.shooter_platform.is_ready() and self.feed_auto_mode or \
-            feed.manual_feed:
+        elif self.shooter_platform.is_ready() and self.manual_feed:
             if self.min_calls.Get() == 0:
                 self.min_calls.Start()
-                feeder.feed()
-                feed.manual_feed = True
+                self.feeder.feed()
+                self.manual_feed = True
                 
             elif not self.min_calls.HasPeriodPassed(SHOOT_TIME):            
-                feeder.feed()
+                self.feeder.feed()
             
             else:
                 self.min_calls.Stop()
                 self.min_calls.Reset()
-                feed.manual_feed = False
+                self.manual_feed = False
+                
     # no update function required

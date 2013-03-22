@@ -68,7 +68,7 @@ class ShooterPlatform(object):
     def at_max(self):
         ''' Returns True if the platform is in the max position '''
         
-        #use the limit swith in case the pot breaks
+        #use the limit switch in case the pot breaks
         return not self.angle_jag.motor.GetReverseLimitOK()
          
     def set_angle_auto(self, d_angle):
@@ -136,7 +136,7 @@ class ShooterPlatform(object):
                 self.ready_timer.Start()
             
             #current has been in range for expected time
-            if self.ready_timer.HasPeriodPassed(READY_TIME):
+            if self.ready_timer.HasPeriodPassed(self.READY_TIME):
                 #no need to run the timer anymore
                 self.ready_timer.Stop()
                 ret_val = True
@@ -153,7 +153,7 @@ class ShooterPlatform(object):
     def is_ready(self):
         ''' checks if the shooter_platform is ready to shoot'''
         #returns true if shooter_platform is ready to shoot
-        return self.wheel_jag.is_ready() and self.angle_jag.is_ready()
+        return self.shooter_jag.is_ready() and self.angle_jag.is_ready()
             
     def _update_smart_dashboard(self):
         ''' 
