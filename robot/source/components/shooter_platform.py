@@ -8,7 +8,10 @@ class ShooterPlatform(object):
     ''' Handles shooter and angle components together'''
     
     LOWER_ANGLE_SPEED = 1.0
+    RAISE_ANGLE_SPEED = -1.0
     WHEEL_SPEED_ON = -1.0
+    #Debounce time for readiness 
+    READY_TIME = .5
     
     def __init__(self, angle_jag, shooter_jag, climber):
         ''' 
@@ -43,7 +46,8 @@ class ShooterPlatform(object):
         #is ready
         self.pre_is_ready_angle = None
         self.pre_is_ready_speed = None
-        
+        #is ready timer 
+        self.ready_timer = wpilib.Timer()
         #mode
         self.wheel_on = False
        
@@ -60,6 +64,12 @@ class ShooterPlatform(object):
         
         # use the limit switch in case the pot breaks
         return not self.angle_jag.motor.GetForwardLimitOK()
+    
+    def at_max(self):
+        ''' Returns True if the platform is in the max position '''
+        
+        #use the limit swith in case the pot breaks
+        return not self.angle_jag.motor.GetReverseLimitOk()
          
     def set_angle_auto(self, d_angle):
         '''
@@ -114,12 +124,30 @@ class ShooterPlatform(object):
         return self.angle_jag.is_ready()
    
     def is_ready_speed(self):
-        ''' checks if the speed is right'''
-        #returns true if current speed is within threshold.
-        #return self.shooter_jag.is_ready()
+        ''' returns if our current is with in expected range for long enough '''
+        ret_val = False
         
         current = self.shooter_jag.motor.GetOutputCurrent()
-        return current > 5 and current < 25.0
+        #We are in the expected current ranges
+        if current > 5 and current < 25.0:
+            
+            #Timer is not started yet so start it
+            if self.ready_timer.Get() == 0:
+                self.ready_timer.Start()
+            
+            #current has been in range for expected time
+            if self.ready_timer.HasPeriodPassed(READY_TIME):
+                #no need to run the timer anymore
+                self.ready_timer.Stop()
+                ret_val = True
+        
+        #Were in expected current zone, stop and reset the timer    
+        else: 
+            self.ready_timer.Stop()
+            self.ready_timer.Reset()
+            
+        #return the value we have determined    
+        return ret_val
         
         
     def is_ready(self):

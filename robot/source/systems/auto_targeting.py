@@ -19,7 +19,12 @@ class AutoTargeting(object):
         self.last_vangle = 0.0
     
     def perform_targeting(self):
-        '''Perform targeting actions'''
+        '''
+            Perform targeting actions
+            
+            returns True if there is a target
+                    False if there is no target
+        '''
         
         # get angle
         hangle, vangle, distance = self.target_detector.get_data()
@@ -27,7 +32,7 @@ class AutoTargeting(object):
         wpilib.SmartDashboard.PutBoolean('Auto on', True if hangle is not None else False)
         
         if hangle is None:
-            return
+            return False
         
         # if an angle has changed, set it
         if abs(hangle - self.last_hangle) > 0.1:
@@ -40,6 +45,8 @@ class AutoTargeting(object):
         
         self.shooter_platform.set_angle_auto(self.last_vangle)
         
+        return True
+    
     def is_aimed(self):
         ''' determine if we are actually aimed at the target '''
         # get angle

@@ -16,7 +16,7 @@ from common.joystick_util import *
 
 from components.climber import Climber
 from components.driving import Driving
-from components.feeder_pro import FeederPro
+from components.feeder import Feeder
 from components.shooter_platform import ShooterPlatform
 from components.target_detector import TargetDetector
 
@@ -160,7 +160,7 @@ class MyRobot(wpilib.SimpleRobot):
         
         self.my_drive = Driving(drive)
         
-        self.my_feeder = FeederPro(feeder_motor, 
+        self.my_feeder = Feeder(feeder_motor, 
                                    frisbee_sensor, 
                                    feeder_sensor)
         
@@ -183,7 +183,7 @@ class MyRobot(wpilib.SimpleRobot):
         self.my_auto_targeting = AutoTargeting(self.my_robot_turner, self.my_shooter_platform, self.my_target_detector)
         self.my_climber = ClimberSystem(climber, self.my_shooter_platform)
         
-        self.my_shooter = None # TODO
+        self.my_shooter = Shooter(self.my_shooter_platform, self.my_feeder)
         
         # autonomous mode needs a dict of components
         components = {
@@ -197,7 +197,7 @@ class MyRobot(wpilib.SimpleRobot):
             'auto_targeting': self.my_auto_targeting,
             'climber': self.my_climber,
             'robot_turner': self.my_robot_turner,
-            #'shooter': self.my_shooter,
+            'shooter': self.my_shooter,
         }
 
         self.components = []

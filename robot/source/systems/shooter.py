@@ -24,6 +24,6 @@ class Shooter():
         ''' if motor is ready and there are frisbees set feeder to kick frisbee '''
         if  self.shooter_platform.is_ready()  and \
             self.feeder.has_frisbee():
-            feeder.feed_auto()
+            feeder.feed()
         
     # no update function required

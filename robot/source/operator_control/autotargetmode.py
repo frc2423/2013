@@ -20,7 +20,7 @@ class AutoTargetMode(object):
     # Set this to True if this is the default autonomous mode, otherwise False
     DEFAULT = False
 
-
+    
     def __init__(self, components, ds):
         '''
             Constructor
@@ -34,7 +34,12 @@ class AutoTargetMode(object):
         self.feeder = components['feeder']
         self.drive = components['drive']
         self.platform = components['shooter_platform']
+        self.target_detector = components['target_detector']
         self.ds = ds
+        
+        # Center shooter variable
+        self.center_platfrom = True
+        self.center_angle = 12.5
         
         self.sd = wpilib.SmartDashboard
     
@@ -47,7 +52,10 @@ class AutoTargetMode(object):
             This function is called when Operator Control mode is exiting. You should
             clean anything up here that needs to be cleaned up
         '''
-        pass
+        #
+        #    Reset the center platform variable
+        #
+        self.center_platfrom = True
 
 
     def set(self):
@@ -67,14 +75,35 @@ class AutoTargetMode(object):
             self.platform.set_speed_manual(self.platform.WHEEL_SPEED_ON)
             
         #
+        #    Take user input for shooter platform control first, it will be 
+        #    overridden by Auto targeting if neccesary
+        #
+        
+        stick_val = -stick_axis(PLATFORM_ANGLE_AXIS, ds)
+        self.platform.set_angle_manual(stick_val)
+        
+        #
         #    set auto targeting of shooter platform and robot position
         #
-        self.auto_targeting.perform_targeting()
+        
+        auto_targeted = self.auto_targeting.perform_targeting()
         
         if stick_button_on(AUTO_TARGET_BUTTON,ds):
             self.robot_turner.auto_turn()
              
-    
+        #
+        #    attempt to center it if there is not target or user input
+        #
+        
+        if stick_val > 0 and auto_targeted is True and self.center_platfrom is True:
+            #there has been no stick input nor auto targeting input yet so
+            #center the platform
+            self.platform.set_angle_auto(self.center_angle)
+        
+        elif self.center_angle is True:
+            #don't continue to try and move the angle to the center again
+            self.center_platfrom = False
+        
         # 
         #    Driving
         #

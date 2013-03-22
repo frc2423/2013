@@ -4,31 +4,44 @@ except:
     import fake_wpilib as wpilib
 
 
+#
+#Motor Speeds
+#
+STOP_SPEED = 0
+FEED_SPEED = 0.7
+REVERSE_SPEED = -1
+#
+#Frisbee Distances
+#
+ONE_FRISBEE = 5.8
+TWO_FRISBEE = 4.7
+THREE_FRISBEE = 3.9
+FOUR_FRISBEE = 3.2
+FIVE_FRISBEE = 2.7
+SIX_FRISBEE = 2.0
+FEEDER_READY_DISTANCE = 2.15
+
+#
+#SmartDashboard String
+#
+DASH_STRING_FRISBEE = "Frisbee Count"
+
+#
+#Feeder States
+#
+STATE_FEEDING = 0
+STATE_FEEDING_AUTO = 1
+STATE_REVERSING = 2
+STATE_STOPPED = 3
 
 
-
-''' distances at which we think we detect different amount of frisbees '''
-ONE_FRISBEE = 9
-TWO_FRISBEE = 7
-THREE_FRISBEE = 5
-FOUR_FRISBEE = 2
-FEEDER_READY_DISTANCE = 2
-
-FrisbeeCount = "Frisbee Count"
-
-#State variables
-FEEDING = 0
-STOP_FEEDING = 1
-STOP = 2
-MANUAL = 3
-AUTO = 4
-REVERSE = 5
-START_FEEDING = 6
-
-#Speed variables
-REVERSE_FEED_SPEED = -1
-FEED_SPEED = 1
-ZERO = 0
+#
+#Action States
+#
+ACT_STATE_FEED = 0
+ACT_STATE_FEED_AUTO = 1
+ACT_STATE_REVERSE = 2
+ACT_STATE_STOP =3
 
 class Feeder():
     
@@ -36,120 +49,170 @@ class Feeder():
 
     def __init__(self, feed_motor, frisbee_sensor, feed_sensor):
         
-        '''saves all the variables, sets the state, and sets the motor speed to zero'''
+        '''
+            Initializes Feeder class
+                
+            param:feed_motor - EzCANJaguar set for kPercentVbus
+            param:frisbee_sensor - GP2D120 distance sensor
+            param:feed_sensor - GP2D120 distance sensor
+        '''
+
         self.feed_motor = feed_motor
         self.frisbee_sensor = frisbee_sensor
         self.feed_sensor = feed_sensor
-        self.feed_motor.Set(ZERO)
-        self.state = STOP_FEEDING
+        self.feed_motor.Set(STOP_SPEED)
+        
+        self.feeder_state = STATE_STOPPED
+        self.action_state = ACT_STATE_STOP
         self.distance = self.frisbee_sensor.GetDistance()
-        self.using_frisbee_sensors = True
+        self.using_frisbee_sensor = True
         
+        #mode of which feed to use
+        self.feed_mode_auto = True
         
+        self.sd_frisbees = 20
         
+    def get_frisbee_count(self):    
+        '''Gets the distance away an object is from the sensor based on the voltage of the sensor'''
+        self.frisbee_count = None
         
-    def auto_feed(self): 
-        '''if the cam is not on the sensor, move the cam. 
-        If it is  and has just feed stop. 
-        If it was not feeding and the cam is on the sensor start moving'''
-        
-        self.state = AUTO
-       
-        
-    def manual(self):
-        '''manual motor control'''
-        self.state = MANUAL
-        
-        
-    def reverse_feed(self):
-        '''makes the cam reverse'''
-        
-        self.state = REVERSE
+        if self.using_frisbee_sensor == True:
+            
+            self.distance = self.frisbee_sensor.GetDistance()
+            
+            if self.distance <= ONE_FRISBEE and self.distance >= TWO_FRISBEE:
+                self.frisbee_count = 1
+            
+            elif self.distance <= TWO_FRISBEE and self.distance >= THREE_FRISBEE:
+                self.frisbee_count = 2
+            
+            elif self.distance <= THREE_FRISBEE and self.distance >= FOUR_FRISBEE:
+                self.frisbee_count = 3
+    
+            elif self.distance <= FOUR_FRISBEE and self.distance >= FIVE_FRISBEE:
+                self.frisbee_count = 4
+                
+            elif self.distance <= FIVE_FRISBEE and self.distance >= SIX_FRISBEE:
+                self.frisbee_count = 5
+           
+            elif self.distance > ONE_FRISBEE:
+                self.frisbee_count = 0
+            
+        return self.frisbee_count
+    
+    def has_frisbee(self):
+        return self.get_frisbee_count() != 0
         
     def use_frisbee_sensor(self, using_frisbee_sensor):
         self.using_frisbee_sensor = using_frisbee_sensor
         
-        
-    def get_frisbee_count(self):
-        
-        if self.using_frisbee_sensor == False:
-            self.frisbee_count = None
-            
-        else:
-            '''Gets the distance away an object is from the sensor based on the voltage of the sensor'''
-            self.frisbee_count = None
-            self.distance = self.frisbee_sensor.GetDistance()
-        
-            if self.distance <= ONE_FRISBEE and self.distance >= TWO_FRISBEE:
-                self.frisbee_count = 1
-        
-            elif self.distance <= TWO_FRISBEE and self.distance >= THREE_FRISBEE:
-                self.frisbee_count = 2
-        
-            elif self.distance <= THREE_FRISBEE and self.distance >= FOUR_FRISBEE:
-                self.frisbee_count = 3
-
-            elif self.distance <= FOUR_FRISBEE and self.distance > 1:
-                self.frisbee_count = 4
-       
-            elif self.distance > ONE_FRISBEE:
-                self.frisbee_count = 0
-            
-        
-        return self.frisbee_count
+    def sensor_covered(self):
+        '''
+            checks if the kicker is covering the sensor
+        '''
+        return self.feed_sensor.GetDistance() < FEEDER_READY_DISTANCE
     
-    
-    def has_frisbees(self):
-        if self.frisbee_count != 0:
-            return True
-            
-        
+    def set_auto_mode(self, value):
+        ''' sets mode auto '''
+        self.feed_mode_auto = bool(value)
          
+    def feed(self):
+        ''' determines feed mode and uses it '''
+        if self.feed_mode_auto:
+            self.feed_auto()
+        else:
+            self.feed_manual()
+            
+    def feed_auto(self):
+        ''' 
+            automatic feed function this will stop at the sensor location
+            This should not be used externally use feed() instead
+        '''
+        
+        #
+        #Kicker is not feeding automatically feed!
+        #        
+        self.action_state = ACT_STATE_FEED_AUTO
+          
+    def feed_manual(self):
+        ''' feeds while called '''
+        self.action_state = ACT_STATE_FEED
+        
+    def reverse_feed(self):
+        ''' reverses the feeder manually'''
+        self.action_state = ACT_STATE_REVERSE
+        
     def update(self):
-        '''sets all the Jaguars'''
-            
-        if self.state == REVERSE:
-            
-            self.state = FEEDING
-            
-        if self.state == MANUAL:
-            
-            self.state = FEEDING
-            
-        if self.state == AUTO:
-            '''if the cam is not on the sensor, move the cam. 
-            If it is  and has just FEEDING stop. 
-            If it was not FEEDINGing and the cam is on the sensor start moving'''
-        
-            #there is no cam above the sensor
-            if self.feed_sensor.GetDistance() > FEEDER_READY_DISTANCE:
-            
-                self.state = FEEDING
-            
-            #there is a cam above the sensor and it was feeding
-            elif self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE and \
-                self.state == FEEDING:
-            
-                self.state = STOP_FEEDING
-                
-            #there is a cam above the sensor and it was not feeding
-            elif self.feed_sensor.GetDistance() <= FEEDER_READY_DISTANCE and \
-                self.state == STOP_FEEDING:
-                
-                self.state = START_FEEDING
-                
-        if self.state == START_FEEDING:
-            self.state = FEEDING        
-                
-        if self.state == FEEDING:
+        ''' Sets actual motor values based on states '''
+    
+        #
+        #Feed actions
+        #
 
+        
+        #
+        #we were told to feed so lets!
+        #
+        if self.action_state == ACT_STATE_FEED:
+            
             self.feed_motor.Set(FEED_SPEED)
-
-                
-        if self.state == STOP_FEEDING:
-            self.state = STOP
-        
+            self.feeder_state = STATE_FEEDING
+            #if feed is not called in next loop then stop the motor!
+            self.action_state = ACT_STATE_STOP
             
-        if self.state == STOP:
-            self.FEEDING_motor.Set(ZERO)
-                
+        elif self.action_state == ACT_STATE_FEED_AUTO:
+            self.feed_motor.Set(FEED_SPEED)
+            self.feeder_state = STATE_FEEDING_AUTO
+            self.action_state = ACT_STATE_STOP
+            
+        #
+        #Feeder in auto feeding, and sensor isn't covered, keep feeding
+        #
+        elif self.feeder_state == STATE_FEEDING_AUTO and not self.sensor_covered():
+            self.feed_motor.Set(FEED_SPEED)
+        
+        #
+        #Reverse the feeder
+        #
+        elif self.action_state == ACT_STATE_REVERSE:
+            self.feed_motor.Set(REVERSE_SPEED)
+            self.feeder_state = STATE_REVERSING
+            #if feed is not called in next loop then stop the motor!
+            self.action_state = ACT_STATE_STOP
+      
+        
+        #
+        #Stop actions
+        #
+        
+        #
+        #if sensor is covered, stop feeding
+        #
+        elif self.feeder_state == STATE_FEEDING_AUTO and self.sensor_covered():
+
+            
+            self.feed_motor.Set(STOP_SPEED)
+            self.feeder_state = STATE_STOPPED    
+            
+        #
+        #we weren't told to feed so stop!
+        #
+        elif self.action_state == ACT_STATE_STOP:
+            
+            self.feed_motor.Set(STOP_SPEED)
+            self.feeder_state = STATE_STOPPED
+        
+        #wpilib.SmartDashboard.PutNumber('Feeder State', self.feeder_state)
+        #wpilib.SmartDashboard.PutNumber('Action State', self.action_state)
+        #wpilib.SmartDashboard.PutNumber('Feeder dist', self.feed_sensor.GetDistance())
+    
+        fs = self.get_frisbee_count()
+        if self.frisbee_count is None:
+            fs = -1
+            
+        if fs != self.sd_frisbees:
+            wpilib.SmartDashboard.PutNumber('Frisbees', fs)
+            self.sd_frisbees = fs
+            
+        #wpilib.SmartDashboard.PutNumber('Frisbee Distance', self.distance)
+        
