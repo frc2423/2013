@@ -71,6 +71,15 @@ class AutoTargetMode(object):
         
         ds = self.ds
         
+        
+        # 
+        #    Driving
+        #
+        
+        self.drive.drive(stick_axis(DRIVE_SPEED_AXIS, ds),
+                            stick_axis(DRIVE_ROTATE_AXIS, ds),
+                            stick_button_on(DRIVE_FASTER_BUTTON, ds))
+        
         #
         #    Shooter
         #
@@ -108,15 +117,6 @@ class AutoTargetMode(object):
         elif self.center_angle is True:
             #don't continue to try and move the angle to the center again
             self.center_platfrom = False
-        
-        # 
-        #    Driving
-        #
-        
-        self.drive.drive(stick_axis(DRIVE_SPEED_AXIS, ds),
-                            stick_axis(DRIVE_ROTATE_AXIS, ds),
-                            stick_button_on(DRIVE_FASTER_BUTTON, ds))
-
         
         #
         #    Climber

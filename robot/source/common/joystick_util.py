@@ -44,6 +44,7 @@ FEEDER_BACK_BUTTON      = (2, TOP)
 
 AUTO_TARGET_BUTTON      = (1, TRIGGER)
 
+TEST_BUTTON             = (1, 6)
 
 #
 #    Joystick utility functions (yay overhead!)

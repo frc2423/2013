@@ -242,7 +242,7 @@ class MyRobot(wpilib.SimpleRobot):
         
         # set the watch dog
         dog = self.GetWatchdog()
-        dog.SetEnabled(True)
+        dog.SetEnabled(False)
         dog.SetExpiration(0.25)
         
         compressor.Start()   

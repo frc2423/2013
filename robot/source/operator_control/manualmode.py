@@ -39,6 +39,7 @@ class ManualMode(object):
     def on_enable(self):
         # no unexpected firing should occur when switching modes
         self.sd.PutNumber("Fire", 0)
+        self.sd.PutNumber("TestAngle", 0)
         
     def on_disable(self):
         '''
@@ -71,7 +72,10 @@ class ManualMode(object):
         #
         # Shooting Platform control
         #
-        self.shooter_platform.set_angle_manual(-stick_axis(PLATFORM_ANGLE_AXIS, ds))
+        if stick_button_on(TEST_BUTTON, ds):
+            self.shooter_platform.set_angle_auto(self.sd.GetBoolean("TestAngle"))
+        else:
+            self.shooter_platform.set_angle_manual(-stick_axis(PLATFORM_ANGLE_AXIS, ds))
         
         #
         #    Climber

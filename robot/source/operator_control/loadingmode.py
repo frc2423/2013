@@ -10,6 +10,7 @@
         This mode cannot shoot.
 '''
 from common.joystick_util import * 
+
 class LoadingMode(object):
 
     # this name should be descriptive and unique. This will be shown to the user
@@ -60,7 +61,8 @@ class LoadingMode(object):
         #
         #    Shooter set to 0
         #
-        self.platform.set_angle_auto(0)
+        #self.platform.set_angle_auto(0)
+        self.platform.set_angle_manual(self.platform.LOWER_ANGLE_SPEED)
         self.platform.set_speed_manual(0.0)
         
 

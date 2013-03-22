@@ -54,7 +54,7 @@ class ClimbingMode(object):
         #
         #    Shooter
         #
-        self.platform.set_angle_auto(0)
+        self.platform.set_angle_manual(self.platform.LOWER_ANGLE_SPEED)
         self.platform.set_speed_manual(0.0)
         
         #

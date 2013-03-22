@@ -30,10 +30,10 @@ class AutoModes(object):
         # local targeted value
         self.is_targeted = False
         
-        # these should be overrided by the respective AutoModes
-        self.turn_power = .7
-        self.drive_power = 1.0
-        self.move_time = 1.5
+        # these should be overridden by the respective AutoModes
+        self.turn_power = .8
+        self.drive_power = -.8
+        self.move_time = 1
     
     def on_enable(self):
         pass
@@ -68,7 +68,6 @@ class TopRight(AutoModes):
     def __init__(self,components):
         super().__init__(components)
         self.turn_power = -.7
-        self.drive_power = 1.0
         self.move_time = 1.5
     
 class TopLeft(AutoModes):
@@ -79,7 +78,6 @@ class TopLeft(AutoModes):
     def __init__(self,components):
         super().__init__(components)
         self.turn_power = .7
-        self.drive_power = 1.0
         self.move_time = 1.5
         
 class BottomRight(AutoModes):
@@ -90,7 +88,6 @@ class BottomRight(AutoModes):
     def __init__(self,components):
         super().__init__(components)
         self.turn_power = -.7
-        self.drive_power = 1.0
         self.move_time = 3
         
 class BottomLeft(AutoModes):
@@ -100,9 +97,7 @@ class BottomLeft(AutoModes):
     
     def __init__(self,components):
         super().__init__(components)
-        # these should be overrided by the respective AutoModes
         self.turn_power = .7
-        self.drive_power = 1.0
         self.move_time = 3
         
 class DumbMode(AutoModes):
@@ -126,11 +121,11 @@ class DumbMode(AutoModes):
         # turn the wheel on
         if not self.empty:
             self.shooter_platform.set_speed_manual(self.shooter_platform.WHEEL_SPEED_ON)
+            self.shooter_platform.set_angle_manual(self.shooter_platform.RAISE_ANGLE_SPEED)
         
         #raise shooter platform to max 
         if not self.at_max:
             
-            self.shooter_platform.set_angle_manual(self.shooter_platform.RAISE_ANGLE_SPEED)
             if self.shooter_platform.at_max():
                 self.at_max = True
                 self.start = time_elapsed
@@ -138,14 +133,14 @@ class DumbMode(AutoModes):
             diff = time_elapsed - self.start
             
             # feed 3 times, once every 2 seconds
-            if diff > 0 and diff < .25:
-                self.feeder.feed_auto()
-                
-            elif diff > 2 and diff < 2.25:
+            if diff > 2 and diff < 2.25:
                 self.feeder.feed_auto()
                 
             elif diff > 4 and diff < 4.25:
                 self.feeder.feed_auto()
                 
-            elif diff > 5:
+            elif diff > 6 and diff < 6.25:
+                self.feeder.feed_auto()
+                
+            elif diff > 8:
                 self.empty = True
