@@ -142,5 +142,14 @@ class DumbMode(AutoModes):
             elif diff > 6 and diff < 6.25:
                 self.feeder.feed_auto()
                 
+            elif diff > 8 and diff < 8.25:
+                self.feeder.feed_auto()
+                
+            elif diff > 10 and diff < 10.25:
+                self.feeder.feed_auto()
+                
+            elif diff > 12 and diff < 12.25:
+                self.feeder.feed_auto()
+                
             elif diff > 8:
                 self.empty = True

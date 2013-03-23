@@ -8,7 +8,7 @@ except:
 #Motor Speeds
 #
 STOP_SPEED = 0
-FEED_SPEED = 0.7
+FEED_SPEED = 0.68
 REVERSE_SPEED = -1
 #
 #Frisbee Distances
