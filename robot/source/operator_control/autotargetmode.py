@@ -94,7 +94,8 @@ class AutoTargetMode(object):
         #
         
         stick_val = -stick_axis(PLATFORM_ANGLE_AXIS, ds)
-        self.platform.set_angle_manual(stick_val)
+        if abs(stick_val) > 0.3:
+            self.platform.set_angle_manual(stick_val)
         
         #
         #    set auto targeting of shooter platform and robot position
@@ -109,14 +110,14 @@ class AutoTargetMode(object):
         #    attempt to center it if there is not target or user input
         #
         
-        if stick_val > 0 and auto_targeted is True and self.center_platfrom is True:
+        #if stick_val > 0 and auto_targeted is True and self.center_platfrom is True:
             #there has been no stick input nor auto targeting input yet so
             #center the platform
-            self.platform.set_angle_auto(self.center_angle)
+        #self.platform.set_angle_auto(self.center_angle)
         
-        elif self.center_angle is True:
-            #don't continue to try and move the angle to the center again
-            self.center_platfrom = False
+        #elif self.center_angle is True:
+        #    #don't continue to try and move the angle to the center again
+        #    self.center_platfrom = False
         
         #
         #    Climber

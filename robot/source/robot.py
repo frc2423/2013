@@ -42,7 +42,7 @@ angle_motor_can = 4
 shooter_motor_can = 7
 
 # Relay channels
-camera_led_relay = 2
+camera_led_relay = 3
 compressor_relay = 1
 
 # Analog channels
