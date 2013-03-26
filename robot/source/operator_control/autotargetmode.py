@@ -11,6 +11,9 @@
 '''
 from common.joystick_util import * 
 
+#minimum stick value for angle control
+MIN_STICK_VAL = 0.3
+
 class AutoTargetMode(object):
 
     # this name should be descriptive and unique. This will be shown to the user
@@ -19,6 +22,7 @@ class AutoTargetMode(object):
     
     # Set this to True if this is the default autonomous mode, otherwise False
     DEFAULT = False
+    
 
     
     def __init__(self, components, ds):
@@ -51,6 +55,12 @@ class AutoTargetMode(object):
         #    make sure sure climber is lowered 
         #       
         self.climber.lower()
+        
+        #
+        # Center shooter variable
+        #
+        # Try to center when transitioning modes
+        self.center_platfrom = True
         
     def on_disable(self):
         '''
@@ -90,11 +100,11 @@ class AutoTargetMode(object):
             
         #
         #    Take user input for shooter platform control first, it will be 
-        #    overridden by Auto targeting if neccesary
+        #    overridden by Auto targeting if necessary 
         #
         
         stick_val = -stick_axis(PLATFORM_ANGLE_AXIS, ds)
-        if abs(stick_val) > 0.3:
+        if abs(stick_val) > MIN_STICK_VAL:
             self.platform.set_angle_manual(stick_val)
         
         #
@@ -110,15 +120,16 @@ class AutoTargetMode(object):
         #    attempt to center it if there is not target or user input
         #
         
-        #if stick_val > 0 and auto_targeted is True and self.center_platfrom is True:
+        if abs(stick_val) > MIN_STICK_VAL or auto_targeted is True:
+            #don't continue to try and move the angle to the center again,
+            #we have gotten a target or had user input
+            self.center_platfrom = False
+        
+        elif self.center_platfrom is True:
             #there has been no stick input nor auto targeting input yet so
             #center the platform
-        #self.platform.set_angle_auto(self.center_angle)
-        
-        #elif self.center_angle is True:
-        #    #don't continue to try and move the angle to the center again
-        #    self.center_platfrom = False
-        
+            self.platform.set_angle_auto(self.center_angle)
+            
         #
         #    Climber
         #        - Must come after anything that sets angle, otherwise
