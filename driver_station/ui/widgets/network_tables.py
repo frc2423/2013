@@ -5,65 +5,6 @@ from pynetworktables import ITableListener, IRemoteConnectionListener
 import glib
 import gobject
 import pynetworktables
-import threading
-
-class FakeListener(object):
-    
-    instance = None
-    
-    def __init__(self):
-        self.thread = threading.Thread(target=self.thread_fn) 
-        self.condition = threading.Condition()
-        self.dict = {}
-        self.last = {}
-        
-        FakeListener.instance = self
-        self.do_stop = False
-        
-    def start(self):
-        self.thread.start()
-        
-    def stop(self):
-        with self.condition:
-            self.do_stop = True
-            self.condition.notify()
-            
-        self.thread.join()
-        
-    def AddTableListener(self, table, name, k, fn):
-        tname = name + ' ' + k
-        self.dict[tname] = (k, table, fn)
-        self.last[tname] = None
-        
-    def thread_fn(self):
-        
-        while True:
-            
-            with self.condition:
-                if self.do_stop:
-                    break
-                
-                self.condition.wait(0.1)
-                
-                if self.do_stop:
-                    break
-                
-            for tname, (k, table, fn) in self.dict.iteritems():
-                value = None
-                try:
-                    if not table.ContainsKey(k):
-                        continue
-                    value = table.GetValue(k)
-                except pynetworktables.TableKeyNotDefinedException:
-                    # this happens on complex values
-                    pass
-                except Exception as e:
-                    continue
-                
-                if k not in self.last or value != self.last[k] or value is None:
-                    fn(table, k, value, True)
-                    self.last[k] = value
-                
 
 
 class RemoteListener(IRemoteConnectionListener):
@@ -111,14 +52,12 @@ class Listener(ITableListener):
         ITableListener.__init__(self)
         self.fn = fn
         
-    def attach(self, table, name, key=None):
+    def attach(self, table, key=None):
         self.table = table
         if key is not None:
-            FakeListener.instance.AddTableListener(table, name, key, self.ValueChanged)
-            #table.AddTableListener(key, self, True)
+            table.AddTableListener(key, self, True)
         else:
-            raise KeyError('oh hai')
-            #table.AddTableListener(self)
+            table.AddTableListener(self)
         
     def detach(self):
         if hasattr(self, 'table'):
@@ -145,8 +84,7 @@ class UiSubtableListener(UiListener):
         
     def attach(self, table):
         self.table = table
-        raise KeyError('not implemented')
-        #table.AddSubTableListener(self)
+        table.AddSubTableListener(self)
 
 
 def attach_connection_listener(table, connect_fn, disconnect_fn, remove_widget):
@@ -171,7 +109,7 @@ def attach_fn(table, key, fn, remove_widget):
         listener.detach()
     
     listener = UiListener(fn)
-    listener.attach(table, '/', key)
+    listener.attach(table, key)
     
     remove_widget.connect('destroy', _on_destroy)
 
@@ -197,7 +135,7 @@ def attach_toggle(table, key, widget):
         
     # connect to the table
     listener = UiListener(_on_update)
-    listener.attach(table, '/', key)
+    listener.attach(table, key)
     
     # connect to the UI element
     toggled_id = widget.connect('toggled', _on_toggled)
@@ -209,7 +147,6 @@ def attach_chooser(table, key, widget, on_choices, on_selected):
     '''Generic function to attach to a chooser variable'''
     
     key = unicode(key)
-    last_choices = []
     
     def _get_choices():
         options = pynetworktables.StringArray()
@@ -224,14 +161,8 @@ def attach_chooser(table, key, widget, on_choices, on_selected):
                 
     def _on_update(table_key, value):
         if table_key == u'options':
-            choices = _get_choices()
-            if choices != last_choices:
-                on_choices(choices)
-                on_selected(_get_selected())
-                # can't assign because of scoping
-                while len(last_choices) != 0:
-                    last_choices.pop()
-                last_choices.extend(choices)
+            on_choices(_get_choices())
+            on_selected(_get_selected())
         elif table_key == u'selected':
             on_selected(value)
         elif table_key == u'default':
@@ -245,10 +176,7 @@ def attach_chooser(table, key, widget, on_choices, on_selected):
     listener = UiListener(_on_update)
     
     subtable = table.GetSubTable(key)
-    listener.attach(subtable, '/' + key + '/', u'options')
-    listener.attach(subtable, '/' + key + '/', u'selected')
-    listener.attach(subtable, '/' + key + '/', u'default')
-    #listener.attach(subtable)
+    listener.attach(subtable)
     
     widget.connect('destroy', _on_destroy)
     
@@ -267,7 +195,6 @@ def attach_chooser_combo(table, key, widget):
         model = widget.get_model()
         model.clear()
         
-        print 'got me some choices'
         for choice in choices:
             model.append((choice,))
         

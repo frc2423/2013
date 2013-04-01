@@ -125,8 +125,6 @@ class Dashboard(object):
             
         # attach to the targeter widget
         self.camera_widget.connect('target-update', self.on_target_update)
-        
-        self.fake = None
             
         # connect widgets to pynetworktables
         if self.table is not None:
@@ -134,8 +132,6 @@ class Dashboard(object):
             # don't import this unless we have a table, so we can support running
             # on a laptop without networktables
             import ui.widgets.network_tables as nt
-            
-            self.fake = nt.FakeListener()
             
             nt.attach_toggle(table, 'Wheel On', self.wheel_on_button)
             nt.attach_toggle(table, 'Wheel OK', self.wheel_status)
@@ -161,9 +157,6 @@ class Dashboard(object):
             
             # connection listener
             nt.attach_connection_listener(table, self.on_connection_connect, self.on_connection_disconnect, self.window)
-            
-            self.fake.start()
-            
        
     def on_connection_connect(self, remote):
         
@@ -263,8 +256,6 @@ class Dashboard(object):
         
     
     def on_window_destroy(self, widget):
-        if self.fake is not None:
-            self.fake.stop()
         gtk.main_quit()
         
     def on_cancel_targeting_button_clicked(self, widget):
