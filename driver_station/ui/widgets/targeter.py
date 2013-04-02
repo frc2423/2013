@@ -36,7 +36,7 @@ class Targeter(CvWidget):
         self.table = table
         
         if self.table is not None:
-            self.table.PutBoolean(u'Target Found', False)
+            self.table.PutBoolean('Target Found', False)
         
         self.lock = threading.Lock()
         self._active_target = None
@@ -58,13 +58,13 @@ class Targeter(CvWidget):
             self.target_location = target.location
         
             if self.table is not None:
-                self.table.PutNumber(u'Target HAngle', target.hangle)
-                self.table.PutNumber(u'Target VAngle', target.vangle)
-                self.table.PutNumber(u'Target Distance', target.distance)
-                self.table.PutBoolean(u'Target Found', True)
+                self.table.PutNumber('Target HAngle', target.hangle)
+                self.table.PutNumber('Target VAngle', target.vangle)
+                self.table.PutNumber('Target Distance', target.distance)
+                self.table.PutBoolean('Target Found', True)
                 
         elif self.table is not None:
-            self.table.PutBoolean(u'Target Found', False)
+            self.table.PutBoolean('Target Found', False)
             
         # notify listeners of new target event
         glib.idle_add(self.emit, 'target-update', target)

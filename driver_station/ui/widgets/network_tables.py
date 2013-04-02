@@ -102,7 +102,6 @@ def attach_connection_listener(table, connect_fn, disconnect_fn, remove_widget):
 
 def attach_fn(table, key, fn, remove_widget):
     '''Attach a specific NetworkTable key to a fn, removed when a widget dies'''
-    key = unicode(key)
     
     def _on_destroy(widget):
         '''Clean up after ourselves'''
@@ -116,8 +115,6 @@ def attach_fn(table, key, fn, remove_widget):
 
 def attach_toggle(table, key, widget):
     '''Attach a specific NetworkTable key to a ToggleButton or similar'''
-    
-    key = unicode(key)
     
     def _on_toggled(widget):
         table.PutBoolean(key, widget.get_active())
@@ -146,27 +143,25 @@ def attach_toggle(table, key, widget):
 def attach_chooser(table, key, widget, on_choices, on_selected):
     '''Generic function to attach to a chooser variable'''
     
-    key = unicode(key)
-    
     def _get_choices():
         options = pynetworktables.StringArray()
-        listener.table.RetrieveValue(u'options', options)
+        listener.table.RetrieveValue('options', options)
         return [options.get(i) for i in xrange(options.size())]
     
     def _get_selected():
-        selected = listener.table.GetValue(u'selected')
+        selected = listener.table.GetValue('selected')
         if selected is None:
-            selected = listener.table.GetValue(u'default')
+            selected = listener.table.GetValue('default')
         return selected
                 
     def _on_update(table_key, value):
-        if table_key == u'options':
+        if table_key == 'options':
             on_choices(_get_choices())
             on_selected(_get_selected())
-        elif table_key == u'selected':
+        elif table_key == 'selected':
             on_selected(value)
-        elif table_key == u'default':
-            if listener.table.GetValue(u'selected') is None:
+        elif table_key == 'default':
+            if listener.table.GetValue('selected') is None:
                 on_selected(value)
     
     def _on_destroy(widget):
@@ -212,7 +207,7 @@ def attach_chooser_combo(table, key, widget):
         active = widget.get_active_iter()
         if active:
             selected = widget.get_model()[active][0]
-            listener.table.PutString(u'selected', unicode(selected))
+            listener.table.PutString('selected', selected)
 
     
     listener = attach_chooser(table, key, widget, _on_choices, _on_selected)
@@ -232,7 +227,7 @@ def attach_chooser_buttons(table, key, widgets):
             button.handler_unblock(id)
             
     def _on_toggle(widget, selected):
-        listener.table.PutString(u'selected', unicode(selected))
+        listener.table.PutString('selected', selected)
     
     def _on_destroy(widget, id):
         widget.disconnect(id)

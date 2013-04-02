@@ -30,7 +30,7 @@ def initialize_pynetworktables(ip):
         NetworkTable.SetClientMode()
         NetworkTable.Initialize()
         
-        return NetworkTable.GetTable(u'SmartDashboard')
+        return NetworkTable.GetTable('SmartDashboard')
     
 
 if __name__ == '__main__':
