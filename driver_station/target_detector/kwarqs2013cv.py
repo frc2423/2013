@@ -17,6 +17,11 @@ logger = logging.getLogger(__name__)
 
 
 class TargetDetector(object):
+    '''
+        Kwarqs 2013 Image Processing module, originally derived from Team 341's
+        image processing code (written in Java), which appears to be originally 
+        derived from a FRC SmartDashboard sample. 
+    '''
     
     contourColor = (255,128, 0)
     missedColor  = (255,255,0)
@@ -28,8 +33,8 @@ class TargetDetector(object):
     kMidColor     = (255, 0, 255)   # magenta
     kLowColor     = (255, 0,   0)   # blue
     
-    #kLineType     = 8
-    kLineType     = cv2.CV_AA
+    #kLineType     = 8               # ugly lines, but faster
+    kLineType     = cv2.CV_AA       # nicer anti aliased lines.. no noticeable slowdown
     
     # constants that need to be tuned
     kNearlyHorizontalSlope = math.tan(math.radians(20))
@@ -39,7 +44,11 @@ class TargetDetector(object):
     kHorizontalFOVDeg = 43.5         # AXIS M1011 field of view from WPILib
     kVerticalFOVDeg = 36.13          # from http://photo.stackexchange.com/questions/21536/how-can-i-calculate-vertical-field-of-view-from-horizontal-field-of-view
     
-    # import needed target data
+    # the minimum percentage size a defect should be to be considered
+    # a partially obscured target 
+    kObscuredTargetDefectPct = 0.25
+    
+    # import needed target data, save some typing
     kTopInnerRatio = target_data.kTopInnerRatio
     kTopOuterRatio = target_data.kTopOuterRatio
     kMidInnerRatio = target_data.kMidInnerRatio
@@ -103,7 +112,7 @@ class TargetDetector(object):
     
     def processImage(self, img):
         
-        # reinitialize anytime the image size changes         
+        # reinitialize any time the image size changes         
         if self.size is None or self.size[0] != img.shape[0] or self.size[1] != img.shape[1]:
             h, w = img.shape[:2]
             self.size = (h, w)
@@ -215,11 +224,8 @@ class TargetDetector(object):
         if self.show_bin:
             cv2.imshow('bin', self.bin)
         
-        # TODO: Find all contours, but use the hierarchy to find contours that
-        #       exist inside of another contour?
-
-        
-        # Find contours
+        # Find contours, retrieve the hierarchy of contours so we can figure out 
+        # which contours are the inner/outer rectangle
         contours, hierarchy = cv2.findContours(self.bin.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
         
         if self.show_contours:
@@ -228,6 +234,7 @@ class TargetDetector(object):
         # stores the target data
         ctargets = [None]*len(contours)
         
+        # Uncomment this to draw on a blank background
         #img = np.zeros(shape=img.shape, dtype=np.uint8)
         
         for hidx, contour, in enumerate(contours):
@@ -267,13 +274,15 @@ class TargetDetector(object):
             
             ratio = float(rw)/rh
             
-            # most things at this point will be a rectangle. Look for
-            # things that have at least one large defect along the edge
-            # of the image that is greater than 25% of the width
+            # most things at this point will be a rectangle. Try to determine
+            # if there are any partially obscured targets in the image.
+            # -> Look for rectangles that have at least one large defect 
+            #    along the edge of the image that is greater than 25% of the 
+            #    width, and are at the edge of the image
             defects = cv2.convexityDefects(contour, hull_idx)
             
             if defects is not None:
-                big_defect = rw * 0.25
+                big_defect = rw * self.kObscuredTargetDefectPct
                 
                 for i in xrange(defects.shape[0]):
                     start_idx, end_idx, far_idx, depth = defects[i,0]
@@ -282,15 +291,16 @@ class TargetDetector(object):
                         x1 = contour[start_idx, 0, 0]
                         x2 = contour[end_idx, 0, 0]
                         
-                        # determine if its on the side
+                        # determine if its on the side of the image
+                        # -> if so, this might be an obscured target
                         if x1 < 5 and x2 < 5: 
                             ratio = None
-                            tgt = target_data.location.UNKNOWNL
+                            tgt = self.kUnkL
                             break
                         
                         elif iw - x1 < 5 and iw - x2 < 5:
                             ratio = None
-                            tgt = target_data.location.UNKNOWNR
+                            tgt = self.kUnkR
                             break
             
             # TODO: get rid of magic constants
@@ -331,7 +341,7 @@ class TargetDetector(object):
                 
                 if dx != 0:
                     slope = abs(float(dy)/dx)
-            
+                
                 if slope < self.kNearlyHorizontalSlope:
                     numNearlyHorizontal += 1
                 elif slope > self.kNearlyVerticalSlope:
@@ -339,16 +349,19 @@ class TargetDetector(object):
                     
             # discard anything that isn't squarish
             if numNearlyHorizontal == 0 or numNearlyVertical != 2:
+                if self.show_missed:
+                    cv2.drawContours(img, [p.astype(np.int32)], -1, self.missedColor, thickness=self.kThickness, lineType=self.kLineType)
                 continue
             
             # store for hierarchical analysis 
             ctargets[hidx] = target_data.Target(x, y, w, h, p.astype(np.int32), tgt, ratio)               
                     
-         
-        # ok, now that we have our target data, prune it using the
-        # hierarchy
+        #
+        # ok, now that we have our target data gathered, prune it using the
+        # hierarchy created by findContours
+        #
         
-        # hierarchy: next, prev, child, parent
+        # hierarchy row elements: next, prev, child, parent
         all_targets = []
 
         for hidx, target in enumerate(ctargets):
@@ -387,32 +400,15 @@ class TargetDetector(object):
                 if self.show_ratio_labels:
                     cv2.putText(img, '%.3f' % target.ratio, (target.x,target.y), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), bottomLeftOrigin=False)
             
+        #
         # categorize the targets according to position
+        #
+        
         lows = []
         mids = []
         tops = []
         unks = []
         
-        def _draw_target(target, label):
-            if self.show_targets: 
-                
-                components = []
-                cv2.drawContours(img, [target.polygon], -1, target.color, thickness=self.kTgtThickness, lineType=self.kLineType)
-                
-                cv2.circle(img, (target.cx, target.cy), 3, target.color)
-                
-                if self.show_labels:
-                    components.append(label)
-                    
-                if self.show_hangle:
-                    components.append('%.1f' % target.hangle)
-                    
-                if self.show_ratio_labels:
-                    components.append('R%.3f' % target.ratio if target.ratio is not None else 'None')
-                
-                if len(components) != 0:
-                    cv2.putText(img, ' '.join(components), (target.x,target.y), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), bottomLeftOrigin=False)
-                    
         #
         # split the targets into groups
         #
@@ -433,10 +429,11 @@ class TargetDetector(object):
             else:
                 unks.append(target)
 
-                            
+        #
+        # determine what the unknown targets are, based on their relative
+        # position to other targets
+        #
         
-        
-        # determine what the unknown targets are, based on other targets
         if len(unks) != 0:
             if len(tops) != 0:
                 
@@ -450,7 +447,7 @@ class TargetDetector(object):
                         mids.append(target)
                 
             elif len(mids) != 0:
-                
+                print 'trying this'
                 mids.sort(key=lambda tgt: tgt.cy)
                 
                 for target in unks:
@@ -468,8 +465,6 @@ class TargetDetector(object):
         
         # determine the left and right middle targets if possible
         # -> There's probably a better way to do this.. 
-        
-        
         
         # since the leftmost is first, the left most target is probably 
         # the left target.. 
@@ -504,7 +499,10 @@ class TargetDetector(object):
                     target.location = target_data.location.RMIDDLE
         else:
             
-            # these ones we can't determine where they are
+            # if there are no top targets identified, we cannot reliably
+            # determine where the other targets are. We probably don't
+            # care where they are either, honestly.
+            
             pass
                  
                     
@@ -513,6 +511,28 @@ class TargetDetector(object):
         #
         # Ok, now that mess is done, actually draw the things and calculate measurements
         #
+        
+        def _draw_target(target, label):
+            if not self.show_targets:
+                return 
+                
+            components = []
+            cv2.drawContours(img, [target.polygon], -1, target.color, thickness=self.kTgtThickness, lineType=self.kLineType)
+            
+            cv2.circle(img, (target.cx, target.cy), 3, target.color)
+            
+            if self.show_labels:
+                components.append(label)
+                
+            if self.show_hangle:
+                components.append('%.1f' % target.hangle)
+                
+            if self.show_ratio_labels:
+                components.append('R%.3f' % target.ratio if target.ratio is not None else 'None')
+            
+            if len(components) != 0:
+                cv2.putText(img, ' '.join(components), (target.x,target.y), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), bottomLeftOrigin=False)
+        
         
         for i, target in enumerate(all_targets):
                         
@@ -578,4 +598,6 @@ class TargetDetector(object):
         
         theta = (centerOfImageY - target.cy)/centerOfImageY * self.kVerticalFOVDeg/2.0 + self.cameraMountAngle
         target.distance = (tgt_center - self.cameraMountHeight) / math.tan(math.radians(theta))  
+        
+        # TODO: The distance doesn't actually work yet. We should fix that sometime...  
 
