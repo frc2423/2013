@@ -6,9 +6,6 @@ import gtk
 import cv2
 import numpy as np
 
-import threading
-
-
 class CvWidget(gtk.DrawingArea):
     '''
         This is a class to show an OpenCV image in a GTK widget
@@ -61,10 +58,7 @@ class CvWidget(gtk.DrawingArea):
     def set_from_np(self, img):
         '''Sets the contents of the image from a numpy array'''
         
-        # TODO: how does locking work out here?
-        
         if img is None:
-            print 'filled with None'
             w, h = self._fixed_size
             cv2.rectangle(self.buffer, (0,0), (w, h), (0,0,0,0))
         else:        
@@ -84,7 +78,8 @@ class CvWidget(gtk.DrawingArea):
             else:
                 cv2.cvtColor(src, cv2.COLOR_BGR2BGRA, self.buffer)
         
-        # .. and invalidate?
+        # .. and invalidate? Make sure to use idle_add to dispatch it on the UI 
+        # thread, otherwise you will get random crashes
         glib.idle_add(self.queue_draw)
         
     

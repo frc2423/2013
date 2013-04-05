@@ -3,6 +3,8 @@
     GTK environment, we can't use cv2.imshow because it will freeze the
     environment, as its message loop will not be serviced. So we just replace
     it. :) 
+    
+    To use this module, just import it, and it will do the magic for you.
 '''
 
 import cairo
@@ -13,7 +15,6 @@ import cv2
 import numpy as np
 
 import cv_widget
-import threading
 
 
 class ImshowWidget(cv_widget.CvWidget):

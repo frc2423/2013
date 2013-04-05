@@ -15,6 +15,14 @@ logger = logging.getLogger(__name__)
 
 
 class Targeter(CvWidget):
+    '''
+        The targeter widget actually displays the processed image to the user,
+        and also determines if the user has selected a particular target by
+        clicking on it.
+        
+        There is some logic present here that tracks targets from image to
+        image. It probably belongs elsewhere, but its here for now. 
+    '''
     
     __gsignals__ = {
         'target-update': (gobject.SIGNAL_ACTION, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,)), 

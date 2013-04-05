@@ -12,13 +12,9 @@ logger = logging.getLogger(__name__)
 
 class Dashboard(object):
     '''
-        This holds the main UI for the Kwarqs dashboard
-    
-        TODO: This is ugly, add pretty skins and stuff
-        
-        TODO: More modular, but using a UI file this way doesn't
-        lend itself to that.. well, maybe if we pass the builder
-        in to the module? Hm. 
+        This holds the main UI for the Kwarqs dashboard program. Ideally, we
+        should ship most of the logic out of this class and do things
+        elsewhere. Of course.. that's not quite the case now. 
     '''
     
     ui_filename = 'dashboard.ui'

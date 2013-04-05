@@ -7,6 +7,17 @@ import gtk
 import ui.util
 
 class RobotWidget(gtk.DrawingArea):
+    '''
+        When the robot reports the angle of the platform, draw the
+        platform on the UI at that particular angle. 
+        
+        Additionally, show frisbees on the platform, and move them with
+        it. In practice, operators rarely use this widget. However, its 
+        a great visual aid for demonstrations, or for debugging the 
+        robot. 
+    
+        TODO: Make this more general, we hardcoded everything here
+    '''
     
     def __init__(self, table):
         gtk.DrawingArea.__init__(self)
