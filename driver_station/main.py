@@ -77,7 +77,17 @@ if __name__ == '__main__':
     except RuntimeError:
         exit(1)
         
-    if table is None:
+    #
+    # FFMpeg/OpenCV doesn't handle connecting to non-existent cameras
+    # particularly well (it hangs), so when we're using a live feed, delay 
+    # connecting to the camera (ie, starting processing) until the 
+    # NetworkTables client has connected to a robot.
+    #
+    # Presumably if we can talk to the robot, we can talk to the camera 
+    # also. If we're not using a live feed, then just start it regardless.  
+    # 
+    
+    if table is None or not processor.is_live_feed():
         processor.start()
     
     # gtk main
