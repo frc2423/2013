@@ -1,5 +1,6 @@
 #
-# Copy/pasted from the Python 3.3 standard library
+# Copy/pasted from the Python 3.3 standard library, and distributed
+# under the Python Software Foundation License. 
 #
 
 import logging
