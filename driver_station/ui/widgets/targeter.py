@@ -158,6 +158,8 @@ class Targeter(CvWidget):
         # this needs improvement
         if active_target is not None:
             
+            cxt.save()
+            
             if self.zoom != 1:
                 scale = 1.0/self.zoom
                 cxt.scale(scale, scale)
@@ -170,6 +172,8 @@ class Targeter(CvWidget):
                 b, g, r = [v/255.0 for v in active_target.color]
                 
                 self.draw_contour(cxt, active_target.polygon, (r, g, b, 0.8), (r, g, b))
+                
+            cxt.restore()
         
         # finally, draw lines indicating the optimal shooting
         hw = int(self.kOptimumHorizontalPosition * ww)
