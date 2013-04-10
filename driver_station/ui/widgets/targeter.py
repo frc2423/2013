@@ -64,6 +64,7 @@ class Targeter(CvWidget):
         self.lock = threading.Lock()
         self._active_target = None
         self.target_location = None
+        self._is_auto_target = False
         
         self.targets = None
         self.cat_tgts = None
@@ -123,10 +124,11 @@ class Targeter(CvWidget):
                         continue
                     
                     self.active_target = target
+                    self._is_auto_target = False
                     
                     self.queue_draw()
                     break
-        
+    
     def on_expose(self, widget, event):
         CvWidget.on_expose(self, widget, event)
         
@@ -217,9 +219,24 @@ class Targeter(CvWidget):
             
         self.set_from_np(img)
         
-    def set_target(self, target_location):
+    def get_target(self):
+        with self.lock:
+            return self.target_location
+        
+    def is_auto_target(self):
+        with self.lock:
+            return self._is_auto_target
+        
+    def set_target(self, target_location, auto=False):
         with self.lock:
             self.target_location = target_location
+            
+            # auto targets can be overridden, so when it's None, set auto to True also
+            if target_location is None:
+                self._is_auto_target = True
+            else:            
+                self._is_auto_target = auto
+                
             self._select_active_target(target_location)
             
             glib.idle_add(self.queue_draw)
