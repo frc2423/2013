@@ -219,9 +219,8 @@ class Targeter(CvWidget):
         
     def set_target(self, target_location):
         with self.lock:
+            self.target_location = target_location
             self._select_active_target(target_location)
-            if target_location is None:
-                self.target_location = None
             
             glib.idle_add(self.queue_draw)
         
