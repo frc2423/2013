@@ -43,6 +43,11 @@ ACT_STATE_FEED_AUTO = 1
 ACT_STATE_REVERSE = 2
 ACT_STATE_STOP =3
 
+#
+#Timer
+#
+Timer = wpilib.Timer()
+
 class Feeder():
     
     '''Contains all the functions that control the cam motor'''
@@ -159,6 +164,7 @@ class Feeder():
             self.feeder_state = STATE_FEEDING
             #if feed is not called in next loop then stop the motor!
             self.action_state = ACT_STATE_STOP
+			self.Timer.Start()
             
         elif self.action_state == ACT_STATE_FEED_AUTO:
             self.feed_motor.Set(FEED_SPEED)
@@ -197,10 +203,12 @@ class Feeder():
         #
         #we weren't told to feed so stop!
         #
-        elif self.action_state == ACT_STATE_STOP:
+        elif self.action_state == ACT_STATE_STOP and Timer.Get() > .5:
             
             self.feed_motor.Set(STOP_SPEED)
             self.feeder_state = STATE_STOPPED
+			self.Timer.Stop()
+			self.Timer.Reset()
         
         #wpilib.SmartDashboard.PutNumber('Feeder State', self.feeder_state)
         #wpilib.SmartDashboard.PutNumber('Action State', self.action_state)
