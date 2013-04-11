@@ -1,3 +1,18 @@
+#
+#   This file is part of KwarqsDashboard.
+#
+#   KwarqsDashboard is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, version 3.
+#
+#   KwarqsDashboard is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with KwarqsDashboard.  If not, see <http://www.gnu.org/licenses/>.
+#
 
 import cairo
 import glib
@@ -5,9 +20,6 @@ import gtk
 
 import cv2
 import numpy as np
-
-import threading
-
 
 class CvWidget(gtk.DrawingArea):
     '''
@@ -61,10 +73,7 @@ class CvWidget(gtk.DrawingArea):
     def set_from_np(self, img):
         '''Sets the contents of the image from a numpy array'''
         
-        # TODO: how does locking work out here?
-        
         if img is None:
-            print 'filled with None'
             w, h = self._fixed_size
             cv2.rectangle(self.buffer, (0,0), (w, h), (0,0,0,0))
         else:        
@@ -84,7 +93,8 @@ class CvWidget(gtk.DrawingArea):
             else:
                 cv2.cvtColor(src, cv2.COLOR_BGR2BGRA, self.buffer)
         
-        # .. and invalidate?
+        # .. and invalidate? Make sure to use idle_add to dispatch it on the UI 
+        # thread, otherwise you will get random crashes
         glib.idle_add(self.queue_draw)
         
     

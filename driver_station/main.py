@@ -1,3 +1,19 @@
+'''
+    This file is part of KwarqsDashboard.
+
+    KwarqsDashboard is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, version 3.
+
+    KwarqsDashboard is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with KwarqsDashboard.  If not, see <http://www.gnu.org/licenses/>.
+'''
+
 
 import sys
 
@@ -77,7 +93,17 @@ if __name__ == '__main__':
     except RuntimeError:
         exit(1)
         
-    if table is None:
+    #
+    # FFMpeg/OpenCV doesn't handle connecting to non-existent cameras
+    # particularly well (it hangs), so when we're using a live feed, delay 
+    # connecting to the camera (ie, starting processing) until the 
+    # NetworkTables client has connected to a robot.
+    #
+    # Presumably if we can talk to the robot, we can talk to the camera 
+    # also. If we're not using a live feed, then just start it regardless.  
+    # 
+    
+    if table is None or not processor.is_live_feed():
         processor.start()
     
     # gtk main

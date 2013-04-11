@@ -1,3 +1,26 @@
+#
+#   This file is part of KwarqsDashboard.
+#
+#   KwarqsDashboard is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, version 3.
+#
+#   KwarqsDashboard is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with KwarqsDashboard.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+'''
+    This file contains functions that allow you to connect a widget or set
+    of widgets with a NetworkTables variable. These functions will 
+    automatically update the widget as the variable is updated over the
+    network. 
+'''
+
 
 # various network tables utility routines
 from pynetworktables import ITableListener, IRemoteConnectionListener
@@ -78,6 +101,7 @@ class UiListener(Listener):
         glib.idle_add(self.fn, key, table.GetValue(key))
 
 class UiSubtableListener(UiListener):
+    '''Calls a function on the UI thread when a Subtable is created'''
     
     def __init__(self, fn):
         UiListener.__init__(self, fn)
@@ -240,13 +264,3 @@ def attach_chooser_buttons(table, key, widgets):
         widget = v
     
     listener = attach_chooser(table, key, widget, _on_choices, _on_selected)
-    
-    
-# attach to a boolean
-#def attach_boolean():
-    # attach to a checkbox or something
-    
-    
-# attach to a number
-# -> not needed
-#def attach_number():

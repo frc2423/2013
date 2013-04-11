@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+#
+# Delete all pyc files in the local directory. Python doesn't seem to always
+# refresh these correctly when the source code has changed, so to be on the
+# safe side we run this when updating the source tree. 
+#
 
 import os
 

@@ -1,8 +1,26 @@
+#
+#   This file is part of KwarqsDashboard.
+#
+#   KwarqsDashboard is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, version 3.
+#
+#   KwarqsDashboard is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with KwarqsDashboard.  If not, see <http://www.gnu.org/licenses/>.
+#
+
 '''
     This nifty module replaces the imshow function of cv2. When we're in a
     GTK environment, we can't use cv2.imshow because it will freeze the
     environment, as its message loop will not be serviced. So we just replace
     it. :) 
+    
+    To use this module, just import it, and it will do the magic for you.
 '''
 
 import cairo
@@ -13,7 +31,6 @@ import cv2
 import numpy as np
 
 import cv_widget
-import threading
 
 
 class ImshowWidget(cv_widget.CvWidget):

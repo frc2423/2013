@@ -1,3 +1,18 @@
+#
+#   This file is part of KwarqsDashboard.
+#
+#   KwarqsDashboard is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, version 3.
+#
+#   KwarqsDashboard is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with KwarqsDashboard.  If not, see <http://www.gnu.org/licenses/>.
+#
 
 import gtk
 
@@ -12,13 +27,9 @@ logger = logging.getLogger(__name__)
 
 class Dashboard(object):
     '''
-        This holds the main UI for the Kwarqs dashboard
-    
-        TODO: This is ugly, add pretty skins and stuff
-        
-        TODO: More modular, but using a UI file this way doesn't
-        lend itself to that.. well, maybe if we pass the builder
-        in to the module? Hm. 
+        This holds the main UI for the Kwarqs dashboard program. Ideally, we
+        should ship most of the logic out of this class and do things
+        elsewhere. Of course.. that's not quite the case now. 
     '''
     
     ui_filename = 'dashboard.ui'
@@ -46,13 +57,16 @@ class Dashboard(object):
         'auto_feed_button',
         
         'unused_1',
-        'unused_2',
-        'unused_3',
         
         'autonomous_chooser',
         'auton_target_high',
         'auton_target_low',
         'auton_target_mid',
+        
+        'auto_target_button',
+        'auto_target_top',
+        'auto_target_mid',
+        'auto_target_low',
         
     ]
     ui_signals = [
@@ -120,11 +134,21 @@ class Dashboard(object):
         active = util.pixbuf_from_file('toggle-on.png')
         inactive = util.pixbuf_from_file('toggle-off.png')
         
-        for name in ['wheel_on_button', 'auto_feed_button', 'unused_1', 'unused_2', 'unused_3']:
+        for name in ['wheel_on_button', 'auto_feed_button', 'auto_target_button', 'unused_1']:
             setattr(self, name, util.replace_widget(getattr(self, name), toggle_button.ToggleButton(active, inactive, clickable=True, default=False)))
             
         # attach to the targeter widget
         self.camera_widget.connect('target-update', self.on_target_update)
+        
+        # setup the auto target stuff
+        # -> all of these buttons/RadioButtons use the same callback
+        for name in ['top', 'mid', 'low', 'button']:
+            getattr(self, 'auto_target_%s' % name).connect('toggled', self.on_auto_target_toggled)
+            
+        self.auto_target_button.set_active(True)
+        
+        self.shooting_mode_button.connect('toggled', self.on_shooting_mode_toggled)
+        
             
         # connect widgets to pynetworktables
         if self.table is not None:
@@ -209,7 +233,9 @@ class Dashboard(object):
             
             logger.info("Robot switched into teleoperated mode")
             self.control_notebook.set_current_page(1)
-            self.camera_widget.set_target(None)
+            
+            if not self._setup_autotargeting():
+                self.camera_widget.set_target(None)
             
         else:
             # don't waste disk space while the robot isn't enabled
@@ -218,8 +244,34 @@ class Dashboard(object):
             logger.info("Robot switched into disabled mode")
             self.control_notebook.set_current_page(0)
         
-            
+    def _setup_autotargeting(self, user_action=False):
+        '''based on the auto target button, tell the widget to track something'''
+        if not self.auto_target_button.get_active() or not self.shooting_mode_button.get_active():
+            return False
+
+        # if the user has set a choice, don't override it
+        # -> we only set user_action=True when the user clicked a button and this gets called
+        if user_action or self.camera_widget.is_auto_target():
         
+            if self.auto_target_top.get_active():
+                target = targeter.Targeter.TOP
+            elif self.auto_target_mid.get_active():
+                target = targeter.Targeter.MIDDLE
+            elif self.auto_target_low.get_active():
+                target = targeter.Targeter.LOW
+            
+            # even on user actions, we always set auto to True, so if the
+            # auto buttons change later they get applied
+            self.camera_widget.set_target(target, auto=True)
+            
+        return True
+            
+    def on_auto_target_toggled(self, widget):
+        self._setup_autotargeting(user_action=True)
+        
+    def on_shooting_mode_toggled(self, widget):
+        '''Direct the widget to track something when we enter shooting mode'''
+        self._setup_autotargeting()
         
     def on_wheel_status_toggled(self, widget):
         self.update_ready_status()
@@ -264,6 +316,11 @@ class Dashboard(object):
     def on_fire_clicked(self, widget):
         
         # presumably when the user fires, they want to remain stationary
+        # -> TODO: but, in case they change their mind, we should restore it
+        #    in autotargeting mode. But what does that really mean? This
+        #    is in case they miss and need to adjust. Maybe what we really
+        #    want is to disable autotargeting when the wheel is on... but 
+        #    that's probably not the case either. Think this use case through!
         self.camera_widget.set_target(None)
         
         if self.table is not None:

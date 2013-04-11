@@ -1,3 +1,19 @@
+#
+#   This file is part of KwarqsDashboard.
+#
+#   KwarqsDashboard is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, version 3.
+#
+#   KwarqsDashboard is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with KwarqsDashboard.  If not, see <http://www.gnu.org/licenses/>.
+#
+
 
 import math
 import os
@@ -7,6 +23,17 @@ import gtk
 import ui.util
 
 class RobotWidget(gtk.DrawingArea):
+    '''
+        When the robot reports the angle of the platform, draw the
+        platform on the UI at that particular angle. 
+        
+        Additionally, show frisbees on the platform, and move them with
+        it. In practice, operators rarely use this widget. However, its 
+        a great visual aid for demonstrations, or for debugging the 
+        robot. 
+    
+        TODO: Make this more general, we hardcoded everything here
+    '''
     
     def __init__(self, table):
         gtk.DrawingArea.__init__(self)

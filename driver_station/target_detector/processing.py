@@ -1,6 +1,20 @@
-#!/usr/bin/env python2
+#
+#   This file is part of KwarqsDashboard.
+#
+#   KwarqsDashboard is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, version 3.
+#
+#   KwarqsDashboard is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with KwarqsDashboard.  If not, see <http://www.gnu.org/licenses/>.
+#
 
-import datetime
+
 import os.path
 import time
 import threading
@@ -9,8 +23,9 @@ import cv2
 import gtk
 import numpy as np
 
-from imgproc import CvImg, CvContour, colorspace
 import kwarqs2013cv
+
+from image_logger import ImageLogger
 
 import logging
 from common import logutil, settings
@@ -32,6 +47,7 @@ class ImageProcessor(object):
         self.lock = threading.Lock()
         self.condition = threading.Condition(self.lock)
         self.image_log_enabled = False
+        self.using_live_feed = False
     
     def initialize(self, options, camera_widget):
         
@@ -51,11 +67,14 @@ class ImageProcessor(object):
             self._initialize_static(options)
             thread_fn = self._static_processing
         else:
+            self.using_live_feed = True
             thread_fn = self._live_processing
             
         self.thread = threading.Thread(target=thread_fn)
         self.thread.setDaemon(True)
         
+    def is_live_feed(self):
+        return self.using_live_feed
         
     def start(self):
         if self.img_logger is not None:
@@ -69,7 +88,8 @@ class ImageProcessor(object):
         with self.condition:
             self.condition.notify()
             
-        self.thread.join()
+        if self.thread.is_alive():
+            self.thread.join()
         
         if self.img_logger is not None:
             self.img_logger.stop()
@@ -91,6 +111,7 @@ class ImageProcessor(object):
         
         path = options.static_images
         self.idx = 0
+        self.idx_increment = 1
         
         if not os.path.exists(path):
             logger.error("'%s' does not exist!" % path)
@@ -111,11 +132,13 @@ class ImageProcessor(object):
                 if self.idx > 0:
                     with self.condition:
                         self.idx -= 1
+                        self.idx_increment = -1
                         self.condition.notify()
             elif event.keyval == gtk.keysyms.Right:
                 if self.idx < len(self.images):
                     with self.condition:
                         self.idx += 1
+                        self.idx_increment = 1
                         self.condition.notify()
             elif event.keyval == gtk.keysyms.Escape:
                 gtk.main_quit()
@@ -169,15 +192,14 @@ class ImageProcessor(object):
                 
                 logger.info("Opening %s" % image_name)
                 
-                try:
-                    cvimg = CvImg.from_file(image_name)
-                except IOError as e:
-                    logger.error("Error opening %s: %s" % (image_name, e))
-                    self.idx += 1
+                img = cv2.imread(image_name)
+                if img is None:
+                    logger.error("Error opening %s: could not read file" % (image_name))
+                    self.idx += self.idx_increment
                     continue
                 
                 try:
-                    target_data = self.detector.processImage(cvimg.img)
+                    target_data = self.detector.processImage(img)
                 except:
                     logutil.log_exception(logger, 'error processing image')
                 else:
@@ -300,108 +322,3 @@ class ImageProcessor(object):
         logger.info("Static processing thread exiting")
 
 
-class ImageLogger(object):
-
-    def __init__(self, logdir):
-        self.logdir = logdir
-        self.has_image = False
-        self.do_stop = False
-        
-        self.condition = threading.Condition()
-        self.thread = threading.Thread(target=self._log_thread)
-        
-    def log_image(self, image):
-        h, w = image.shape[:2]
-        datestr = datetime.datetime.now().strftime('%Y-%m-%d %H%M-%S-%f')
-        filename = '%s@%sx%s.png' % (datestr, w, h)
-        filename = os.path.join(self.logdir, filename)
-        
-        with self.condition:
-            self.has_image = True
-            
-            # TODO: does making a copy here matter?
-            self.img = image.copy()
-            self.img_filename = filename
-            
-            self.condition.notify()
-            
-    def start(self):
-        if not self.thread.is_alive():
-            self.thread.start()
-        
-    def stop(self):
-        with self.condition:
-            self.do_stop = True
-            self.condition.notify()
-            
-        self.thread.join()
-        
-    @logutil.exception_decorator(logger)
-    def _log_thread(self):
-        
-        while True:
-            with self.condition:
-                
-                if self.do_stop:
-                    break
-                
-                while not self.has_image and not self.do_stop:
-                    self.condition.wait()
-                    
-                # if there's an image queued up, then we want to
-                # write it out before exiting
-                if not self.has_image:
-                    continue
-                
-                img = self.img
-                img_filename = self.img_filename
-                self.has_image = False
-                
-            logger.debug('Writing image to %s' % img_filename)
-            cv2.imwrite(img_filename, img)
-            
-
-
-def user_save_image(img):
-    # TODO: make this work in new framework
-    
-    # TODO: the image freezes while this is waiting for input. Fix that. 
-    
-    # Hehe. 
-    timg = img.copy()
-    h, w = timg.shape[:2]
-    cv2.putText(timg, 'OH SNAP!', (w/6,h/2), cv2.FONT_HERSHEY_COMPLEX, 3, (255,255,255), 4)
-    
-    cv2.imshow('test', timg)
-    cv2.waitKey(1)
-    
-    while True:
-        filename = raw_input('Save to .png: ')
-    
-        if filename == '':
-            continue
-    
-        if not filename.endswith('.png'):
-            filename = filename + '.png'
-            
-        filename = os.path.abspath(filename)
-    
-        if os.path.exists(filename):
-            overwrite = False
-            while True:
-                yn = raw_input("'%s' exists! Overwrite? [y/n] " % filename).lower()
-                if yn == 'y':
-                    overwrite = True
-                    break
-                elif yn == 'n':
-                    break
-                
-            if not overwrite:
-                continue
-    
-        if cv2.imwrite(filename, img):
-            print "Image saved to '%s'" % filename
-            break
-        else:
-            print "Error writing to '%s'!" % filename
-    
