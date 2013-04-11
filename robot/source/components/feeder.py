@@ -46,7 +46,7 @@ ACT_STATE_STOP =3
 #
 #Timer
 #
-Timer = wpilib.Timer()
+FEEDER_WAIT_TIME = .5
 
 class Feeder():
     
@@ -76,6 +76,10 @@ class Feeder():
         self.feed_mode_auto = True
         
         self.sd_frisbees = 20
+		
+		self.timer = wpilib.Timer()
+		
+		self.stop = False
         
     def get_frisbee_count(self):    
         '''Gets the distance away an object is from the sensor based on the voltage of the sensor'''
@@ -164,19 +168,22 @@ class Feeder():
             self.feeder_state = STATE_FEEDING
             #if feed is not called in next loop then stop the motor!
             self.action_state = ACT_STATE_STOP
-			self.Timer.Start()
             
         elif self.action_state == ACT_STATE_FEED_AUTO:
             self.feed_motor.Set(FEED_SPEED)
             self.feeder_state = STATE_FEEDING_AUTO
             self.action_state = ACT_STATE_STOP
-            
+			self.stop = False
+            self.timer.Start()
         #
         #Feeder in auto feeding, and sensor isn't covered, keep feeding
         #
         elif self.feeder_state == STATE_FEEDING_AUTO and not self.sensor_covered():
             self.feed_motor.Set(FEED_SPEED)
-        
+			
+		elif self.feeder_state == STATE_FEEDING_AUTO and self.sensor_covered() and self.stop == False:
+			self.feed_motor.Set(FEED_SPEED)
+		
         #
         #Reverse the feeder
         #
@@ -203,12 +210,14 @@ class Feeder():
         #
         #we weren't told to feed so stop!
         #
-        elif self.action_state == ACT_STATE_STOP and Timer.Get() > .5:
+        elif self.action_state == ACT_STATE_STOP and self.timer.Get() > FEEDER_WAIT_TIME:
             
             self.feed_motor.Set(STOP_SPEED)
             self.feeder_state = STATE_STOPPED
-			self.Timer.Stop()
-			self.Timer.Reset()
+			self.stop = True
+			self.timer.Stop()
+			self.timer.Reset()
+
         
         #wpilib.SmartDashboard.PutNumber('Feeder State', self.feeder_state)
         #wpilib.SmartDashboard.PutNumber('Action State', self.action_state)
