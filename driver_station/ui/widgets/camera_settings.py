@@ -44,6 +44,7 @@ class CameraSettings(object):
         'on_check_show_sat_toggled',
         'on_check_show_val_toggled',
         'on_check_show_bin_toggled',
+        'on_check_show_bin_overlay_toggled',
         
         'on_check_show_contours_toggled',
         'on_check_show_missed_toggled',
@@ -111,6 +112,10 @@ class CameraSettings(object):
         
     def on_check_show_bin_toggled(self, widget):
         self.processor.detector.show_bin = widget.get_active()
+        self.processor.refresh()
+        
+    def on_check_show_bin_overlay_toggled(self, widget):
+        self.processor.detector.show_bin_overlay = widget.get_active()
         self.processor.refresh()
         
     def on_check_show_contours_toggled(self, widget):

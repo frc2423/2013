@@ -112,6 +112,7 @@ class TargetDetector(object):
         self.show_sat = False
         self.show_val = False
         self.show_bin = False
+        self.show_bin_overlay = False
         self.show_contours = False
         self.show_missed = False
         self.show_badratio = False
@@ -243,6 +244,10 @@ class TargetDetector(object):
         # Find contours, retrieve the hierarchy of contours so we can figure out 
         # which contours are the inner/outer rectangle
         contours, hierarchy = cv2.findContours(self.bin.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
+        
+        # overlay the binarized image on the displayed image, instead of a separate picture
+        if self.show_bin_overlay:
+            img[cv2.cvtColor(self.bin, cv2.COLOR_GRAY2BGR) != 0] = 255
         
         if self.show_contours:
             cv2.drawContours(img, contours, -1, (255,0,0), thickness=self.kThickness, lineType=self.kLineType)
