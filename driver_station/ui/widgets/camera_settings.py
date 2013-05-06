@@ -25,8 +25,10 @@ class CameraSettings(object):
     ui_widgets = [
         'adj_thresh_hue_p',
         'adj_thresh_hue_n',
-        'adj_thresh_sat',
-        'adj_thresh_val',
+        'adj_thresh_sat_p',
+        'adj_thresh_sat_n',
+        'adj_thresh_val_p',
+        'adj_thresh_val_n',
     ]
     
     ui_signals = [
@@ -36,13 +38,17 @@ class CameraSettings(object):
                   
         'on_adj_thresh_hue_p_value_changed',
         'on_adj_thresh_hue_n_value_changed',
-        'on_adj_thresh_sat_value_changed',
-        'on_adj_thresh_val_value_changed',
+        'on_adj_thresh_sat_p_value_changed',
+        'on_adj_thresh_sat_n_value_changed',
+        'on_adj_thresh_val_p_value_changed',
+        'on_adj_thresh_val_n_value_changed',
         
         'on_check_show_hue_p_toggled',
         'on_check_show_hue_n_toggled',
-        'on_check_show_sat_toggled',
-        'on_check_show_val_toggled',
+        'on_check_show_sat_p_toggled',
+        'on_check_show_sat_n_toggled',
+        'on_check_show_val_p_toggled',
+        'on_check_show_val_n_toggled',
         'on_check_show_bin_toggled',
         'on_check_show_bin_overlay_toggled',
         
@@ -66,22 +72,28 @@ class CameraSettings(object):
         
         self.adj_thresh_hue_p.set_value(settings.get('camera/thresh_hue_p', detector.thresh_hue_p))
         self.adj_thresh_hue_n.set_value(settings.get('camera/thresh_hue_n', detector.thresh_hue_n))
-        self.adj_thresh_sat.set_value(settings.get('camera/thresh_sat', detector.thresh_sat))
-        self.adj_thresh_val.set_value(settings.get('camera/thresh_val', detector.thresh_val))
+        self.adj_thresh_sat_p.set_value(settings.get('camera/thresh_sat_p', detector.thresh_sat_p))
+        self.adj_thresh_sat_n.set_value(settings.get('camera/thresh_sat_n', detector.thresh_sat_n))
+        self.adj_thresh_val_p.set_value(settings.get('camera/thresh_val_p', detector.thresh_val_p))
+        self.adj_thresh_val_n.set_value(settings.get('camera/thresh_val_n', detector.thresh_val_n))
     
     def on_thresh_pit_button_clicked(self, widget):
         detector = self.processor.detector
         self.adj_thresh_hue_p.set_value(detector.kPitThreshHueP)
         self.adj_thresh_hue_n.set_value(detector.kPitThreshHueN)
-        self.adj_thresh_sat.set_value(detector.kPitThreshSat)
-        self.adj_thresh_val.set_value(detector.kPitThreshVal)
+        self.adj_thresh_sat_p.set_value(detector.kPitThreshSatP)
+        self.adj_thresh_sat_n.set_value(detector.kPitThreshSatN)
+        self.adj_thresh_val_p.set_value(detector.kPitThreshValP)
+        self.adj_thresh_val_n.set_value(detector.kPitThreshValN)
     
     def on_thresh_comp_button_clicked(self, widget):
         detector = self.processor.detector
         self.adj_thresh_hue_p.set_value(detector.kCompThreshHueP)
         self.adj_thresh_hue_n.set_value(detector.kCompThreshHueN)
-        self.adj_thresh_sat.set_value(detector.kCompThreshSat)
-        self.adj_thresh_val.set_value(detector.kCompThreshVal)
+        self.adj_thresh_sat_p.set_value(detector.kCompThreshSatP)
+        self.adj_thresh_sat_n.set_value(detector.kCompThreshSatN)
+        self.adj_thresh_val_p.set_value(detector.kCompThreshValP)
+        self.adj_thresh_val_n.set_value(detector.kCompThreshValN)
     
     def _on_thresh(self, widget, name):
         v = widget.get_value()
@@ -91,8 +103,10 @@ class CameraSettings(object):
         
     on_adj_thresh_hue_p_value_changed = lambda self, w: self._on_thresh(w, 'thresh_hue_p')
     on_adj_thresh_hue_n_value_changed = lambda self, w: self._on_thresh(w, 'thresh_hue_n')
-    on_adj_thresh_sat_value_changed = lambda self, w: self._on_thresh(w, 'thresh_sat')
-    on_adj_thresh_val_value_changed = lambda self, w: self._on_thresh(w, 'thresh_val') 
+    on_adj_thresh_sat_p_value_changed = lambda self, w: self._on_thresh(w, 'thresh_sat_p')
+    on_adj_thresh_sat_n_value_changed = lambda self, w: self._on_thresh(w, 'thresh_sat_n')
+    on_adj_thresh_val_p_value_changed = lambda self, w: self._on_thresh(w, 'thresh_val_p')
+    on_adj_thresh_val_n_value_changed = lambda self, w: self._on_thresh(w, 'thresh_val_n')  
             
     def on_check_show_hue_p_toggled(self, widget):
         self.processor.detector.show_hue = widget.get_active()
@@ -102,11 +116,19 @@ class CameraSettings(object):
         self.processor.detector.show_hue = widget.get_active()
         self.processor.refresh()
     
-    def on_check_show_sat_toggled(self, widget):
+    def on_check_show_sat_p_toggled(self, widget):
+        self.processor.detector.show_sat = widget.get_active()
+        self.processor.refresh()
+        
+    def on_check_show_sat_n_toggled(self, widget):
         self.processor.detector.show_sat = widget.get_active()
         self.processor.refresh()
     
-    def on_check_show_val_toggled(self, widget):
+    def on_check_show_val_p_toggled(self, widget):
+        self.processor.detector.show_val = widget.get_active()
+        self.processor.refresh()
+        
+    def on_check_show_val_n_toggled(self, widget):
         self.processor.detector.show_val = widget.get_active()
         self.processor.refresh()
         

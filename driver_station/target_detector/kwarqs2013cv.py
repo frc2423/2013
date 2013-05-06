@@ -91,13 +91,17 @@ class TargetDetector(object):
     
     kCompThreshHueP = 30
     kCompThreshHueN = 75
-    kCompThreshSat = 188
-    kCompThreshVal = 16
+    kCompThreshSatP = 188
+    kCompThreshSatN = 255
+    kCompThreshValP = 16
+    kCompThreshValN = 255
     
     kPitThreshHueP = 45
     kPitThreshHueN = 75
-    kPitThreshSat = 200
-    kPitThreshVal = 55
+    kPitThreshSatP = 200
+    kPitThreshSatN = 255
+    kPitThreshValP = 55
+    kPitThreshValN = 255
     
     def __init__(self):
         self.size = None
@@ -124,8 +128,10 @@ class TargetDetector(object):
         # thresholds
         self.thresh_hue_p = settings.get('camera/thresh_hue_p', self.kCompThreshHueP)
         self.thresh_hue_n = settings.get('camera/thresh_hue_n', self.kCompThreshHueN)
-        self.thresh_sat = settings.get('camera/thresh_sat', self.kCompThreshSat)
-        self.thresh_val = settings.get('camera/thresh_val', self.kCompThreshVal)
+        self.thresh_sat_p = settings.get('camera/thresh_sat_p', self.kCompThreshSatP)
+        self.thresh_sat_n = settings.get('camera/thresh_sat_n', self.kCompThreshSatN)
+        self.thresh_val_p = settings.get('camera/thresh_val_p', self.kCompThreshValP)
+        self.thresh_val_n = settings.get('camera/thresh_val_n', self.kCompThreshValN)
     
     def processImage(self, img):
         
@@ -207,32 +213,34 @@ class TargetDetector(object):
         cv2.split(self.hsv, [self.hue, self.sat, self.val])
         
         # Threshold each component separately
+        
         # Hue
-        # NOTE: Red is at the end of the color space, so you need to OR together
-        # a thresh and inverted thresh in order to get points that are red
         cv2.threshold(self.hue, self.thresh_hue_p, 255, type=cv2.THRESH_BINARY, dst=self.bin)
         cv2.threshold(self.hue, self.thresh_hue_n, 255, type=cv2.THRESH_BINARY_INV, dst=self.hue)
+        cv2.bitwise_and(self.hue, self.bin, self.hue)
+        
+        if self.show_hue:
+            cv2.imshow('hue', self.hue)
         
         # Saturation
-        cv2.threshold(self.sat, self.thresh_sat, 255, type=cv2.THRESH_BINARY, dst=self.sat)
+        cv2.threshold(self.sat, self.thresh_sat_p, 255, type=cv2.THRESH_BINARY, dst=self.bin)
+        cv2.threshold(self.sat, self.thresh_sat_n, 255, type=cv2.THRESH_BINARY_INV, dst=self.sat)
+        cv2.bitwise_and(self.sat, self.bin, self.sat)
         
         if self.show_sat:
             cv2.imshow('sat', self.sat)
         
         # Value
-        cv2.threshold(self.val, self.thresh_val, 255, type=cv2.THRESH_BINARY, dst=self.val)
+        cv2.threshold(self.val, self.thresh_val_p, 255, type=cv2.THRESH_BINARY, dst=self.bin)
+        cv2.threshold(self.val, self.thresh_val_n, 255, type=cv2.THRESH_BINARY_INV, dst=self.val)
+        cv2.bitwise_and(self.val, self.bin, self.val)
         
         if self.show_val:
             cv2.imshow('val', self.val)
         
         # Combine the results to obtain our binary image which should for the most
-        # part only contain pixels that we care about
-        cv2.bitwise_and(self.hue, self.bin, self.bin)
-        
-        if self.show_hue:
-            cv2.imshow('hue', self.bin)
-        
-        cv2.bitwise_and(self.bin, self.sat, self.bin)
+        # part only contain pixels that we care about        
+        cv2.bitwise_and(self.hue, self.sat, self.bin)
         cv2.bitwise_and(self.bin, self.val, self.bin)
 
         # Fill in any gaps using binary morphology

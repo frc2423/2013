@@ -14,17 +14,29 @@
     <property name="page_increment">10</property>
     <signal name="value-changed" handler="on_adj_thresh_hue_p_value_changed" swapped="no"/>
   </object>
-  <object class="GtkAdjustment" id="adj_thresh_sat">
+  <object class="GtkAdjustment" id="adj_thresh_sat_n">
     <property name="upper">255</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
-    <signal name="value-changed" handler="on_adj_thresh_sat_value_changed" swapped="no"/>
+    <signal name="value-changed" handler="on_adj_thresh_sat_n_value_changed" swapped="no"/>
   </object>
-  <object class="GtkAdjustment" id="adj_thresh_val">
+  <object class="GtkAdjustment" id="adj_thresh_sat_p">
     <property name="upper">255</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
-    <signal name="value-changed" handler="on_adj_thresh_val_value_changed" swapped="no"/>
+    <signal name="value-changed" handler="on_adj_thresh_sat_p_value_changed" swapped="no"/>
+  </object>
+  <object class="GtkAdjustment" id="adj_thresh_val_n">
+    <property name="upper">255</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+    <signal name="value-changed" handler="on_adj_thresh_val_n_value_changed" swapped="no"/>
+  </object>
+  <object class="GtkAdjustment" id="adj_thresh_val_p">
+    <property name="upper">255</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+    <signal name="value-changed" handler="on_adj_thresh_val_p_value_changed" swapped="no"/>
   </object>
   <object class="GtkListStore" id="autonomous_model">
     <columns>
@@ -779,7 +791,7 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <child>
-                                      <object class="GtkSpinButton" id="spin_thresh_sat">
+                                      <object class="GtkSpinButton" id="spin_thresh_sat_p">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="invisible_char">•</property>
@@ -788,7 +800,7 @@
                                         <property name="secondary_icon_activatable">False</property>
                                         <property name="primary_icon_sensitive">True</property>
                                         <property name="secondary_icon_sensitive">True</property>
-                                        <property name="adjustment">adj_thresh_sat</property>
+                                        <property name="adjustment">adj_thresh_sat_p</property>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
@@ -800,7 +812,7 @@
                                       <object class="GtkHScale" id="hscale2">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
-                                        <property name="adjustment">adj_thresh_sat</property>
+                                        <property name="adjustment">adj_thresh_sat_p</property>
                                         <property name="draw_value">False</property>
                                       </object>
                                       <packing>
@@ -810,13 +822,13 @@
                                       </packing>
                                     </child>
                                     <child>
-                                      <object class="GtkCheckButton" id="check_show_sat">
-                                        <property name="label" translatable="yes">S</property>
+                                      <object class="GtkCheckButton" id="check_show_sat_p">
+                                        <property name="label" translatable="yes">S+</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">False</property>
                                         <property name="draw_indicator">True</property>
-                                        <signal name="toggled" handler="on_check_show_sat_toggled" swapped="no"/>
+                                        <signal name="toggled" handler="on_check_show_sat_p_toggled" swapped="no"/>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
@@ -832,11 +844,11 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkHBox" id="hbox7">
+                                  <object class="GtkHBox" id="hbox17">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <child>
-                                      <object class="GtkSpinButton" id="spin_thresh_val">
+                                      <object class="GtkSpinButton" id="spin_thresh_sat_n">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="invisible_char">•</property>
@@ -845,7 +857,7 @@
                                         <property name="secondary_icon_activatable">False</property>
                                         <property name="primary_icon_sensitive">True</property>
                                         <property name="secondary_icon_sensitive">True</property>
-                                        <property name="adjustment">adj_thresh_val</property>
+                                        <property name="adjustment">adj_thresh_sat_n</property>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
@@ -854,10 +866,10 @@
                                       </packing>
                                     </child>
                                     <child>
-                                      <object class="GtkHScale" id="hscale1">
+                                      <object class="GtkHScale" id="hscale6">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
-                                        <property name="adjustment">adj_thresh_val</property>
+                                        <property name="adjustment">adj_thresh_sat_n</property>
                                         <property name="draw_value">False</property>
                                       </object>
                                       <packing>
@@ -867,13 +879,14 @@
                                       </packing>
                                     </child>
                                     <child>
-                                      <object class="GtkCheckButton" id="check_show_val">
-                                        <property name="label" translatable="yes">V</property>
+                                      <object class="GtkCheckButton" id="check_show_sat_n">
+                                        <property name="label" translatable="yes">S-</property>
                                         <property name="visible">True</property>
+                                        <property name="sensitive">False</property>
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">False</property>
                                         <property name="draw_indicator">True</property>
-                                        <signal name="toggled" handler="on_check_show_val_toggled" swapped="no"/>
+                                        <signal name="toggled" handler="on_check_show_sat_n_toggled" swapped="no"/>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
@@ -886,6 +899,121 @@
                                     <property name="expand">False</property>
                                     <property name="fill">True</property>
                                     <property name="position">4</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkHBox" id="hbox7">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <child>
+                                      <object class="GtkSpinButton" id="spin_thresh_val_p">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="invisible_char">•</property>
+                                        <property name="invisible_char_set">True</property>
+                                        <property name="primary_icon_activatable">False</property>
+                                        <property name="secondary_icon_activatable">False</property>
+                                        <property name="primary_icon_sensitive">True</property>
+                                        <property name="secondary_icon_sensitive">True</property>
+                                        <property name="adjustment">adj_thresh_val_p</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
+                                        <property name="position">0</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkHScale" id="hscale1">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="adjustment">adj_thresh_val_p</property>
+                                        <property name="draw_value">False</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">True</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">1</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkCheckButton" id="check_show_val_p">
+                                        <property name="label" translatable="yes">V+</property>
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="receives_default">False</property>
+                                        <property name="draw_indicator">True</property>
+                                        <signal name="toggled" handler="on_check_show_val_p_toggled" swapped="no"/>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
+                                        <property name="position">2</property>
+                                      </packing>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">5</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkHBox" id="hbox16">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <child>
+                                      <object class="GtkSpinButton" id="spin_thresh_val_n">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="invisible_char">•</property>
+                                        <property name="invisible_char_set">True</property>
+                                        <property name="primary_icon_activatable">False</property>
+                                        <property name="secondary_icon_activatable">False</property>
+                                        <property name="primary_icon_sensitive">True</property>
+                                        <property name="secondary_icon_sensitive">True</property>
+                                        <property name="adjustment">adj_thresh_val_n</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
+                                        <property name="position">0</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkHScale" id="hscale5">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="adjustment">adj_thresh_val_n</property>
+                                        <property name="draw_value">False</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">True</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">1</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkCheckButton" id="check_show_val_n">
+                                        <property name="label" translatable="yes">V-</property>
+                                        <property name="visible">True</property>
+                                        <property name="sensitive">False</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="receives_default">False</property>
+                                        <property name="draw_indicator">True</property>
+                                        <signal name="toggled" handler="on_check_show_val_n_toggled" swapped="no"/>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
+                                        <property name="position">2</property>
+                                      </packing>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                    <property name="position">6</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -927,7 +1055,7 @@
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
-                                    <property name="position">5</property>
+                                    <property name="position">7</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -940,9 +1068,9 @@
                                     <signal name="toggled" handler="on_check_show_bin_overlay_toggled" swapped="no"/>
                                   </object>
                                   <packing>
-                                    <property name="expand">True</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">6</property>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                    <property name="position">8</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -957,7 +1085,7 @@
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
-                                    <property name="position">7</property>
+                                    <property name="position">9</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -972,7 +1100,7 @@
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
-                                    <property name="position">8</property>
+                                    <property name="position">10</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -987,7 +1115,7 @@
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
-                                    <property name="position">9</property>
+                                    <property name="position">11</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -1002,7 +1130,7 @@
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
-                                    <property name="position">10</property>
+                                    <property name="position">12</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -1017,7 +1145,7 @@
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
-                                    <property name="position">11</property>
+                                    <property name="position">13</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -1033,7 +1161,7 @@
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
-                                    <property name="position">12</property>
+                                    <property name="position">14</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -1049,7 +1177,7 @@
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
-                                    <property name="position">13</property>
+                                    <property name="position">15</property>
                                   </packing>
                                 </child>
                               </object>
