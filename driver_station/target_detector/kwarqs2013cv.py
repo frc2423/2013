@@ -468,7 +468,6 @@ class TargetDetector(object):
                         mids.append(target)
                 
             elif len(mids) != 0:
-                print 'trying this'
                 mids.sort(key=lambda tgt: tgt.cy)
                 
                 for target in unks:

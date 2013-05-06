@@ -54,6 +54,7 @@ class ImageProcessor(object):
         self.do_stop = False
         self.do_refresh = False
         
+        self.use_webcam = options.webcam
         self.camera_ip = options.camera_ip
         self.camera_widget = camera_widget
         
@@ -220,10 +221,16 @@ class ImageProcessor(object):
         
         vc.set(cv2.cv.CV_CAP_PROP_FPS, 1)
         
-        logger.info('Connecting to %s' % self.camera_ip)
-        if not vc.open('http://%s/mjpg/video.mjpg' % self.camera_ip):
-            logger.error("Could not connect")
-            return
+        if self.use_webcam is None:
+            logger.info('Connecting to %s' % self.camera_ip)
+            if not vc.open('http://%s/mjpg/video.mjpg' % self.camera_ip):
+                logger.error("Could not connect")
+                return
+        else:
+            logger.info('Connecting to webcam %s' % self.use_webcam)
+            if not vc.open(self.use_webcam):
+                logger.error("Could not connect")
+                return
         
         logger.info('Connected!')
         return vc
