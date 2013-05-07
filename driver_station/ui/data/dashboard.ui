@@ -1021,13 +1021,13 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <child>
-                                      <object class="GtkCheckButton" id="check_show_bin">
-                                        <property name="label" translatable="yes">Show binarized image</property>
+                                      <object class="GtkCheckButton" id="check_show_bin_overlay">
+                                        <property name="label" translatable="yes">Show binarized image overlay</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">False</property>
                                         <property name="draw_indicator">True</property>
-                                        <signal name="toggled" handler="on_check_show_bin_toggled" swapped="no"/>
+                                        <signal name="toggled" handler="on_check_show_bin_overlay_toggled" swapped="no"/>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
@@ -1059,13 +1059,13 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkCheckButton" id="check_show_bin_overlay">
-                                    <property name="label" translatable="yes">Show binarized image overlay</property>
+                                  <object class="GtkCheckButton" id="check_show_bin">
+                                    <property name="label" translatable="yes">Show binarized image separately</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
                                     <property name="draw_indicator">True</property>
-                                    <signal name="toggled" handler="on_check_show_bin_overlay_toggled" swapped="no"/>
+                                    <signal name="toggled" handler="on_check_show_bin_toggled" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
