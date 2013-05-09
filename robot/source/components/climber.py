@@ -29,7 +29,7 @@ class Climber(object):
         self.action_timer = wpilib.Timer()
         self.action_timer.Start()
         
-        self._position = self.CLIMB
+        self._position = None
         self.next_state = None
         self.current_state = None
     

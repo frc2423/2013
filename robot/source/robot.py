@@ -240,6 +240,9 @@ class MyRobot(wpilib.SimpleRobot):
         
         self.sd.PutNumber("Robot Mode", self.MODE_TELEOPERATED)
         
+        if self.my_climber.position() is None:
+            self.my_climber.lower()
+        
         # set the watch dog
         dog = self.GetWatchdog()
         dog.SetEnabled(False)
