@@ -7,9 +7,10 @@ except:
 #
 #Motor Speeds
 #
+'''Feeder motor polarity switched, so the motor ran backwards'''
 STOP_SPEED = 0
-FEED_SPEED = 0.7
-REVERSE_SPEED = -1
+FEED_SPEED = -0.7
+REVERSE_SPEED = 1
 #
 #Frisbee Distances
 #
@@ -77,9 +78,9 @@ class Feeder():
         
         self.sd_frisbees = 20
 		
-		self.timer = wpilib.Timer()
-		
-		self.stop = False
+        self.timer = wpilib.Timer()
+        
+        self.stop = False
         
     def get_frisbee_count(self):    
         '''Gets the distance away an object is from the sensor based on the voltage of the sensor'''
@@ -173,7 +174,7 @@ class Feeder():
             self.feed_motor.Set(FEED_SPEED)
             self.feeder_state = STATE_FEEDING_AUTO
             self.action_state = ACT_STATE_STOP
-			self.stop = False
+            self.stop = False
             self.timer.Start()
         #
         #Feeder in auto feeding, and sensor isn't covered, keep feeding
@@ -181,8 +182,8 @@ class Feeder():
         elif self.feeder_state == STATE_FEEDING_AUTO and not self.sensor_covered():
             self.feed_motor.Set(FEED_SPEED)
 			
-		elif self.feeder_state == STATE_FEEDING_AUTO and self.sensor_covered() and self.stop == False:
-			self.feed_motor.Set(FEED_SPEED)
+        elif self.feeder_state == STATE_FEEDING_AUTO and self.sensor_covered() and self.stop == False:
+            self.feed_motor.Set(FEED_SPEED)
 		
         #
         #Reverse the feeder
@@ -214,10 +215,10 @@ class Feeder():
             
             self.feed_motor.Set(STOP_SPEED)
             self.feeder_state = STATE_STOPPED
-			self.stop = True
-			self.timer.Stop()
-			self.timer.Reset()
-
+            self.stop = True
+            self.timer.Stop()
+            self.timer.Reset()
+    
         
         #wpilib.SmartDashboard.PutNumber('Feeder State', self.feeder_state)
         #wpilib.SmartDashboard.PutNumber('Action State', self.action_state)
