@@ -28,16 +28,18 @@ FEEDER_READY_DISTANCE = 2.15
 DASH_STRING_FRISBEE = "Frisbee Count"
 
 #
-#Feeder States
+# Feeder States: what the motor is actually doing
 #
 STATE_FEEDING = 0
-STATE_FEEDING_AUTO = 1
-STATE_REVERSING = 2
-STATE_STOPPED = 3
+STATE_REVERSING = 1
+STATE_STOPPED = 2
+STATE_FEEDING_AUTO_BEGIN = 3
+STATE_FEEDING_AUTO_NO_STOP = 4
+STATE_FEEDING_AUTO_STOP_ON_SENSOR = 5
 
 
 #
-#Action States
+# Action States: what the user wants
 #
 ACT_STATE_FEED = 0
 ACT_STATE_FEED_AUTO = 1
@@ -47,7 +49,7 @@ ACT_STATE_STOP =3
 #
 #Timer
 #
-FEEDER_WAIT_TIME = .5
+FEEDER_WAIT_TIME = .25
 
 class Feeder():
     
@@ -77,8 +79,7 @@ class Feeder():
         self.feed_mode_auto = True
         
         self.sd_frisbees = 20
-		
-        self.timer = wpilib.Timer()
+        self.wait_timer = wpilib.Timer()
         
         self.stop = False
         
@@ -156,73 +157,70 @@ class Feeder():
         ''' Sets actual motor values based on states '''
     
         #
-        #Feed actions
+        # Process the user actions first
+        # -> Note that all of the user actions have a stop after them
         #
-
         
-        #
-        #we were told to feed so lets!
-        #
         if self.action_state == ACT_STATE_FEED:
-            
-            self.feed_motor.Set(FEED_SPEED)
             self.feeder_state = STATE_FEEDING
-            #if feed is not called in next loop then stop the motor!
-            self.action_state = ACT_STATE_STOP
-            
-        elif self.action_state == ACT_STATE_FEED_AUTO:
-            self.feed_motor.Set(FEED_SPEED)
-            self.feeder_state = STATE_FEEDING_AUTO
-            self.action_state = ACT_STATE_STOP
-            self.stop = False
-            self.timer.Start()
-        #
-        #Feeder in auto feeding, and sensor isn't covered, keep feeding
-        #
-        elif self.feeder_state == STATE_FEEDING_AUTO and not self.sensor_covered():
-            self.feed_motor.Set(FEED_SPEED)
-			
-        elif self.feeder_state == STATE_FEEDING_AUTO and self.sensor_covered() and self.stop == False:
-            self.feed_motor.Set(FEED_SPEED)
-		
-        #
-        #Reverse the feeder
-        #
-        elif self.action_state == ACT_STATE_REVERSE:
-            self.feed_motor.Set(REVERSE_SPEED)
-            self.feeder_state = STATE_REVERSING
-            #if feed is not called in next loop then stop the motor!
-            self.action_state = ACT_STATE_STOP
-      
-        
-        #
-        #Stop actions
-        #
-        
-        #
-        #if sensor is covered, stop feeding
-        #
-        elif self.feeder_state == STATE_FEEDING_AUTO and self.sensor_covered():
 
+        elif self.action_state == ACT_STATE_FEED_AUTO:
+            # only change the feeder state if it is currently stopped
+            if self.feeder_state == STATE_STOPPED:
+                self.feeder_state = STATE_FEEDING_AUTO_BEGIN
             
-            self.feed_motor.Set(STOP_SPEED)
-            self.feeder_state = STATE_STOPPED    
+        elif self.action_state == ACT_STATE_REVERSE:
+            self.feeder_state = STATE_REVERSING
             
+        # if the user doesn't tell us to do anything else, stop
+        self.action_state = ACT_STATE_STOP
+        
         #
-        #we weren't told to feed so stop!
+        # Process the feeder states next
+        # -> These actually touch the feeder motors
         #
-        elif self.action_state == ACT_STATE_STOP and self.timer.Get() > FEEDER_WAIT_TIME:
             
+        if self.feeder_state == STATE_FEEDING:
             self.feed_motor.Set(STOP_SPEED)
             self.feeder_state = STATE_STOPPED
-            self.stop = True
-            self.timer.Stop()
-            self.timer.Reset()
-    
+            
+        elif self.feeder_state == STATE_REVERSING:
+            self.feed_motor.Set(STOP_SPEED)
+            self.feeder_state = STATE_STOPPED
+            
+        elif self.feeder_state == STATE_STOPPED:
+            self.feed_motor.Set(STOP_SPEED)
+            self.feeder_state = STATE_STOPPED
+            
+        elif self.feeder_state == STATE_FEEDING_AUTO_BEGIN:
+            self.feed_motor.Set(FEED_SPEED)
+            self.feeder_state = STATE_FEEDING_AUTO_NO_STOP
+            
+            # initialize the next state's timer
+            self.wait_timer.Reset()
+            self.wait_timer.Start()
+            
+        elif self.feeder_state == STATE_FEEDING_AUTO_NO_STOP:
+            self.feed_motor.Set(FEED_SPEED)
+            
+            # only stay in this state for FEEDER_WAIT_TIME, then move to the next state
+            if self.wait_timer.HasPeriodPassed(FEEDER_WAIT_TIME):
+                self.feeder_state = STATE_FEEDING_AUTO_STOP_ON_SENSOR
+            
+        elif self.feeder_state == STATE_FEEDING_AUTO_STOP_ON_SENSOR:
+            if self.sensor_covered():
+                self.feed_motor.Set(STOP_SPEED)
+                self.feeder_state = STATE_STOPPED
+            else:
+                self.feed_motor.Set(FEED_SPEED)
         
+        
+        print("Feeder", self.feeder_state, self.action_state)
         #wpilib.SmartDashboard.PutNumber('Feeder State', self.feeder_state)
         #wpilib.SmartDashboard.PutNumber('Action State', self.action_state)
-        #wpilib.SmartDashboard.PutNumber('Feeder dist', self.feed_sensor.GetDistance())
+        wpilib.SmartDashboard.PutNumber('Feeder dist', self.feed_sensor.GetDistance())
+        wpilib.SmartDashboard.PutBoolean('Feeder covered', self.sensor_covered())
+    
     
         fs = self.get_frisbee_count()
         if self.frisbee_count is None:
