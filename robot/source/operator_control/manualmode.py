@@ -100,7 +100,7 @@ class ManualMode(object):
         #    Feeder
         #
         #    
-        fire_counter = self.sd.GetBoolean("Fire"))
+        fire_counter = self.sd.GetBoolean("Fire")
         if stick_button_on(FEEDER_FEED_BUTTON, ds) or fire_counter == True:
             self.sd.PutBoolean("Fire", False)
             self.feeder.feed()
