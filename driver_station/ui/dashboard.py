@@ -324,5 +324,5 @@ class Dashboard(object):
         self.camera_widget.set_target(None)
         
         if self.table is not None:
-            self.table.PutNumber('Fire', 5)
+            self.table.PutBoolean("Fire", True)
         
