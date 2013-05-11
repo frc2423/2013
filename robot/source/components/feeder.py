@@ -9,8 +9,8 @@ except:
 #
 '''Feeder motor polarity switched, so the motor ran backwards'''
 STOP_SPEED = 0
-FEED_SPEED = -0.7
-REVERSE_SPEED = 1
+FEED_SPEED = 0.7
+REVERSE_SPEED = -1
 #
 #Frisbee Distances
 #
