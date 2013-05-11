@@ -38,7 +38,7 @@ class ManualMode(object):
         
     def on_enable(self):
         # no unexpected firing should occur when switching modes
-        self.sd.PutNumber("Fire", False)
+        self.sd.PutBoolean("Fire", False)
         self.sd.PutNumber("TestAngle", 0)
         
     def on_disable(self):

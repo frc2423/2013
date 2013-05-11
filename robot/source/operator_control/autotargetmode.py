@@ -49,7 +49,7 @@ class AutoTargetMode(object):
     
     def on_enable(self):
         # no unexpected firing should occur when switching modes
-        self.sd.PutNumber("Fire", False)
+        self.sd.PutBoolean("Fire", False)
         
         #
         #    make sure sure climber is lowered 
