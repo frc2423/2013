@@ -215,7 +215,7 @@ class Feeder():
                 self.feed_motor.Set(FEED_SPEED)
         
         
-        print("Feeder", self.feeder_state, self.action_state)
+        #print("Feeder", self.feeder_state, self.action_state)
         #wpilib.SmartDashboard.PutNumber('Feeder State', self.feeder_state)
         #wpilib.SmartDashboard.PutNumber('Action State', self.action_state)
         wpilib.SmartDashboard.PutNumber('Feeder dist', self.feed_sensor.GetDistance())
