@@ -72,8 +72,8 @@ class RobotWidget(gtk.DrawingArea):
     def set_angle(self, angle):
         if angle < 0:
             angle = 0.0
-        elif angle > 30:
-            angle = 30.0
+        elif angle > 40.0:
+            angle = 40.0
         
         if angle != self.angle:
             self.angle = angle
