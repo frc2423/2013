@@ -20,6 +20,10 @@ def configure_options(parser):
                       dest='static_images', default=None,
                       help='Specify an image file (or directory) to process')
     
+    parser.add_option('--ask',
+                      dest='ask', default=False, action='store_true',
+                      help='The program will ask the user for a logdir directory')
+    
     parser.add_option('--webcam', dest='webcam', default=None, type='int',
                       help='Use a local webcam instead of a network camera')
 

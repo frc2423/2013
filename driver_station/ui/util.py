@@ -126,3 +126,21 @@ def pixbuf_from_file(filename):
 
 def surface_from_png(filename):
     return cairo.ImageSurface.create_from_png(os.path.join(data_dir, filename))
+
+def get_directory(default=None):
+    dialog = gtk.FileChooserDialog("Open directory", action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
+                                                     buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+    
+    if default is not None:
+        dialog.set_current_folder(default)
+    
+    response = dialog.run()
+    
+    if response != gtk.RESPONSE_OK:
+        return None
+    
+    ret = dialog.get_filename()
+    dialog.destroy()
+    
+    return ret
+    

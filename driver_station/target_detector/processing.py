@@ -23,6 +23,8 @@ import cv2
 import gtk
 import numpy as np
 
+from ui import util
+
 import kwarqs2013cv
 
 from image_logger import ImageLogger
@@ -59,6 +61,11 @@ class ImageProcessor(object):
         self.camera_widget = camera_widget
         
         self.img_logger = None
+        
+        if options.ask:
+            options.static_images = util.get_directory(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'logs')))
+            if options.static_images is None:
+                raise RuntimeError()
         
         if options.log_images:
             self.img_logger = ImageLogger(options.log_dir)
