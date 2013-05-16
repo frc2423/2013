@@ -88,10 +88,15 @@ ANGLE_P = -3000.0
 ANGLE_I = -0.1 
 ANGLE_D = -14.0
 
-ANGLE_MIN_POSITION = 0.594
-ANGLE_MAX_POSITION = 0.498
-ANGLE_MIN_ANGLE    = 25.6
-ANGLE_MAX_ANGLE    = -0.2 # TODO
+#ANGLE_MIN_POSITION = 0.594
+#ANGLE_MAX_POSITION = 0.498
+#ANGLE_MIN_ANGLE    = 25.6
+#ANGLE_MAX_ANGLE    = -0.2 # TODO
+
+ANGLE_MIN_POSITION = 0.759
+ANGLE_MAX_POSITION = 0.568
+ANGLE_MIN_ANGLE    = 46.8
+ANGLE_MAX_ANGLE    = -1.9
 
 angle_motor = EzCANJaguar(angle_motor_can)
 angle_motor.SetPositionReference(wpilib.CANJaguar.kPosRef_Potentiometer)
