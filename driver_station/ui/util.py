@@ -18,6 +18,7 @@ import os
 
 import cairo
 import gtk
+import glib
 
 data_dir = os.path.join(os.path.dirname(__file__), 'data')
 
@@ -143,4 +144,57 @@ def get_directory(default=None):
     dialog.destroy()
     
     return ret
+
+def get_text(parent, message, default='', validator=None):
+    """
+    Display a dialog with a text entry.
+    Returns the text, or None if canceled.
     
+    Modified from http://stackoverflow.com/questions/8290740/
+    """
+    d = gtk.MessageDialog(parent,
+                          gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                          gtk.MESSAGE_QUESTION,
+                          gtk.BUTTONS_OK_CANCEL,
+                          message)
+    entry = gtk.Entry()
+    entry.set_text(default)
+    entry.show()
+    d.vbox.pack_end(entry)
+    entry.connect('activate', lambda _: d.response(gtk.RESPONSE_OK))
+    d.set_default_response(gtk.RESPONSE_OK)
+
+    while True:
+        r = d.run()
+        text = entry.get_text()
+    
+        if r != gtk.RESPONSE_OK:
+            text = None
+            break
+    
+        if validator is not None:
+            response = validator(text)
+            if response is not True:
+                d.format_secondary_markup('<b>ERROR</b>: <span foreground="red">%s</span>' % 
+                                          glib.markup_escape_text(response))
+                entry.grab_focus()
+                continue
+        break
+            
+    
+    d.destroy()
+    return text
+
+def show_error(parent, message):
+    '''Shows an error message to the user'''
+    dialog = gtk.MessageDialog(parent, type=gtk.MESSAGE_ERROR, buttons=gtk.BUTTONS_CLOSE)
+    dialog.set_property('text',message)
+    dialog.run()
+    dialog.destroy()
+    
+def yesno(parent, message):
+    '''Gets a Yes/No response from a user'''
+    dlg = gtk.MessageDialog(parent=parent, type=gtk.MESSAGE_QUESTION, buttons=gtk.BUTTONS_YES_NO, message_format=message)
+    response = dlg.run() 
+    dlg.destroy()
+    return response

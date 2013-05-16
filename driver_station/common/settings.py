@@ -118,7 +118,10 @@ class Settings(cp.RawConfigParser):
         section = '/'.join(options[:-1])
         key = options[-1]
         
-        return cp.RawConfigParser.remove_option(self, section, key)
+        retval = cp.RawConfigParser.remove_option(self, section, key)
+        self._dirty = True
+        
+        return retval
         
     def set(self, option, value):
         '''Sets an option to a specific value'''
@@ -167,7 +170,7 @@ has_option = _settings.has_option
 has_section = _settings.has_section
 items = _settings.items
 options = _settings.options
-remove_option = _settings.remove_section
+remove_option = _settings.remove_option
 sections = _settings.sections
 
 

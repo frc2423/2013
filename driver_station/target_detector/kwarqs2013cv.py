@@ -88,20 +88,7 @@ class TargetDetector(object):
     kOptimumHorizontalPosition = target_data.kOptimumHorizontalPosition
     
     kRatios = [kTopOuterRatio, kMidOuterRatio, kLowOuterRatio]
-    
-    kCompThreshHueP = 30
-    kCompThreshHueN = 75
-    kCompThreshSatP = 188
-    kCompThreshSatN = 255
-    kCompThreshValP = 16
-    kCompThreshValN = 255
-    
-    kPitThreshHueP = 45
-    kPitThreshHueN = 75
-    kPitThreshSatP = 200
-    kPitThreshSatN = 255
-    kPitThreshValP = 55
-    kPitThreshValN = 255
+
     
     def __init__(self):
         self.size = None
@@ -125,13 +112,7 @@ class TargetDetector(object):
         self.show_hangle = True
         self.show_targets = True
         
-        # thresholds
-        self.thresh_hue_p = settings.get('camera/thresh_hue_p', self.kCompThreshHueP)
-        self.thresh_hue_n = settings.get('camera/thresh_hue_n', self.kCompThreshHueN)
-        self.thresh_sat_p = settings.get('camera/thresh_sat_p', self.kCompThreshSatP)
-        self.thresh_sat_n = settings.get('camera/thresh_sat_n', self.kCompThreshSatN)
-        self.thresh_val_p = settings.get('camera/thresh_val_p', self.kCompThreshValP)
-        self.thresh_val_n = settings.get('camera/thresh_val_n', self.kCompThreshValN)
+        # thresholds are not initialized here, someone else does it
     
     def processImage(self, img):
         
