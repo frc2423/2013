@@ -51,7 +51,7 @@ feeder_sensor_channel = 4
 shooter_sensor_channel = 3
 
 # Digital channels
-compressor_switch = 1
+compressor_switch = 5
 
 # Solenoids
 valve1_channel = 2
