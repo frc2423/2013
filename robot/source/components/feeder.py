@@ -9,7 +9,7 @@ except:
 #
 '''Feeder motor polarity switched, so the motor ran backwards'''
 STOP_SPEED = 0
-FEED_SPEED = 0.7
+FEED_SPEED = 0.5
 REVERSE_SPEED = -1
 #
 #Frisbee Distances
@@ -49,7 +49,7 @@ ACT_STATE_STOP =3
 #
 #Timer
 #
-FEEDER_WAIT_TIME = .25
+FEEDER_WAIT_TIME = .5
 
 class Feeder():
     
@@ -181,11 +181,11 @@ class Feeder():
         #
             
         if self.feeder_state == STATE_FEEDING:
-            self.feed_motor.Set(STOP_SPEED)
+            self.feed_motor.Set(FEED_SPEED)
             self.feeder_state = STATE_STOPPED
             
         elif self.feeder_state == STATE_REVERSING:
-            self.feed_motor.Set(STOP_SPEED)
+            self.feed_motor.Set(REVERSE_SPEED)
             self.feeder_state = STATE_STOPPED
             
         elif self.feeder_state == STATE_STOPPED:
@@ -218,8 +218,9 @@ class Feeder():
         #print("Feeder", self.feeder_state, self.action_state)
         #wpilib.SmartDashboard.PutNumber('Feeder State', self.feeder_state)
         #wpilib.SmartDashboard.PutNumber('Action State', self.action_state)
-        wpilib.SmartDashboard.PutNumber('Feeder dist', self.feed_sensor.GetDistance())
-        wpilib.SmartDashboard.PutBoolean('Feeder covered', self.sensor_covered())
+        #wpilib.SmartDashboard.PutNumber('Frisbee dist', self.frisbee_sensor.GetDistance())
+        #wpilib.SmartDashboard.PutNumber('Feeder dist', self.feed_sensor.GetDistance())
+        #wpilib.SmartDashboard.PutBoolean('Feeder covered', self.sensor_covered())
     
     
         fs = self.get_frisbee_count()
