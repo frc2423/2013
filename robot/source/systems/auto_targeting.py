@@ -52,7 +52,7 @@ class AutoTargeting(object):
         # get angle
         hangle, vangle, distance = self.target_detector.get_data()
         
-        if abs(hangle) <= HTHRESHOLD and abs(vangle) <= VTHRESHOLD:
+        if hangle is not None and abs(hangle) <= HTHRESHOLD and abs(vangle) <= VTHRESHOLD:
             return True
         else:
             return False
