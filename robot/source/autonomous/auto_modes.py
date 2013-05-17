@@ -6,15 +6,7 @@ try:
     import wpilib 
 except ImportError:
     import fake_wpilib as wpilib
-    
 
-from components.driving import Driving
-from components.shooter_platform import ShooterPlatform
-from components.target_detector import TargetDetector
-
-from systems.shooter import Shooter
-from systems.auto_targeting import AutoTargeting
-from systems.robot_turner import RobotTurner
 
 class AutoModes(object):
     
@@ -112,44 +104,53 @@ class DumbMode(AutoModes):
         
     def on_enable(self):
         self.empty = False
-        self.at_max = False
         self.start = 0
+        self.target_found_times = 0
         
     def update(self, time_elapsed):
         ''' Assume sensors are broken and override regular update function'''
         
-        # turn the wheel on
-        if not self.empty:
-            self.shooter_platform.set_speed_manual(self.shooter_platform.WHEEL_SPEED_ON)
-            self.shooter_platform.set_angle_manual(self.shooter_platform.RAISE_ANGLE_SPEED)
+        # don't begin shooting until we find the target at least 3 times
+        if self.target_found_times < 4:
         
-        #raise shooter platform to max 
-        if not self.at_max:
+            target_in_range = self.auto_targeting.perform_targeting()
+        
+            # raise the platform so we can see the target
+            if not target_in_range:
+                self.shooter_platform.set_angle_auto(25.0)
             
-            if self.shooter_platform.at_max():
-                self.at_max = True
-                self.start = time_elapsed
-        else:
+            if self.auto_targeting.is_vertical_aimed():
+                self.target_found_times += 1
+            else:
+                self.target_found_times = 0
+        
+        # once we have found the target and its correct, don't move it anymore
+        if self.target_found_times >= 4:
+            
+            # turn the wheel on
+            if not self.empty:
+                self.shooter_platform.set_speed_manual(self.shooter_platform.WHEEL_SPEED_ON)
+            
             diff = time_elapsed - self.start
             
             # feed 3 times, once every 2 seconds
-            if diff > 2 and diff < 2.25:
+            if diff > 3 and diff < 3.25:
                 self.feeder.feed_auto()
                 
-            elif diff > 4 and diff < 4.25:
+            elif diff > 5 and diff < 5.25:
                 self.feeder.feed_auto()
                 
-            elif diff > 6 and diff < 6.25:
+            elif diff > 7 and diff < 7.25:
                 self.feeder.feed_auto()
                 
-            elif diff > 8 and diff < 8.25:
+            elif diff > 9 and diff < 9.25:
                 self.feeder.feed_auto()
                 
-            elif diff > 10 and diff < 10.25:
+            elif diff > 11 and diff < 11.25:
                 self.feeder.feed_auto()
                 
-            elif diff > 12 and diff < 12.25:
+            elif diff > 13 and diff < 13.25:
                 self.feeder.feed_auto()
                 
-            elif diff > 8:
+            elif diff > 10:
                 self.empty = True

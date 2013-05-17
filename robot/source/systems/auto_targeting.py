@@ -5,8 +5,8 @@ try:
 except ImportError: 
     import fake_wpilib as wpilib
 
-HTHRESHOLD = .5
-VTHRESHOLD = .5
+HTHRESHOLD = 5
+VTHRESHOLD = 2.5
 
 class AutoTargeting(object):
     
@@ -46,6 +46,14 @@ class AutoTargeting(object):
         self.shooter_platform.set_angle_auto(self.last_vangle)
         
         return True
+    
+    def is_vertical_aimed(self):
+        hangle, vangle, distance = self.target_detector.get_data()
+    
+        if vangle is not None and abs(vangle) <= VTHRESHOLD:
+            return True
+        else:
+            return False
     
     def is_aimed(self):
         ''' determine if we are actually aimed at the target '''
