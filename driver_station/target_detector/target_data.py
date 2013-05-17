@@ -48,8 +48,8 @@ kLowOuterRatio  = (kLowHeight + kTapeWidth*2)/(kLowWidth + kTapeWidth*2)  # 0.86
 kOptimumVerticalPosition = 0.7      # percent from top
 kOptimumHorizontalPosition = 0.5    # percent from left
 
-kThresholdV = 0.5
-kThresholdH = 1.0
+kThresholdV = 2.0
+kThresholdH = 2.0
 
 # target location types
 location = common.enum(TOP=0, 
