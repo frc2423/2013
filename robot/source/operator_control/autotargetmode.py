@@ -43,7 +43,7 @@ class AutoTargetMode(object):
         
         # Center shooter variable
         self.center_platfrom = True
-        self.center_angle = 12.5
+        self.center_angle = 20.0
         
         self.sd = wpilib.SmartDashboard
     
