@@ -45,7 +45,7 @@ kLowTgtHCenter  = kLowEdgeHeight + kLowHeight/2.0
 kLowInnerRatio  = kLowHeight/kLowWidth                                    # 0.827586206897 
 kLowOuterRatio  = (kLowHeight + kTapeWidth*2)/(kLowWidth + kTapeWidth*2)  # 0.864864864865
 
-kOptimumVerticalPosition = 0.7      # percent from top
+kOptimumVerticalPosition = 0.5      # percent from top
 kOptimumHorizontalPosition = 0.5    # percent from left
 
 kThresholdV = 2.0
@@ -62,7 +62,7 @@ location = common.enum(TOP=0,
 
 class Target(object):
     
-    def __init__(self, x, y, w, h, polygon, location, ratio):
+    def __init__(self, x, y, w, h, polygon, location, ratio, rotation):
         self.x = x
         self.y = y
         self.w = w
@@ -72,6 +72,7 @@ class Target(object):
         self.polygon = polygon
         self.location = location
         self.ratio = ratio
+        self.rotation = rotation
         
     def get_center(self):
         return self.cx, self.cy

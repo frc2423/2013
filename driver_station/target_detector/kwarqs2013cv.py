@@ -84,9 +84,6 @@ class TargetDetector(object):
     kUnkL = target_data.location.UNKNOWNL
     kUnkR = target_data.location.UNKNOWNR
     
-    kOptimumVerticalPosition = target_data.kOptimumVerticalPosition
-    kOptimumHorizontalPosition = target_data.kOptimumHorizontalPosition
-    
     kRatios = [kTopOuterRatio, kMidOuterRatio, kLowOuterRatio]
 
     
@@ -281,6 +278,7 @@ class TargetDetector(object):
             # detect that and fix it. 
             if (w > h and rh < rw) or (h > w and rw < rh):
                 rh, rw = rw, rh  # swap
+                rotation = -90.0 - rotation
             
             ratio = float(rw)/rh
             
@@ -364,7 +362,7 @@ class TargetDetector(object):
                 continue
             
             # store for hierarchical analysis 
-            ctargets[hidx] = target_data.Target(x, y, w, h, p.astype(np.int32), tgt, ratio)               
+            ctargets[hidx] = target_data.Target(x, y, w, h, p.astype(np.int32), tgt, ratio, rotation)               
                     
         #
         # ok, now that we have our target data gathered, prune it using the
@@ -534,7 +532,7 @@ class TargetDetector(object):
                 components.append(label)
                 
             if self.show_hangle:
-                components.append('%.1f' % target.hangle)
+                components.append('%.1fh/%.1fv' % (target.hangle, target.vangle))
                 
             if self.show_ratio_labels:
                 components.append('R%.3f' % target.ratio if target.ratio is not None else 'None')
@@ -585,9 +583,19 @@ class TargetDetector(object):
     
     def _set_measurements(self, iw, ih, target, tgt_center, centerOfImageY):
         
+        
+        # if the camera view is skewed, then our vangle should be lowered
+        diff = abs(abs(target.rotation)-90.0)*0.005
+        target.voptimum = target_data.kOptimumVerticalPosition - diff
+        
+        # TODO: fix the horizontal angle since that's skewed too
+        target.hoptimum = target_data.kOptimumHorizontalPosition 
+        
         # horizontal angle and vertical angle calculations from Youssef's code from 2012
-        target.hangle = (iw * self.kOptimumHorizontalPosition - target.cx) * self.kHorizontalFOVDeg / iw            
-        target.vangle = ((ih * self.kOptimumVerticalPosition) - target.cy) / (ih / self.kVerticalFOVDeg)
+        target.hangle = (iw * target.hoptimum - target.cx) * self.kHorizontalFOVDeg / iw            
+        target.vangle = ((ih * target.voptimum) - target.cy) / (ih / self.kVerticalFOVDeg)
+        
+        
 
         # Distance calculations from Stephen
 
