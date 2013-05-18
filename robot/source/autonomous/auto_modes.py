@@ -106,26 +106,39 @@ class DumbMode(AutoModes):
         self.empty = False
         self.start = 0
         self.target_found_times = 0
+        self.shoot_frisbees = False
         
     def update(self, time_elapsed):
         ''' Assume sensors are broken and override regular update function'''
         
         # don't begin shooting until we find the target at least 3 times
-        if self.target_found_times < 4:
+        if not self.shoot_frisbees:
         
             target_in_range = self.auto_targeting.perform_targeting()
         
             # raise the platform so we can see the target
             if not target_in_range:
-                self.shooter_platform.set_angle_auto(25.0)
+                self.shooter_platform.set_angle_auto(27.0)
             
             if self.auto_targeting.is_vertical_aimed():
                 self.target_found_times += 1
             else:
                 self.target_found_times = 0
+                
+            # evaluate conditions to start shooting frisbees
+                
+            if self.target_found_times >= 4:
+                self.start = time_elapsed
+                self.shoot_frisbees = True
+                
+            # if we can't find it after 6 seconds, then do it anyways, hopefully
+            # the angle is about right... 
+            if time_elapsed > 5.5:
+                self.start = time_elapsed
+                self.shoot_frisbees = True
         
         # once we have found the target and its correct, don't move it anymore
-        if self.target_found_times >= 4:
+        if self.shoot_frisbees:
             
             # turn the wheel on
             if not self.empty:
@@ -152,5 +165,5 @@ class DumbMode(AutoModes):
             elif diff > 13 and diff < 13.25:
                 self.feeder.feed_auto()
                 
-            elif diff > 10:
+            elif diff > 11:
                 self.empty = True
