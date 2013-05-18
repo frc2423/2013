@@ -86,8 +86,9 @@ class CameraSettings(object):
     kPitSettings = [45, 75, 200, 255, 55, 255]
     
     
-    def __init__(self, processor):
+    def __init__(self, processor, targeter):
         self.processor = processor
+        self.targeter = targeter
         
     def initialize(self):
         
@@ -211,13 +212,15 @@ class CameraSettings(object):
     
     def on_adj_aim_horizontal_value_changed(self, widget):
         value = widget.get_value() * 0.01
-        target_data.kOptimumHorizontalPosition = value
+        self.processor.detector.kOptimumHorizontalPosition = value
+        self.targeter.kOptimumHorizontalPosition = value
         settings.set('targeting/aim_horizontal', value)
         self.processor.refresh()
         
     def on_adj_aim_vertical_value_changed(self, widget):
         value = widget.get_value() * 0.01
-        target_data.kOptimumVerticalPosition = value
+        self.processor.detector.kOptimumVerticalPosition = value
+        self.targeter.kOptimumVerticalPosition = value
         settings.set('targeting/aim_vertical', value)
         self.processor.refresh()
             

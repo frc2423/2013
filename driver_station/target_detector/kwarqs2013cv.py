@@ -86,6 +86,8 @@ class TargetDetector(object):
     
     kRatios = [kTopOuterRatio, kMidOuterRatio, kLowOuterRatio]
 
+    kOptimumHorizontalPosition = target_data.kOptimumHorizontalPosition
+    kOptimumVerticalPosition = target_data.kOptimumVerticalPosition
     
     def __init__(self):
         self.size = None
@@ -586,10 +588,10 @@ class TargetDetector(object):
         
         # if the camera view is skewed, then our vangle should be lowered
         diff = abs(abs(target.rotation)-90.0)*0.005
-        target.voptimum = target_data.kOptimumVerticalPosition - diff
+        target.voptimum = self.kOptimumVerticalPosition - diff
         
         # TODO: fix the horizontal angle since that's skewed too
-        target.hoptimum = target_data.kOptimumHorizontalPosition 
+        target.hoptimum = self.kOptimumHorizontalPosition 
         
         # horizontal angle and vertical angle calculations from Youssef's code from 2012
         target.hangle = (iw * target.hoptimum - target.cx) * self.kHorizontalFOVDeg / iw            

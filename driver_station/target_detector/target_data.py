@@ -74,6 +74,9 @@ class Target(object):
         self.ratio = ratio
         self.rotation = rotation
         
+        self.hoptimum = None
+        self.voptimum = None
+        
     def get_center(self):
         return self.cx, self.cy
     

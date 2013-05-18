@@ -49,6 +49,9 @@ class Targeter(CvWidget):
     MIDDLE = target_data.location.MIDDLE
     LOW = target_data.location.LOW
     
+    kOptimumHorizontalPosition = target_data.kOptimumHorizontalPosition
+    kOptimumVerticalPosition = target_data.kOptimumVerticalPosition
+    
     def __init__(self, fixed_size, table):
         CvWidget.__init__(self, fixed_size)
         
@@ -181,8 +184,8 @@ class Targeter(CvWidget):
         else:
         
             # optimal shooting point
-            hw = int(target_data.kOptimumHorizontalPosition * ww)
-            vh = int(target_data.kOptimumVerticalPosition * wh)
+            hw = int(self.kOptimumHorizontalPosition * ww)
+            vh = int(self.kOptimumVerticalPosition * wh)
         
         # finally, draw lines indicating the optimal shooting
         
