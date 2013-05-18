@@ -173,10 +173,18 @@ class Targeter(CvWidget):
                 self.draw_contour(cxt, active_target.polygon, (r, g, b, 0.8), (r, g, b))
                 
             cxt.restore()
+            
+            # optimal shooting point
+            hw = int(active_target.hoptimum * ww)
+            vh = int(active_target.voptimum * wh)
+            
+        else:
+        
+            # optimal shooting point
+            hw = int(target_data.kOptimumHorizontalPosition * ww)
+            vh = int(target_data.kOptimumVerticalPosition * wh)
         
         # finally, draw lines indicating the optimal shooting
-        hw = int(target_data.kOptimumHorizontalPosition * ww)
-        vh = int(target_data.kOptimumVerticalPosition * wh)
         
         cxt.set_source_rgb(0.5, 0.5, 0.5)
         cxt.set_line_width(1)
