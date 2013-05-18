@@ -14,6 +14,12 @@ class Driving(object):
     def drive(self, speed, rotate, faster=False):
         '''Set driving parameters'''
         self.speed = speed
+        self.rotate = rotate * 0.85
+        self.faster = faster
+        
+    def drive_no_mod(self, speed, rotate, faster=False):
+        '''Set driving parameters'''
+        self.speed = speed
         self.rotate = rotate 
         self.faster = faster
        

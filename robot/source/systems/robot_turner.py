@@ -45,9 +45,9 @@ class RobotTurner(object):
                 rotate = tr
                 break
         
-        #print('angle', self.angle, 'rotate', rotate)
+        # in Boston regional, we were multiplying by 0.7. it works. 
         self.updated = True
-        self.driving.drive(0.0, -math.copysign(rotate, self.angle))
+        self.driving.drive_no_mod(0.0, -math.copysign(rotate, self.angle) * 0.7)
         
         
     def update(self):
