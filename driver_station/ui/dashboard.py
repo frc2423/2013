@@ -81,13 +81,14 @@ class Dashboard(object):
     
     def __init__(self, processor, table, competition):
         
-        self.camera_widget = util.replace_widget(self.camera_widget, targeter.Targeter((640,480), table))
-        
         self.processor = processor
-        self.camera_settings = camera_settings.CameraSettings(processor, self.camera_widget)
+        t = targeter.Targeter((640,480), table)
+        self.camera_settings = camera_settings.CameraSettings(processor, t)
         
         util.initialize_from_xml(self, [self.camera_settings])
         
+        self.camera_widget = util.replace_widget(self.camera_widget, t)
+
         self.robot_widget = util.replace_widget(self.robot_widget, robot_widget.RobotWidget(table))
 
         self.camera_settings.initialize()
