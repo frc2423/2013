@@ -18,6 +18,8 @@ from itertools import izip
 from common import settings
 import ui.util
 
+from target_detector import target_data
+
 import gtk
 
 class CameraSettings(object):
@@ -32,6 +34,8 @@ class CameraSettings(object):
         'adj_thresh_sat_n',
         'adj_thresh_val_p',
         'adj_thresh_val_n',
+        'adj_aim_horizontal',
+        'adj_aim_vertical',
         
         'thresh_selection_combo',
         'thresh_model',
@@ -51,6 +55,9 @@ class CameraSettings(object):
         'on_adj_thresh_sat_n_value_changed',
         'on_adj_thresh_val_p_value_changed',
         'on_adj_thresh_val_n_value_changed',
+        
+        'on_adj_aim_horizontal_value_changed',
+        'on_adj_aim_vertical_value_changed',
         
         'on_check_show_hue_p_toggled',
         'on_check_show_hue_n_toggled',
@@ -118,6 +125,13 @@ class CameraSettings(object):
                 self.thresh_selection_combo.set_active(i)
         
         self.thresh_selection_combo.handler_unblock_by_func(self.on_thresh_selection_combo_changed)
+        
+        # initialize aim height variable
+        aim_horizontal = settings.get('targeting/aim_horizontal', target_data.kOptimumHorizontalPosition)
+        self.adj_aim_horizontal.set_value(aim_horizontal * 100.0)
+        
+        aim_vertical = settings.get('targeting/aim_vertical', target_data.kOptimumVerticalPosition)
+        self.adj_aim_vertical.set_value(aim_vertical * 100.0)
     
     # 
     # Threshold setting management
@@ -193,7 +207,19 @@ class CameraSettings(object):
     on_adj_thresh_sat_p_value_changed = lambda self, w: self._on_thresh(w, 'thresh_sat_p')
     on_adj_thresh_sat_n_value_changed = lambda self, w: self._on_thresh(w, 'thresh_sat_n')
     on_adj_thresh_val_p_value_changed = lambda self, w: self._on_thresh(w, 'thresh_val_p')
-    on_adj_thresh_val_n_value_changed = lambda self, w: self._on_thresh(w, 'thresh_val_n')  
+    on_adj_thresh_val_n_value_changed = lambda self, w: self._on_thresh(w, 'thresh_val_n')
+    
+    def on_adj_aim_horizontal_value_changed(self, widget):
+        value = widget.get_value() * 0.01
+        target_data.kOptimumHorizontalPosition = value
+        settings.set('targeting/aim_horizontal', value)
+        self.processor.refresh()
+        
+    def on_adj_aim_vertical_value_changed(self, widget):
+        value = widget.get_value() * 0.01
+        target_data.kOptimumVerticalPosition = value
+        settings.set('targeting/aim_vertical', value)
+        self.processor.refresh()
             
     def on_check_show_hue_p_toggled(self, widget):
         self.processor.detector.show_hue = widget.get_active()

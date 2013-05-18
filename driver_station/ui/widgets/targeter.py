@@ -22,7 +22,7 @@ from cv_widget import CvWidget
 
 import threading
 
-import target_detector.target_data
+from target_detector import target_data
 
 import logging
 from common import logutil
@@ -43,14 +43,11 @@ class Targeter(CvWidget):
         'target-update': (gobject.SIGNAL_ACTION, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,)), 
     }
     
-    TOP = target_detector.target_data.location.TOP
-    LMIDDLE = target_detector.target_data.location.LMIDDLE
-    RMIDDLE = target_detector.target_data.location.RMIDDLE
-    MIDDLE = target_detector.target_data.location.MIDDLE
-    LOW = target_detector.target_data.location.LOW
-    
-    kOptimumHorizontalPosition = target_detector.target_data.kOptimumHorizontalPosition
-    kOptimumVerticalPosition = target_detector.target_data.kOptimumVerticalPosition
+    TOP = target_data.location.TOP
+    LMIDDLE = target_data.location.LMIDDLE
+    RMIDDLE = target_data.location.RMIDDLE
+    MIDDLE = target_data.location.MIDDLE
+    LOW = target_data.location.LOW
     
     def __init__(self, fixed_size, table):
         CvWidget.__init__(self, fixed_size)
@@ -178,8 +175,8 @@ class Targeter(CvWidget):
             cxt.restore()
         
         # finally, draw lines indicating the optimal shooting
-        hw = int(self.kOptimumHorizontalPosition * ww)
-        vh = int(self.kOptimumVerticalPosition * wh)
+        hw = int(target_data.kOptimumHorizontalPosition * ww)
+        vh = int(target_data.kOptimumVerticalPosition * wh)
         
         cxt.set_source_rgb(0.5, 0.5, 0.5)
         cxt.set_line_width(1)
@@ -241,10 +238,10 @@ class Targeter(CvWidget):
             
             glib.idle_add(self.queue_draw)
         
-    def set_target_data(self, target_data, error=False):
+    def set_target_data(self, data, error=False):
         '''This is called from another thread, so be careful'''
         
-        img, targets, cat_tgts = target_data
+        img, targets, cat_tgts = data
         
         with self.lock: 
             try:
