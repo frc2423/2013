@@ -17,7 +17,7 @@
 import gtk
 
 import util
-from widgets import targeter, camera_settings, robot_widget, image_button, toggle_button 
+from widgets import targeter, targeting_tuning_widget, robot_widget, image_button, toggle_button 
 
 from target_detector import target_data
 
@@ -68,6 +68,8 @@ class Dashboard(object):
         'auto_target_mid',
         'auto_target_low',
         
+        'targeting_tuning_widget',
+        
     ]
     ui_signals = [
         'on_cancel_targeting_button_clicked',
@@ -83,15 +85,16 @@ class Dashboard(object):
         
         self.processor = processor
         t = targeter.Targeter((640,480), table)
-        self.camera_settings = camera_settings.CameraSettings(processor, t)
+        self.targeting_tuner = targeting_tuning_widget.TargetingTuningWidget(processor, t)
         
-        util.initialize_from_xml(self, [self.camera_settings])
+        util.initialize_from_xml(self)
         
         self.camera_widget = util.replace_widget(self.camera_widget, t)
+        util.replace_widget(self.targeting_tuning_widget, self.targeting_tuner.get_widget())
 
         self.robot_widget = util.replace_widget(self.robot_widget, robot_widget.RobotWidget(table))
 
-        self.camera_settings.initialize()
+        self.targeting_tuner.initialize()
        
         self.table = table
         

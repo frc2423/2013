@@ -22,12 +22,16 @@ from target_detector import target_data
 
 import gtk
 
-class CameraSettings(object):
+class TargetingTuningWidget(object):
     '''
-        Camera debugging settings
+        Targeting debugging settings
     '''
     
+    ui_filename = 'targeting_tuning_widget.ui'
+    
     ui_widgets = [
+        'targeting_tuning_widget',
+                  
         'adj_thresh_hue_p',
         'adj_thresh_hue_n',
         'adj_thresh_sat_p',
@@ -90,6 +94,8 @@ class CameraSettings(object):
         self.processor = processor
         self.targeter = targeter
         
+        ui.util.initialize_from_xml(self)
+        
     def initialize(self):
         
         # store references to these so we don't have to do it later
@@ -133,6 +139,9 @@ class CameraSettings(object):
         
         aim_vertical = settings.get('targeting/aim_vertical', target_data.kOptimumVerticalPosition)
         self.adj_aim_vertical.set_value(aim_vertical * 100.0)
+        
+    def get_widget(self):
+        return self.targeting_tuning_widget
     
     # 
     # Threshold setting management
