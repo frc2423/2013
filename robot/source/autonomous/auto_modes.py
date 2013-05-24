@@ -118,7 +118,7 @@ class DumbMode(AutoModes):
         
             # raise the platform so we can see the target
             if not target_in_range:
-                self.shooter_platform.set_angle_auto(27.0)
+                self.shooter_platform.set_angle_auto(20.0)
             
             if self.auto_targeting.is_vertical_aimed():
                 self.target_found_times += 1
