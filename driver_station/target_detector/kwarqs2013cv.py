@@ -127,6 +127,9 @@ class TargetDetector(object):
             self.sat = np.empty((h, w, 1), dtype=np.uint8)
             self.val = np.empty((h, w, 1), dtype=np.uint8)
             
+            # for overlays
+            self.zeros = np.zeros((h, w, 1), dtype=np.bool)
+            
             # these settings should be adjusted according to the image size
             # and noise characteristics
             
@@ -200,7 +203,8 @@ class TargetDetector(object):
         cv2.bitwise_and(self.hue, self.bin, self.hue)
         
         if self.show_hue:
-            cv2.imshow('hue', self.hue)
+            # overlay green where the hue threshold is non-zero
+            img[np.dstack((self.zeros, self.hue != 0, self.zeros))] = 255
         
         # Saturation
         cv2.threshold(self.sat, self.thresh_sat_p, 255, type=cv2.THRESH_BINARY, dst=self.bin)
@@ -208,7 +212,8 @@ class TargetDetector(object):
         cv2.bitwise_and(self.sat, self.bin, self.sat)
         
         if self.show_sat:
-            cv2.imshow('sat', self.sat)
+            # overlay blue where the sat threshold is non-zero
+            img[np.dstack((self.sat != 0, self.zeros, self.zeros))] = 255
         
         # Value
         cv2.threshold(self.val, self.thresh_val_p, 255, type=cv2.THRESH_BINARY, dst=self.bin)
@@ -216,7 +221,8 @@ class TargetDetector(object):
         cv2.bitwise_and(self.val, self.bin, self.val)
         
         if self.show_val:
-            cv2.imshow('val', self.val)
+            # overlay red where the val threshold is non-zero
+            img[np.dstack((self.zeros, self.zeros, self.val != 0))] = 255
         
         # Combine the results to obtain our binary image which should for the most
         # part only contain pixels that we care about        
@@ -235,7 +241,7 @@ class TargetDetector(object):
         
         # overlay the binarized image on the displayed image, instead of a separate picture
         if self.show_bin_overlay:
-            img[cv2.cvtColor(self.bin, cv2.COLOR_GRAY2BGR) != 0] = 255
+            img[np.dstack((self.bin, self.bin, self.bin)) != 0] = 255
         
         if self.show_contours:
             cv2.drawContours(img, contours, -1, (255,0,0), thickness=self.kThickness, lineType=self.kLineType)
